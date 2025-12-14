@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DevHub.Core/DevHub.Core.csproj" />
+  <Project Path="DevHub.UI/DevHub.UI.csproj" />
+</Solution>
