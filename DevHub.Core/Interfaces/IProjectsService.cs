@@ -6,6 +6,6 @@ namespace DevHub.Core.Interfaces
     {
         IReadOnlyList<ProjectInfo> Projects { get; }
         IReadOnlyList<IDEInfo> IDEs { get; }
-        void Refresh();
+        Task RefreshAsync();
     }
 }
