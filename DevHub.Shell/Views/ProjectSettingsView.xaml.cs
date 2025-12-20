@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DevHub.UI.Views
+namespace DevHub.Shell.Views
 {
     /// <summary>
     /// Логика взаимодействия для ProjectSettingsView.xaml

@@ -4,7 +4,7 @@ using DevHub.Core.ViewModels;
 using DevHub.Modules.Projects.ViewModels;
 using System.Windows.Input;
 
-namespace DevHub.UI.ViewModels
+namespace DevHub.Shell.ViewModels
 {
     public class MainWindowViewModel : BaseViewModel
     {

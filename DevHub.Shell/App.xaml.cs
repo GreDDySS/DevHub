@@ -1,13 +1,13 @@
 ﻿using DevHub.Core.Interfaces;
 using DevHub.Infrastructure.Services;
-using DevHub.UI.ViewModels;
-using DevHub.UI.Views;
+using DevHub.Shell.ViewModels;
+using DevHub.Shell.Views;
 using DevHub.Modules.Projects.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using DevHub.Modules.Projects.Services;
 
-namespace DevHub.UI
+namespace DevHub.Shell
 {
     public partial class App : Application
     {

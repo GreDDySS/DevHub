@@ -1,7 +1,7 @@
-﻿using DevHub.UI.ViewModels;
+﻿using DevHub.Shell.ViewModels;
 using System.Windows;
 
-namespace DevHub.UI.Views
+namespace DevHub.Shell.Views
 {
     public partial class MainWindow : Window
     {

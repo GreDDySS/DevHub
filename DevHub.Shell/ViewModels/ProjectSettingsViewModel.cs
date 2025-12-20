@@ -4,7 +4,7 @@ using DevHub.Core.ViewModels;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
-namespace DevHub.UI.ViewModels
+namespace DevHub.Shell.ViewModels
 {
     public class ProjectSettingsViewModel : BaseViewModel
     {
