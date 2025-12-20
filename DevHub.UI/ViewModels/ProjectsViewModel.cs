@@ -9,29 +9,50 @@ namespace DevHub.UI.ViewModels
 {
     public class ProjectsViewModel : BaseViewModel
     {
+        public bool IsLoading { get; private set; }
+
+        private readonly IProjectsService _service;
+        private readonly IIDEOpener _ideOpener;
+        private readonly ISettingsService _settingsService;
         public ObservableCollection<ProjectCardViewModel> Projects { get; }
-        public ProjectSettings Settings { get; private set; }
 
-        public ProjectsViewModel(IProjectsService service, ProjectSettings settings)
+        public ProjectsViewModel(IProjectsService service, ISettingsService settingsService, IIDEOpener ideOpener)
         {
-            Settings = settings;
-            service.Refresh();
+            _service = service;
+            _settingsService = settingsService;
+            _ideOpener = ideOpener;
 
-            var ideOpener = new IDEOpener();
+            var currentSettings = _settingsService.LoadSettings();
 
             Projects = new ObservableCollection<ProjectCardViewModel>(
-                service.Projects.Select(p => new ProjectCardViewModel(p, service.IDEs, ideOpener, settings)));
+                _service.Projects.Select(p => 
+                new ProjectCardViewModel(p, _service.IDEs, _ideOpener, currentSettings)));
+
+            LoadProjects();
         }
 
-        public void UpdateSettings(IProjectsService service, ProjectSettings newSettings)
+        private async void LoadProjects()
         {
-            Settings = newSettings;
-            service.Refresh();
+            IsLoading = true;
+
+            await _service.RefreshAsync();
+            UpdateList();
+
+            IsLoading = false;
+        }
+
+        public void UpdateSettings()
+        {
+            _service.RefreshAsync();
+            UpdateList();
+        }
+        public async void UpdateList()
+        {
+            var currentSettings = _settingsService.LoadSettings();
             Projects.Clear();
-            var ideOpener = new IDEOpener();
-            foreach (var p in service.Projects)
+            foreach (var p in _service.Projects)
             {
-                Projects.Add(new ProjectCardViewModel(p, service.IDEs, ideOpener, newSettings));
+                Projects.Add(new ProjectCardViewModel(p, _service.IDEs, _ideOpener, currentSettings));
             }
         }
     }

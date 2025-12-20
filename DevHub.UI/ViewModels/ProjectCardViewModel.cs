@@ -12,7 +12,7 @@ namespace DevHub.UI.ViewModels
         public string Language => Project.Language;
         public string ProjPath => Project.Path;
         public string Description => Project.Description;
-        public DateTime LastModified => Project.LastModifided;
+        public DateTime LastModified => Project.LastModified;
         
         public ProjectInfo Project { get; }
         public IEnumerable<IDEInfo> IDEs { get; }
