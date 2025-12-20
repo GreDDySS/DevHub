@@ -1,7 +1,7 @@
 ﻿using DevHub.Core.Interfaces;
 using DevHub.Core.Models;
-using DevHub.Core.Services;
-using DevHub.UI.Base;
+using DevHub.Core.ViewModels;
+using DevHub.Modules.Projects.ViewModels;
 using System.Windows.Input;
 
 namespace DevHub.UI.ViewModels

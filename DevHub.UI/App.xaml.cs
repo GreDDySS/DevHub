@@ -1,9 +1,11 @@
 ﻿using DevHub.Core.Interfaces;
-using DevHub.Core.Services;
+using DevHub.Infrastructure.Services;
 using DevHub.UI.ViewModels;
 using DevHub.UI.Views;
+using DevHub.Modules.Projects.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
+using DevHub.Modules.Projects.Services;
 
 namespace DevHub.UI
 {

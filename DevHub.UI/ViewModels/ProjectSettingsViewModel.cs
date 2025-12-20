@@ -1,6 +1,6 @@
 ﻿using DevHub.Core.Interfaces;
 using DevHub.Core.Models;
-using DevHub.UI.Base;
+using DevHub.Core.ViewModels;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
