@@ -8,22 +8,9 @@ namespace DevHub.UI.ViewModels
 {
     public class MainWindowViewModel : BaseViewModel
     {
+        private readonly IProjectsService _projectsService;
         private readonly ISettingsService _settingsService;
-        private ProjectSettings _settings;
-
-        public ProjectsViewModel ProjectsVM { get; }
-
-        private ProjectSettingsViewModel? _settingsVM;
-
-        public ProjectSettingsViewModel? SettingsVM
-        {
-            get => _settingsVM;
-            private set
-            {
-                _settingsVM = value;
-                OnPropertyChanged();
-            }
-        }
+        private readonly IIDEOpener _ideOpener;
 
         private bool _isSettingsOpen;
         public bool IsSettingsOpen
@@ -36,55 +23,65 @@ namespace DevHub.UI.ViewModels
             }
         }
 
+        public ProjectsViewModel ProjectsVM { get; private set; }
+
+        private ProjectSettingsViewModel? _settingsVM;
+
+        public ProjectSettingsViewModel? SettingsVM
+        {
+            get => _settingsVM;
+            private set
+            {
+                _settingsVM = value;
+                OnPropertyChanged();
+            }
+        }
         public ICommand OpenSettingsCommand { get; }
 
-        public MainWindowViewModel()
+
+        public MainWindowViewModel(IProjectsService projectsService, ISettingsService settingsService, IIDEOpener ideOpener)
         {
-            _settingsService = new SettingsService();
-            _settings = _settingsService.LoadSettings();
+            _projectsService = projectsService;
+            _settingsService = settingsService;
+            _ideOpener = ideOpener;
 
-            var scanner = new ProjectsScanner();
-            var service = new ProjectsService(scanner, _settings);
-
-            ProjectsVM = new ProjectsViewModel(service, _settings);
+            ProjectsVM = new ProjectsViewModel(_projectsService, _settingsService, _ideOpener);
 
             OpenSettingsCommand = new RelayCommand(OpenSettings);
         }
 
         private void OpenSettings()
         {
-            SettingsVM = new ProjectSettingsViewModel(_settingsService, _settings);
+            var currentSettings = _settingsService.LoadSettings();
+
+            SettingsVM = new ProjectSettingsViewModel(_settingsService ,currentSettings);
+
             SettingsVM.SettingsSaved += OnSettingsSaved;
             SettingsVM.SettingsCancelled += OnSettingsCancelled;
+
             IsSettingsOpen = true;
         }
 
         private void OnSettingsSaved(ProjectSettings newSettings)
         {
-            _settings = newSettings;
-            var scanner = new ProjectsScanner();
-            var service = new ProjectsService(scanner, _settings);
-            ProjectsVM.UpdateSettings(service, _settings);
-
-            if (SettingsVM != null)
-            {
-                SettingsVM.SettingsSaved -= OnSettingsSaved;
-                SettingsVM.SettingsCancelled -= OnSettingsCancelled;
-            }
-
-            IsSettingsOpen = false;
-            SettingsVM = null;
+            ProjectsVM.UpdateSettings();
+            CloseSettings();
         }
 
         private void OnSettingsCancelled()
         {
+            CloseSettings();
+        }
+
+        private void CloseSettings()
+        {
+            IsSettingsOpen = false;
+
             if (SettingsVM != null)
             {
                 SettingsVM.SettingsSaved -= OnSettingsSaved;
                 SettingsVM.SettingsCancelled -= OnSettingsCancelled;
             }
-
-            IsSettingsOpen = false;
             SettingsVM = null;
         }
     }
