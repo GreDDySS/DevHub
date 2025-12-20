@@ -12,4 +12,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if not exist &quot;$(SolutionDir)DevHub.Shell\bin\$(Configuration)\$(TargetFramework)\Modules&quot; mkdir &quot;$(SolutionDir)DevHub.Shell\bin\$(Configuration)\$(TargetFramework)\Modules&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(SolutionDir)DevHub.Shell\bin\$(Configuration)\$(TargetFramework)\Modules\&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;$(SolutionDir)DevHub.Shell\bin\$(Configuration)\$(TargetFramework)\Modules\&quot;" />
+  </Target>
+
 </Project>
