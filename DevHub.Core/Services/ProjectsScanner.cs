@@ -1,4 +1,4 @@
-п»їusing DevHub.Core.Models;
+using DevHub.Core.Models;
 using DevHub.Core.Interfaces;
 using System.Diagnostics;
 
@@ -6,65 +6,69 @@ namespace DevHub.Core.Services
 {
     public class ProjectsScanner : IProjectsScanner
     {
-        public List<ProjectInfo> Scan(ProjectSettings settings)
+        public async Task<List<ProjectInfo>> ScanAsync(ProjectSettings settings)
+        {
+            return await Task.Run(() => ScanInterval(settings));
+        }
+
+        private List<ProjectInfo> ScanInterval(ProjectSettings settings)
         {
             var projects = new List<ProjectInfo>();
 
-            foreach (var root in settings.ScanPath)
+            var otions = new EnumerationOptions
             {
-                if (Directory.Exists(root))
-                    ScanDerectory(root, settings, projects);
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true,
+                MaxRecursionDepth = 6,
+                ReturnSpecialDirectories = false
+            };
 
-                
-            }
-
-            return projects;
-        }
-
-        private void ScanDerectory(string directory, ProjectSettings settings, List<ProjectInfo> projects)
-        {
-            try
+            foreach (var rootPath in settings.ScanPath)
             {
-                var dirName = Path.GetFileName(directory);
-
-                if (settings.IgnoredDirectories.Any(d => d.Equals(dirName, StringComparison.OrdinalIgnoreCase))) return;
+                if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
+                    continue;
 
                 foreach (var ext in settings.FileExtension)
                 {
-                    var files = Directory.GetFiles(directory, $"*{ext}", SearchOption.TopDirectoryOnly);
-
-                    if (files.Length > 0)
+                    try
                     {
-                        var file = files[0];
-                        var info = new FileInfo(file);
+                        var files = Directory.EnumerateFiles(rootPath, $"*{ext}", otions);
 
-                        projects.Add(new ProjectInfo
+                        foreach (var file in files)
                         {
-                            Name = new DirectoryInfo(directory).Name,
-                            Path = directory,
-                            Language = DetectLanguage(ext),
-                            LastModifided = info.LastWriteTime
-                        });
+                            var dir = Path.GetDirectoryName(file);
+                            var dirName = Path.GetFileName(dir);
 
-                        return;
+                            if (settings.IgnoredDirectories.Contains(dirName, StringComparer.OrdinalIgnoreCase))
+                                continue;
+
+                            projects.Add(new ProjectInfo
+                            {
+                                Name = dirName ?? "Unknown",
+                                Path = dir ?? rootPath,
+                                Description = "Найдено сканером",
+                                Language = DetectLanguage(ext),
+                                LastModified = File.GetLastWriteTime(file)
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error scanning {rootPath}: {ex.Message}");
                     }
                 }
-
-                foreach (var subDir in Directory.GetDirectories(directory))
-                {
-                    ScanDerectory(subDir, settings, projects);
-                }
             }
-            catch (UnauthorizedAccessException) { }
+
+            return projects.GroupBy(p => p.Path).Select(g => g.First()).ToList();
         }
 
-        public string DetectLanguage(string ext) =>
-            ext switch
-            {
-                ".sln" or ".csproj" => "C#",
-                ".py" => "Python",
-                ".js" => "JS",
-                _ => "Unknown"
-            };
+        public string DetectLanguage(string ext) => ext switch
+        {
+            ".sln" or ".csproj" => "C#",
+            ".py" => "Python",
+            ".js" or ".ts" => "JavaScript",
+            ".cpp" or ".h" => "C++",
+            _ => "Unknown"
+        };
     }
 }
