@@ -4,6 +4,6 @@ namespace DevHub.Core.Interfaces
 {
     public interface IProjectsScanner
     {
-        List<ProjectInfo> Scan(ProjectSettings settings);
+        Task<List<ProjectInfo>> ScanAsync(ProjectSettings settings);
     }
 }
