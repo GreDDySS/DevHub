@@ -1,9 +1,8 @@
 ﻿using DevHub.Core.Interfaces;
 using DevHub.Core.Models;
 using System.Diagnostics;
-using System.IO;
 
-namespace DevHub.Infrastructure.Services
+namespace DevHub.Core.Services
 {
     public class IDEOpener : IIDEOpener
     {

@@ -1,9 +1,8 @@
 using DevHub.Core.Models;
 using DevHub.Core.Interfaces;
 using System.Diagnostics;
-using System.IO;
 
-namespace DevHub.Infrastructure.Services
+namespace DevHub.Core.Services
 {
     public class ProjectsScanner : IProjectsScanner
     {

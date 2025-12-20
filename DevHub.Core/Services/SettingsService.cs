@@ -1,9 +1,8 @@
 ﻿using DevHub.Core.Interfaces;
 using DevHub.Core.Models;
-using System.IO;
 using System.Text.Json;
 
-namespace DevHub.Infrastructure.Services
+namespace DevHub.Core.Services
 {
     public class SettingsService : ISettingsService
     {
