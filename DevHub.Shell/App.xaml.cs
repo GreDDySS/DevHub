@@ -1,11 +1,11 @@
 ﻿using DevHub.Core.Interfaces;
+using DevHub.Infrastructure;
 using DevHub.Infrastructure.Services;
+using DevHub.Modules.Projects;
 using DevHub.Shell.ViewModels;
 using DevHub.Shell.Views;
-using DevHub.Modules.Projects.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
-using DevHub.Modules.Projects.Services;
 
 namespace DevHub.Shell
 {
@@ -22,19 +22,14 @@ namespace DevHub.Shell
         {
             var services = new ServiceCollection();
 
-            services.AddSingleton<ISettingsService, SettingsService>();
-
-            services.AddSingleton<IProjectsScanner, ProjectsScanner>();
-            services.AddSingleton<IProjectsService, ProjectsService>();
-            services.AddTransient<IIDEOpener, IDEOpener>();
-
 
             services.AddSingleton<MainWindowViewModel>();
             services.AddTransient<ProjectSettingsViewModel>();
-            services.AddTransient<ProjectsViewModel>();
             
             services.AddSingleton<MainWindow>();
 
+            var loader = new ModuleLoader(AppDomain.CurrentDomain.BaseDirectory);
+            loader.LoadModules(services);
 
             return services.BuildServiceProvider();
         }
@@ -42,6 +37,12 @@ namespace DevHub.Shell
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            var modules = Services.GetServices<IModule>();
+            foreach (var module in modules)
+            {
+                module.OnInitialized(Services);
+            }
 
             var mainWindow = Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
