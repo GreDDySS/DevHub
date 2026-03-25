@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="DevHub.Core/DevHub.Core.csproj" />
-  <Project Path="DevHub.Infrastructure/DevHub.Infrastructure.csproj" />
-  <Project Path="DevHub.Modules.Projects/DevHub.Modules.Projects.csproj" />
-  <Project Path="DevHub.Shell/DevHub.Shell.csproj" />
-</Solution>
