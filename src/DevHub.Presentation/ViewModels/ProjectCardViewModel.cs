@@ -1,17 +1,22 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
 using DevHub.Domain.Enums;
+using DevHub.Domain.Interfaces;
 using DevHub.Presentation.Base;
 
 namespace DevHub.Presentation.ViewModels;
 
 public partial class ProjectCardViewModel : BaseUserControlViewModel
 {
+    private readonly IProcessLauncher _processLauncher;
+
     public ProjectDto Dto { get; }
 
-    public ProjectCardViewModel(ProjectDto dto)
+    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher)
     {
         Dto = dto;
+        _processLauncher = processLauncher;
     }
 
     public Guid Id => Dto.Id;
@@ -49,4 +54,43 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     };
 
     public string FormattedUpdatedAt => UpdatedAt.ToString("dd.MM.yyyy HH:mm");
+
+    [RelayCommand]
+    private void OpenInExplorer()
+    {
+        try
+        {
+            _processLauncher.OpenInExplorer(Path);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            HasError = true;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenInIde()
+    {
+        try
+        {
+            var idePath = string.IsNullOrEmpty(PreferredIde)
+                ? Infrastructure.Services.ProcessLauncher.DetectIde()
+                : PreferredIde;
+
+            if (string.IsNullOrEmpty(idePath))
+            {
+                ErrorMessage = "No IDE configured. Set PreferredIde in project settings.";
+                HasError = true;
+                return;
+            }
+
+            _processLauncher.OpenInIde(idePath, Path);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            HasError = true;
+        }
+    }
 }

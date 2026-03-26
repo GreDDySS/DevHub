@@ -139,6 +139,22 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="📁 Explorer"
+                                            Command="{Binding OpenInExplorerCommand}"
+                                            FontSize="11"
+                                            Padding="8,4"
+                                            Margin="0,0,8,0" />
+                                    <Button Content="💻 IDE"
+                                            Command="{Binding OpenInIdeCommand}"
+                                            FontSize="11"
+                                            Padding="8,4" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Foreground="#C62828"
+                                           FontSize="11"
+                                           Margin="0,4,0,0"
+                                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>

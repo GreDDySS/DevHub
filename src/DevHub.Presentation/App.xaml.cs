@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DevHub.Application.Interfaces;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Interfaces;
+using DevHub.Infrastructure.Services;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Registry;
 using DevHub.Presentation.Services;
@@ -23,6 +24,9 @@ public partial class App : System.Windows.Application
         // Repositories
         services.AddSingleton<IProjectRepository, JsonProjectRepository>();
         services.AddSingleton<ILinkRepository, JsonLinkRepository>();
+
+        // Services
+        services.AddSingleton<IProcessLauncher, ProcessLauncher>();
 
         // Use Cases
         services.AddSingleton<GetAllProjectsUseCase>();

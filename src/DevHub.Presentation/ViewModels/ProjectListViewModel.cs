@@ -5,6 +5,7 @@ using DevHub.Application.DTOs;
 using DevHub.Application.Interfaces;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
+using DevHub.Domain.Interfaces;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
 
@@ -15,12 +16,17 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 {
     private readonly GetAllProjectsUseCase _getAllProjects;
     private readonly IWindowService _windowService;
+    private readonly IProcessLauncher _processLauncher;
     private readonly Timer _debounceTimer;
 
-    public ProjectListViewModel(GetAllProjectsUseCase getAllProjects, IWindowService windowService)
+    public ProjectListViewModel(
+        GetAllProjectsUseCase getAllProjects,
+        IWindowService windowService,
+        IProcessLauncher processLauncher)
     {
         _getAllProjects = getAllProjects;
         _windowService = windowService;
+        _processLauncher = processLauncher;
         _debounceTimer = new Timer(_ => _ = LoadProjectsAsync(), null, Timeout.Infinite, Timeout.Infinite);
         _ = LoadProjectsAsync();
     }
@@ -50,7 +56,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
             Projects.Clear();
             foreach (var p in projects)
-                Projects.Add(new ProjectCardViewModel(p));
+                Projects.Add(new ProjectCardViewModel(p, _processLauncher));
 
             UpdateCounts();
         });
