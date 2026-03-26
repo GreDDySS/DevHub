@@ -8,6 +8,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -29,9 +30,19 @@
                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                         Width="300"
                         Margin="0,0,10,0" />
-            <ComboBox ItemsSource="{Binding LinkTypes}"
-                      SelectedItem="{Binding TypeFilter}"
-                      Width="150" />
+            <ComboBox SelectedIndex="{Binding SelectedTypeIndex}"
+                      Width="150"
+                      Margin="0,0,10,0">
+                <ComboBoxItem Content="All types" IsSelected="True" />
+                <ComboBoxItem Content="YouTube" />
+                <ComboBoxItem Content="Article" />
+                <ComboBoxItem Content="Repository" />
+                <ComboBoxItem Content="Documentation" />
+                <ComboBoxItem Content="Other" />
+            </ComboBox>
+            <Button Content="Reset"
+                    Command="{Binding ResetFiltersCommand}"
+                    Padding="10,4" />
         </StackPanel>
 
         <!-- Hint -->
@@ -42,7 +53,7 @@
                    Margin="0,0,0,10" />
 
         <!-- Empty State -->
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="4"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
                     Visibility="{Binding Links.Count, Converter={StaticResource CountToVisibilityConverter}}">
@@ -57,7 +68,7 @@
         </StackPanel>
 
         <!-- Link List -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Links}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type domain:Link}">
@@ -121,7 +132,7 @@
         </ScrollViewer>
 
         <!-- Loading -->
-        <Grid Grid.Row="3" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Grid Grid.Row="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <hc:LoadingLine />
         </Grid>
     </Grid>

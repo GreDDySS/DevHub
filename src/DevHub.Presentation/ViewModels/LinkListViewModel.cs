@@ -14,10 +14,12 @@ namespace DevHub.Presentation.ViewModels;
 public partial class LinkListViewModel : BaseUserControlViewModel
 {
     private readonly ILinkRepository _repository;
+    private readonly System.Threading.Timer _debounceTimer;
 
     public LinkListViewModel(ILinkRepository repository)
     {
         _repository = repository;
+        _debounceTimer = new System.Threading.Timer(_ => _ = LoadLinksAsync(), null, Timeout.Infinite, Timeout.Infinite);
         _ = LoadLinksAsync();
     }
 
@@ -28,12 +30,10 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
-    private LinkType? _typeFilter;
+    private int _selectedTypeIndex = -1;
 
     [ObservableProperty]
     private int _totalCount;
-
-    public Array LinkTypes => Enum.GetValues<LinkType>();
 
     [RelayCommand]
     private async Task LoadLinksAsync()
@@ -48,8 +48,11 @@ public partial class LinkListViewModel : BaseUserControlViewModel
                     (l.Title?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false))
                     .ToList();
 
-            if (_typeFilter is not null)
-                links = links.Where(l => l.Type == _typeFilter).ToList();
+            if (SelectedTypeIndex >= 0)
+            {
+                var filterType = (LinkType)SelectedTypeIndex;
+                links = links.Where(l => l.Type == filterType).ToList();
+            }
 
             Links.Clear();
             foreach (var link in links.OrderByDescending(l => l.CapturedAt))
@@ -76,12 +79,19 @@ public partial class LinkListViewModel : BaseUserControlViewModel
         catch { }
     }
 
-    partial void OnSearchQueryChanged(string value)
+    [RelayCommand]
+    private void ResetFilters()
     {
-        _ = LoadLinksAsync();
+        SearchQuery = string.Empty;
+        SelectedTypeIndex = -1;
     }
 
-    partial void OnTypeFilterChanged(LinkType? value)
+    partial void OnSearchQueryChanged(string value)
+    {
+        _debounceTimer.Change(300, Timeout.Infinite);
+    }
+
+    partial void OnSelectedTypeIndexChanged(int value)
     {
         _ = LoadLinksAsync();
     }
