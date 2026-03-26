@@ -1,7 +1,8 @@
 <UserControl x:Class="DevHub.Presentation.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:hc="https://handyorg.github.io/handycontrol">
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:storage="clr-namespace:DevHub.Infrastructure.Storage;assembly=DevHub.Infrastructure">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -20,48 +21,53 @@
         <!-- IDE Section -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock Text="IDE Configuration"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,16" />
-
-                <!-- VS Code -->
-                <TextBlock Text="VS Code" FontWeight="SemiBold" Margin="0,0,0,4" />
-                <DockPanel Margin="0,0,0,12">
-                    <Button DockPanel.Dock="Right"
-                            Content="Browse..."
-                            Command="{Binding BrowseVsCodeCommand}"
-                            Margin="8,0,0,0" />
-                    <hc:TextBox hc:InfoElement.Placeholder="Path to Code.exe"
-                                Text="{Binding Settings.VsCodePath, UpdateSourceTrigger=PropertyChanged}" />
+                <DockPanel Margin="0,0,0,16">
+                    <TextBlock Text="IDE Configuration"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Auto-detect"
+                                Command="{Binding AutoDetectCommand}"
+                                Margin="0,0,8,0"
+                                Padding="10,4" />
+                        <Button Content="+"
+                                Command="{Binding AddIdeCommand}"
+                                Padding="10,4" />
+                    </StackPanel>
                 </DockPanel>
 
-                <!-- Visual Studio -->
-                <TextBlock Text="Visual Studio" FontWeight="SemiBold" Margin="0,0,0,4" />
-                <DockPanel Margin="0,0,0,12">
-                    <Button DockPanel.Dock="Right"
-                            Content="Browse..."
-                            Command="{Binding BrowseVisualStudioCommand}"
-                            Margin="8,0,0,0" />
-                    <hc:TextBox hc:InfoElement.Placeholder="Path to devenv.exe"
-                                Text="{Binding Settings.VisualStudioPath, UpdateSourceTrigger=PropertyChanged}" />
-                </DockPanel>
+                <ItemsControl ItemsSource="{Binding Ides}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type storage:IdeEntry}">
+                            <DockPanel Margin="0,0,0,8">
+                                <RadioButton DockPanel.Dock="Left"
+                                             Margin="0,0,8,0"
+                                             VerticalAlignment="Center"
+                                             GroupName="DefaultIde" />
+                                <Button DockPanel.Dock="Right"
+                                        Content="Remove"
+                                        Margin="8,0,0,0"
+                                        Padding="8,2"
+                                        Command="{Binding DataContext.RemoveIdeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <TextBlock Text="{Binding Name}"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0" />
+                                <TextBlock Text="{Binding Path}"
+                                           Foreground="#888"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-                <!-- Rider -->
-                <TextBlock Text="Rider" FontWeight="SemiBold" Margin="0,0,0,4" />
-                <DockPanel Margin="0,0,0,12">
-                    <Button DockPanel.Dock="Right"
-                            Content="Browse..."
-                            Command="{Binding BrowseRiderCommand}"
-                            Margin="8,0,0,0" />
-                    <hc:TextBox hc:InfoElement.Placeholder="Path to rider64.exe"
-                                Text="{Binding Settings.RiderPath, UpdateSourceTrigger=PropertyChanged}" />
-                </DockPanel>
-
-                <Button Content="Auto-detect IDEs"
-                        Command="{Binding AutoDetectCommand}"
-                        Margin="0,8,0,0"
-                        HorizontalAlignment="Left" />
+                <TextBlock Text="No IDEs configured. Click Auto-detect or + to add."
+                           Foreground="#999"
+                           FontStyle="Italic"
+                           Visibility="{Binding Ides.Count, Converter={StaticResource CountToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 

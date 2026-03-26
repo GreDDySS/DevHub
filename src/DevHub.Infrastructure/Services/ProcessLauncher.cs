@@ -44,19 +44,4 @@ public class ProcessLauncher : IProcessLauncher
             UseShellExecute = true
         });
     }
-
-    public static string DetectIde()
-    {
-        var candidates = new[]
-        {
-            @"C:\Program Files\Microsoft VS Code\Code.exe",
-            @"C:\Program Files (x86)\Microsoft VS Code\Code.exe",
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                @"Programs\Microsoft VS Code\Code.exe"),
-            @"C:\Program Files\JetBrains\Rider\bin\rider64.exe",
-            @"C:\Program Files\JetBrains\IntelliJ IDEA\bin\idea64.exe"
-        };
-
-        return candidates.FirstOrDefault(File.Exists) ?? string.Empty;
-    }
 }

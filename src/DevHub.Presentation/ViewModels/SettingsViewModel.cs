@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
@@ -24,16 +26,21 @@ public partial class SettingsViewModel : BaseUserControlViewModel
         _autostartService = autostartService;
         _windowService = windowService;
         Settings = _settingsStore.Load();
+        Ides = new ObservableCollection<IdeEntry>(Settings.Ides);
     }
 
     [ObservableProperty]
     private AppSettings _settings;
+
+    [ObservableProperty]
+    private ObservableCollection<IdeEntry> _ides;
 
     [RelayCommand]
     private void Save()
     {
         try
         {
+            Settings.Ides = Ides.ToList();
             _autostartService.SetEnabled(Settings.AutostartEnabled);
             _settingsStore.Save(Settings);
             _windowService.ShowNotification("Settings", "Settings saved successfully");
@@ -46,33 +53,38 @@ public partial class SettingsViewModel : BaseUserControlViewModel
     }
 
     [RelayCommand]
-    private void BrowseVsCode()
+    private void AddIde()
     {
         var path = _windowService.OpenFileDialog("Executables (*.exe)|*.exe");
-        if (path is not null) Settings.VsCodePath = path;
+        if (path is null) return;
+
+        var name = Path.GetFileNameWithoutExtension(path);
+        Ides.Add(new IdeEntry(name, path));
     }
 
     [RelayCommand]
-    private void BrowseVisualStudio()
+    private void RemoveIde(IdeEntry entry)
     {
-        var path = _windowService.OpenFileDialog("Executables (*.exe)|*.exe");
-        if (path is not null) Settings.VisualStudioPath = path;
-    }
+        Ides.Remove(entry);
 
-    [RelayCommand]
-    private void BrowseRider()
-    {
-        var path = _windowService.OpenFileDialog("Executables (*.exe)|*.exe");
-        if (path is not null) Settings.RiderPath = path;
+        if (Settings.DefaultIdeIndex >= Ides.Count)
+            Settings.DefaultIdeIndex = Math.Max(0, Ides.Count - 1);
     }
 
     [RelayCommand]
     private void AutoDetect()
     {
-        var defaults = AppSettings.DetectDefaults();
-        if (!string.IsNullOrEmpty(defaults.VsCodePath))
-            Settings.VsCodePath = defaults.VsCodePath;
-        if (!string.IsNullOrEmpty(defaults.RiderPath))
-            Settings.RiderPath = defaults.RiderPath;
+        var scanner = new IdeScanner();
+        var detected = scanner.Scan();
+
+        var existing = Ides.Select(i => i.Path).ToHashSet();
+        foreach (var ide in detected)
+        {
+            if (!existing.Contains(ide.Path))
+                Ides.Add(ide);
+        }
+
+        if (Ides.Count > 0 && Settings.DefaultIdeIndex >= Ides.Count)
+            Settings.DefaultIdeIndex = 0;
     }
 }

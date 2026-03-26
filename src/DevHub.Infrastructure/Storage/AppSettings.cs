@@ -4,28 +4,20 @@ namespace DevHub.Infrastructure.Storage;
 
 public class AppSettings : ObservableObject
 {
-    private string _vsCodePath = string.Empty;
+    private List<IdeEntry> _ides = [];
 
-    public string VsCodePath
+    public List<IdeEntry> Ides
     {
-        get => _vsCodePath;
-        set => SetProperty(ref _vsCodePath, value);
+        get => _ides;
+        set => SetProperty(ref _ides, value);
     }
 
-    private string _visualStudioPath = string.Empty;
+    private int _defaultIdeIndex;
 
-    public string VisualStudioPath
+    public int DefaultIdeIndex
     {
-        get => _visualStudioPath;
-        set => SetProperty(ref _visualStudioPath, value);
-    }
-
-    private string _riderPath = string.Empty;
-
-    public string RiderPath
-    {
-        get => _riderPath;
-        set => SetProperty(ref _riderPath, value);
+        get => _defaultIdeIndex;
+        set => SetProperty(ref _defaultIdeIndex, value);
     }
 
     private bool _autostartEnabled;
@@ -47,23 +39,11 @@ public class AppSettings : ObservableObject
     public static AppSettings DetectDefaults()
     {
         var settings = new AppSettings();
+        var scanner = new IdeScanner();
+        settings.Ides = scanner.Scan();
 
-        var vsCodePaths = new[]
-        {
-            @"C:\Program Files\Microsoft VS Code\Code.exe",
-            @"C:\Program Files (x86)\Microsoft VS Code\Code.exe",
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                @"Programs\Microsoft VS Code\Code.exe")
-        };
-        settings.VsCodePath = vsCodePaths.FirstOrDefault(File.Exists) ?? string.Empty;
-
-        var riderPaths = new[]
-        {
-            @"C:\Program Files\JetBrains\Rider\bin\rider64.exe",
-            @"C:\Program Files\JetBrains\Rider 2024.3\bin\rider64.exe",
-            @"C:\Program Files\JetBrains\Rider 2025.1\bin\rider64.exe"
-        };
-        settings.RiderPath = riderPaths.FirstOrDefault(File.Exists) ?? string.Empty;
+        if (settings.Ides.Count > 0)
+            settings.DefaultIdeIndex = 0;
 
         return settings;
     }

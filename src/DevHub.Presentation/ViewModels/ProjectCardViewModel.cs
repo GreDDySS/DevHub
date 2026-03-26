@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
+using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Base;
 
 namespace DevHub.Presentation.ViewModels;
@@ -10,13 +11,15 @@ namespace DevHub.Presentation.ViewModels;
 public partial class ProjectCardViewModel : BaseUserControlViewModel
 {
     private readonly IProcessLauncher _processLauncher;
+    private readonly AppSettings _settings;
 
     public ProjectDto Dto { get; }
 
-    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher)
+    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher, AppSettings settings)
     {
         Dto = dto;
         _processLauncher = processLauncher;
+        _settings = settings;
     }
 
     public Guid Id => Dto.Id;
@@ -74,13 +77,16 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     {
         try
         {
-            var idePath = string.IsNullOrEmpty(PreferredIde)
-                ? Infrastructure.Services.ProcessLauncher.DetectIde()
-                : PreferredIde;
+            string? idePath = null;
+
+            if (!string.IsNullOrEmpty(PreferredIde))
+                idePath = PreferredIde;
+            else if (_settings.Ides.Count > 0 && _settings.DefaultIdeIndex < _settings.Ides.Count)
+                idePath = _settings.Ides[_settings.DefaultIdeIndex].Path;
 
             if (string.IsNullOrEmpty(idePath))
             {
-                ErrorMessage = "No IDE configured. Set PreferredIde in project settings.";
+                ErrorMessage = "No IDE configured. Add one in Settings.";
                 HasError = true;
                 return;
             }
