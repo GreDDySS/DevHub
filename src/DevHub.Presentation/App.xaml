@@ -12,6 +12,8 @@
             <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <local:LinkTypeToColorConverter x:Key="LinkTypeToColorConverter" />
+            <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
