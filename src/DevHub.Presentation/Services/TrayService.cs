@@ -13,6 +13,7 @@ public class TrayService : IDisposable
         _notifyIcon = new System.Windows.Forms.NotifyIcon
         {
             Text = "DevHub",
+            Icon = CreateDefaultIcon(),
             Visible = false
         };
 
@@ -61,5 +62,33 @@ public class TrayService : IDisposable
             _notifyIcon.Dispose();
             _notifyIcon = null;
         }
+    }
+
+    private static System.Drawing.Icon CreateDefaultIcon()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (exePath is not null && System.IO.File.Exists(exePath))
+            {
+                return System.Drawing.Icon.ExtractAssociatedIcon(exePath)
+                    ?? CreateGeneratedIcon();
+            }
+        }
+        catch { }
+
+        return CreateGeneratedIcon();
+    }
+
+    private static System.Drawing.Icon CreateGeneratedIcon()
+    {
+        using var bitmap = new System.Drawing.Bitmap(16, 16);
+        using var graphics = System.Drawing.Graphics.FromImage(bitmap);
+        graphics.Clear(System.Drawing.ColorTranslator.FromHtml("#4CAF50"));
+        graphics.DrawString("D", new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold),
+            System.Drawing.Brushes.White, 0, 0);
+
+        var hIcon = bitmap.GetHicon();
+        return System.Drawing.Icon.FromHandle(hIcon);
     }
 }
