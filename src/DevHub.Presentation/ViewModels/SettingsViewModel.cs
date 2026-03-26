@@ -3,6 +3,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
+using DevHub.Domain.Enums;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
@@ -34,6 +35,24 @@ public partial class SettingsViewModel : BaseUserControlViewModel
 
     [ObservableProperty]
     private ObservableCollection<IdeEntry> _ides;
+
+    public bool IsCloseExit
+    {
+        get => Settings.CloseAction == CloseAction.Exit;
+        set { if (value) Settings.CloseAction = CloseAction.Exit; OnPropertyChanged(); }
+    }
+
+    public bool IsCloseTray
+    {
+        get => Settings.CloseAction == CloseAction.MinimizeToTray;
+        set { if (value) Settings.CloseAction = CloseAction.MinimizeToTray; OnPropertyChanged(); }
+    }
+
+    public bool IsCloseAsk
+    {
+        get => Settings.CloseAction == CloseAction.Ask;
+        set { if (value) Settings.CloseAction = CloseAction.Ask; OnPropertyChanged(); }
+    }
 
     [RelayCommand]
     private void Save()

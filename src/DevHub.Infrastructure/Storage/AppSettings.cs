@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using DevHub.Domain.Enums;
 
 namespace DevHub.Infrastructure.Storage;
 
@@ -28,12 +29,12 @@ public class AppSettings : ObservableObject
         set => SetProperty(ref _autostartEnabled, value);
     }
 
-    private bool _minimizeToTray = true;
+    private CloseAction _closeAction = CloseAction.Ask;
 
-    public bool MinimizeToTray
+    public CloseAction CloseAction
     {
-        get => _minimizeToTray;
-        set => SetProperty(ref _minimizeToTray, value);
+        get => _closeAction;
+        set => SetProperty(ref _closeAction, value);
     }
 
     public static AppSettings DetectDefaults()

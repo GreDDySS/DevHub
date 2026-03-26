@@ -138,7 +138,34 @@ public partial class App : System.Windows.Application
 
         mainWindow.Closing += (s, args) =>
         {
-            if (settings.MinimizeToTray)
+            var action = settings.CloseAction;
+
+            if (action == Domain.Enums.CloseAction.Ask)
+            {
+                var dialog = new Views.CloseDialogView { Owner = mainWindow };
+                if (dialog.ShowDialog() == true)
+                {
+                    if (dialog.ShouldRemember)
+                    {
+                        settings.CloseAction = dialog.MinimizeToTray
+                            ? Domain.Enums.CloseAction.MinimizeToTray
+                            : Domain.Enums.CloseAction.Exit;
+                        settingsStore.Save(settings);
+                    }
+
+                    if (dialog.MinimizeToTray)
+                    {
+                        args.Cancel = true;
+                        windowService.MinimizeToTray();
+                        trayService.Show();
+                    }
+                }
+                else
+                {
+                    args.Cancel = true;
+                }
+            }
+            else if (action == Domain.Enums.CloseAction.MinimizeToTray)
             {
                 args.Cancel = true;
                 windowService.MinimizeToTray();
