@@ -1,9 +1,11 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using DevHub.Application.Interfaces;
 using DevHub.Application.UseCases.Links;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Interfaces;
+using DevHub.Infrastructure.Configuration;
 using DevHub.Infrastructure.Services;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Registry;
@@ -19,6 +21,27 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        AppPaths.EnsureDirectoriesExist();
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(
+                path: System.IO.Path.Combine(AppPaths.LogsDirectory, "devhub-.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 30)
+            .CreateLogger();
+
+        Log.Information("DevHub starting up");
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            Log.Fatal(args.ExceptionObject as Exception, "Unhandled exception");
+
+        DispatcherUnhandledException += (_, args) =>
+        {
+            Log.Error(args.Exception, "Dispatcher unhandled exception");
+            args.Handled = true;
+        };
 
         var services = new ServiceCollection();
 
@@ -65,7 +88,8 @@ public partial class App : System.Windows.Application
         var trayService = Services.GetRequiredService<TrayService>();
         var hotkeyService = Services.GetRequiredService<IHotkeyService>();
         var captureLink = Services.GetRequiredService<CaptureLinkUseCase>();
-        var settings = Services.GetRequiredService<JsonSettingsStore>().Load();
+        var settingsStore = Services.GetRequiredService<JsonSettingsStore>();
+        var settings = settingsStore.Load();
 
         trayService.Initialize();
 
@@ -83,8 +107,10 @@ public partial class App : System.Windows.Application
 
         trayService.ExitRequested += () =>
         {
+            Log.Information("DevHub shutting down");
             trayService.Dispose();
             (hotkeyService as IDisposable)?.Dispose();
+            Log.CloseAndFlush();
             Shutdown();
         };
 
@@ -96,13 +122,18 @@ public partial class App : System.Windows.Application
                 whs.Initialize(new System.Windows.Interop.WindowInteropHelper(mainWindow).Handle);
 
             hotkeyService.Register(1, 0x0002 | 0x0004, 0x59);
+            Log.Information("Global hotkey registered (Ctrl+Shift+Y)");
         };
 
         hotkeyService.HotkeyPressed += async _ =>
         {
+            Log.Debug("Hotkey pressed, capturing link from clipboard");
             var link = await captureLink.ExecuteAsync();
             if (link is not null)
+            {
+                Log.Information("Link captured: {Url}", link.Url);
                 trayService.ShowBalloon("DevHub", $"Link captured: {link.Url}");
+            }
         };
 
         mainWindow.Closing += (s, args) =>
@@ -116,5 +147,6 @@ public partial class App : System.Windows.Application
         };
 
         mainWindow.Show();
+        Log.Information("DevHub started successfully");
     }
 }
