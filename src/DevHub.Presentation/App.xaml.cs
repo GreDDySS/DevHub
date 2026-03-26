@@ -27,6 +27,7 @@ public partial class App : System.Windows.Application
 
         // Services
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
+        services.AddSingleton<JsonSettingsStore>();
 
         // Use Cases
         services.AddSingleton<GetAllProjectsUseCase>();
