@@ -14,6 +14,11 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Images\AppIcon.ico" />
+    <Resource Include="Images\Logo.png" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
