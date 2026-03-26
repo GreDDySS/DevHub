@@ -28,6 +28,12 @@
                         HorizontalContentAlignment="Left"
                         Style="{StaticResource ButtonPrimary}" />
 
+                <Button Content="🔗 Links"
+                        Command="{Binding GoToLinksCommand}"
+                        Margin="0,0,0,5"
+                        Padding="10,0"
+                        HorizontalContentAlignment="Left" />
+
                 <Button Content="⚙ Settings"
                         Command="{Binding GoToSettingsCommand}"
                         Margin="0,0,0,5"

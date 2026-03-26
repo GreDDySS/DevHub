@@ -1,0 +1,11 @@
+<UserControl x:Class="DevHub.Presentation.Views.LinkListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hc="https://handyorg.github.io/handycontrol">
+    <Grid Margin="20">
+        <TextBlock Text="Links"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Margin="0,0,0,24" />
+    </Grid>
+</UserControl>

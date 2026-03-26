@@ -1,6 +1,7 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using DevHub.Application.Interfaces;
+using DevHub.Application.UseCases.Links;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Interfaces;
 using DevHub.Infrastructure.Services;
@@ -27,6 +28,8 @@ public partial class App : System.Windows.Application
 
         // Services
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
+        services.AddSingleton<IClipboardService, Presentation.Services.ClipboardService>();
+        services.AddSingleton<IHotkeyService, WindowsHotkeyService>();
         services.AddSingleton<JsonSettingsStore>();
         services.AddSingleton<TrayService>();
         services.AddSingleton<AutostartService>();
@@ -35,6 +38,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<GetAllProjectsUseCase>();
         services.AddSingleton<AddProjectUseCase>();
         services.AddSingleton<UpdateProjectUseCase>();
+        services.AddSingleton<CaptureLinkUseCase>();
 
         // Registry & Services
         var registry = new ViewRegistry();
@@ -46,6 +50,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<ProjectListViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<LinkListViewModel>();
         services.AddTransient<AddProjectViewModel>();
 
         Services = services.BuildServiceProvider();
@@ -58,6 +63,8 @@ public partial class App : System.Windows.Application
         var windowService = Services.GetRequiredService<WindowService>();
         var mainViewModel = Services.GetRequiredService<MainViewModel>();
         var trayService = Services.GetRequiredService<TrayService>();
+        var hotkeyService = Services.GetRequiredService<IHotkeyService>();
+        var captureLink = Services.GetRequiredService<CaptureLinkUseCase>();
         var settings = Services.GetRequiredService<JsonSettingsStore>().Load();
 
         trayService.Initialize();
@@ -77,10 +84,26 @@ public partial class App : System.Windows.Application
         trayService.ExitRequested += () =>
         {
             trayService.Dispose();
+            (hotkeyService as IDisposable)?.Dispose();
             Shutdown();
         };
 
         var mainWindow = new MainWindow(mainViewModel, windowService);
+
+        mainWindow.Loaded += (_, _) =>
+        {
+            if (hotkeyService is WindowsHotkeyService whs)
+                whs.Initialize(new System.Windows.Interop.WindowInteropHelper(mainWindow).Handle);
+
+            hotkeyService.Register(1, 0x0002 | 0x0004, 0x59);
+        };
+
+        hotkeyService.HotkeyPressed += async _ =>
+        {
+            var link = await captureLink.ExecuteAsync();
+            if (link is not null)
+                trayService.ShowBalloon("DevHub", $"Link captured: {link.Url}");
+        };
 
         mainWindow.Closing += (s, args) =>
         {
@@ -89,7 +112,6 @@ public partial class App : System.Windows.Application
                 args.Cancel = true;
                 windowService.MinimizeToTray();
                 trayService.Show();
-                trayService.ShowBalloon("DevHub", "Minimized to tray");
             }
         };
 

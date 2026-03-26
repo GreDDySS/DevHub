@@ -23,6 +23,9 @@ public partial class MainViewModel : BaseWindowViewModel
     private void GoToProjects() => _windowService.NavigateTo("projects");
 
     [RelayCommand]
+    private void GoToLinks() => _windowService.NavigateTo("links");
+
+    [RelayCommand]
     private void GoToSettings() => _windowService.NavigateTo("settings");
 
     public override void OnWindowLoaded()
