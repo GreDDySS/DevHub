@@ -44,7 +44,7 @@ public class ViewFactoryService : IViewFactoryService
             .ToList();
 
         var views = allTypes
-            .Where(t => typeof(Window).IsAssignableFrom(t) || typeof(UserControl).IsAssignableFrom(t))
+            .Where(t => typeof(Window).IsAssignableFrom(t) || typeof(System.Windows.Controls.UserControl).IsAssignableFrom(t))
             .ToList();
 
         foreach (var vmType in viewModels)

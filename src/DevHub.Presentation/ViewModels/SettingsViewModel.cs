@@ -4,6 +4,7 @@ using DevHub.Application.Interfaces;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
+using DevHub.Presentation.Services;
 
 namespace DevHub.Presentation.ViewModels;
 
@@ -11,11 +12,16 @@ namespace DevHub.Presentation.ViewModels;
 public partial class SettingsViewModel : BaseUserControlViewModel
 {
     private readonly JsonSettingsStore _settingsStore;
+    private readonly AutostartService _autostartService;
     private readonly IWindowService _windowService;
 
-    public SettingsViewModel(JsonSettingsStore settingsStore, IWindowService windowService)
+    public SettingsViewModel(
+        JsonSettingsStore settingsStore,
+        AutostartService autostartService,
+        IWindowService windowService)
     {
         _settingsStore = settingsStore;
+        _autostartService = autostartService;
         _windowService = windowService;
         Settings = _settingsStore.Load();
     }
@@ -28,6 +34,7 @@ public partial class SettingsViewModel : BaseUserControlViewModel
     {
         try
         {
+            _autostartService.SetEnabled(Settings.AutostartEnabled);
             _settingsStore.Save(Settings);
             _windowService.ShowNotification("Settings", "Settings saved successfully");
         }

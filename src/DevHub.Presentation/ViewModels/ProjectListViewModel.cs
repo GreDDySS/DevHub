@@ -17,7 +17,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     private readonly GetAllProjectsUseCase _getAllProjects;
     private readonly IWindowService _windowService;
     private readonly IProcessLauncher _processLauncher;
-    private readonly Timer _debounceTimer;
+    private readonly System.Threading.Timer _debounceTimer;
 
     public ProjectListViewModel(
         GetAllProjectsUseCase getAllProjects,
@@ -27,7 +27,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         _getAllProjects = getAllProjects;
         _windowService = windowService;
         _processLauncher = processLauncher;
-        _debounceTimer = new Timer(_ => _ = LoadProjectsAsync(), null, Timeout.Infinite, Timeout.Infinite);
+        _debounceTimer = new System.Threading.Timer(_ => _ = LoadProjectsAsync(), null, Timeout.Infinite, Timeout.Infinite);
         _ = LoadProjectsAsync();
     }
 

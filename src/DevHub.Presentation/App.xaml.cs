@@ -28,6 +28,8 @@ public partial class App : System.Windows.Application
         // Services
         services.AddSingleton<IProcessLauncher, ProcessLauncher>();
         services.AddSingleton<JsonSettingsStore>();
+        services.AddSingleton<TrayService>();
+        services.AddSingleton<AutostartService>();
 
         // Use Cases
         services.AddSingleton<GetAllProjectsUseCase>();
@@ -55,8 +57,42 @@ public partial class App : System.Windows.Application
 
         var windowService = Services.GetRequiredService<WindowService>();
         var mainViewModel = Services.GetRequiredService<MainViewModel>();
+        var trayService = Services.GetRequiredService<TrayService>();
+        var settings = Services.GetRequiredService<JsonSettingsStore>().Load();
+
+        trayService.Initialize();
+
+        trayService.ShowWindowRequested += () =>
+        {
+            windowService.RestoreFromTray();
+            trayService.Hide();
+        };
+
+        trayService.TrayDoubleClick += () =>
+        {
+            windowService.RestoreFromTray();
+            trayService.Hide();
+        };
+
+        trayService.ExitRequested += () =>
+        {
+            trayService.Dispose();
+            Shutdown();
+        };
 
         var mainWindow = new MainWindow(mainViewModel, windowService);
+
+        mainWindow.Closing += (s, args) =>
+        {
+            if (settings.MinimizeToTray)
+            {
+                args.Cancel = true;
+                windowService.MinimizeToTray();
+                trayService.Show();
+                trayService.ShowBalloon("DevHub", "Minimized to tray");
+            }
+        };
+
         mainWindow.Show();
     }
 }
