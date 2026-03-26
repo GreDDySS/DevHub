@@ -4,7 +4,7 @@ namespace DevHub.Presentation.Views;
 
 public partial class CloseDialogView : Window
 {
-    public bool MinimizeToTray { get; private set; } = true;
+    public bool MinimizeToTray { get; private set; }
     public bool ShouldRemember { get; private set; }
 
     public CloseDialogView()
@@ -12,9 +12,9 @@ public partial class CloseDialogView : Window
         InitializeComponent();
     }
 
-    private void Ok_Click(object sender, RoutedEventArgs e)
+    private void Minimize_Click(object sender, RoutedEventArgs e)
     {
-        MinimizeToTray = TrayOption.IsChecked == true;
+        MinimizeToTray = true;
         ShouldRemember = RememberChoice.IsChecked == true;
         DialogResult = true;
     }

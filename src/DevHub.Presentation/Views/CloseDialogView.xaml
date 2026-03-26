@@ -3,13 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="DevHub"
         Width="350"
-        Height="200"
+        Height="160"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Icon="pack://application:,,,/Images/AppIcon.ico">
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -21,26 +20,19 @@
                    FontWeight="SemiBold"
                    Margin="0,0,0,16" />
 
-        <RadioButton Grid.Row="1"
-                     x:Name="TrayOption"
-                     Content="Minimize to tray"
-                     Margin="0,0,0,8"
-                     IsChecked="True" />
-
-        <CheckBox Grid.Row="2"
+        <CheckBox Grid.Row="1"
                   x:Name="RememberChoice"
                   Content="Remember my choice"
                   Margin="0,0,0,16" />
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Exit"
-                    Width="80"
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Minimize to tray"
+                    Width="120"
                     Margin="0,0,8,0"
+                    Click="Minimize_Click" />
+            <Button Content="Exit"
+                    Width="120"
                     Click="Exit_Click" />
-            <Button Content="OK"
-                    Width="80"
-                    IsDefault="True"
-                    Click="Ok_Click" />
         </StackPanel>
     </Grid>
 </Window>
