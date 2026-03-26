@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DevHub.Application\DevHub.Application.csproj" />
     <ProjectReference Include="..\DevHub.Domain\DevHub.Domain.csproj" />
+    <ProjectReference Include="..\DevHub.Infrastructure\DevHub.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
