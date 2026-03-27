@@ -1,4 +1,5 @@
 using DevHub.Application.DTOs;
+using DevHub.Application.Exceptions;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
@@ -43,9 +44,4 @@ public class AddProjectUseCase
         if (string.IsNullOrWhiteSpace(request.Path))
             throw new ValidationException("Project path is required");
     }
-}
-
-public class ValidationException : Exception
-{
-    public ValidationException(string message) : base(message) { }
 }

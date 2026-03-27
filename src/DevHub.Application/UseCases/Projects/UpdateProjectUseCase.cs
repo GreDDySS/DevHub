@@ -1,4 +1,5 @@
 using DevHub.Application.DTOs;
+using DevHub.Application.Exceptions;
 using DevHub.Domain.Interfaces;
 
 namespace DevHub.Application.UseCases.Projects;
@@ -26,12 +27,7 @@ public class UpdateProjectUseCase
         if (request.PreferredIde is not null) project.PreferredIde = request.PreferredIde;
         if (request.IsFavorite is not null) project.IsFavorite = request.IsFavorite.Value;
 
-        project.UpdatedAt = DateTime.UtcNow;
+        project.MarkUpdated();
         await _repository.UpdateAsync(project);
     }
-}
-
-public class NotFoundException : Exception
-{
-    public NotFoundException(string message) : base(message) { }
 }
