@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Domain.Enums;
@@ -14,13 +15,36 @@ namespace DevHub.Presentation.ViewModels;
 public partial class LinkListViewModel : BaseUserControlViewModel
 {
     private readonly ILinkRepository _repository;
-    private readonly System.Threading.Timer _debounceTimer;
+    private readonly DispatcherTimer _debounceTimer;
 
     public LinkListViewModel(ILinkRepository repository)
     {
         _repository = repository;
-        _debounceTimer = new System.Threading.Timer(_ => _ = LoadLinksAsync(), null, Timeout.Infinite, Timeout.Infinite);
-        _ = LoadLinksAsync();
+        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _debounceTimer.Tick += async (_, _) =>
+        {
+            _debounceTimer.Stop();
+            await SafeLoadLinksAsync();
+        };
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        await SafeLoadLinksAsync();
+    }
+
+    private async Task SafeLoadLinksAsync()
+    {
+        try
+        {
+            await LoadLinksAsync();
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Failed to load links: {ex.Message}";
+        }
     }
 
     [ObservableProperty]
@@ -88,11 +112,12 @@ public partial class LinkListViewModel : BaseUserControlViewModel
 
     partial void OnSearchQueryChanged(string value)
     {
-        _debounceTimer.Change(300, Timeout.Infinite);
+        _debounceTimer.Stop();
+        _debounceTimer.Start();
     }
 
     partial void OnSelectedTypeIndexChanged(int value)
     {
-        _ = LoadLinksAsync();
+        _ = SafeLoadLinksAsync();
     }
 }

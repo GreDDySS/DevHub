@@ -3,6 +3,8 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
+using DevHub.Domain.Interfaces;
+using DevHub.Domain.Models;
 using DevHub.Domain.Enums;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Attributes;
@@ -14,27 +16,45 @@ namespace DevHub.Presentation.ViewModels;
 [SingletonViewModel]
 public partial class SettingsViewModel : BaseUserControlViewModel
 {
-    private readonly JsonSettingsStore _settingsStore;
-    private readonly AutostartService _autostartService;
+    private readonly IAppSettingsStore _settingsStore;
+    private readonly IAutostartService _autostartService;
     private readonly IWindowService _windowService;
+    private readonly IdeScanner _ideScanner;
 
     public SettingsViewModel(
-        JsonSettingsStore settingsStore,
-        AutostartService autostartService,
-        IWindowService windowService)
+        IAppSettingsStore settingsStore,
+        IAutostartService autostartService,
+        IWindowService windowService,
+        IdeScanner ideScanner)
     {
         _settingsStore = settingsStore;
         _autostartService = autostartService;
         _windowService = windowService;
-        Settings = _settingsStore.Load();
-        Ides = new ObservableCollection<IdeEntry>(Settings.Ides);
+        _ideScanner = ideScanner;
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        try
+        {
+            Settings = await _settingsStore.LoadAsync();
+            Ides = new ObservableCollection<IdeEntry>(Settings.Ides);
+        }
+        catch (Exception ex)
+        {
+            Settings = new AppSettings();
+            Ides = new ObservableCollection<IdeEntry>();
+            HasError = true;
+            ErrorMessage = $"Failed to load settings: {ex.Message}";
+        }
     }
 
     [ObservableProperty]
-    private AppSettings _settings;
+    private AppSettings _settings = new();
 
     [ObservableProperty]
-    private ObservableCollection<IdeEntry> _ides;
+    private ObservableCollection<IdeEntry> _ides = [];
 
     public bool IsCloseExit
     {
@@ -55,13 +75,13 @@ public partial class SettingsViewModel : BaseUserControlViewModel
     }
 
     [RelayCommand]
-    private void Save()
+    private async Task SaveAsync()
     {
         try
         {
             Settings.Ides = Ides.ToList();
             _autostartService.SetEnabled(Settings.AutostartEnabled);
-            _settingsStore.Save(Settings);
+            await _settingsStore.SaveAsync(Settings);
             _windowService.ShowNotification("Settings", "Settings saved successfully");
         }
         catch (Exception ex)
@@ -93,8 +113,7 @@ public partial class SettingsViewModel : BaseUserControlViewModel
     [RelayCommand]
     private void AutoDetect()
     {
-        var scanner = new IdeScanner();
-        var detected = scanner.Scan();
+        var detected = _ideScanner.Scan();
 
         var existing = Ides.Select(i => i.Path).ToHashSet();
         foreach (var ide in detected)

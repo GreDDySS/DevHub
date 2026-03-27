@@ -2,7 +2,7 @@ using Microsoft.Win32;
 
 namespace DevHub.Presentation.Services;
 
-public class AutostartService
+public class AutostartService : IAutostartService
 {
     private const string AppName = "DevHub";
     private const string RegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";

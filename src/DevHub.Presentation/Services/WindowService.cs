@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using DevHub.Application.Interfaces;
-using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
 using DevHub.Presentation.Registry;
 
@@ -11,14 +10,13 @@ namespace DevHub.Presentation.Services;
 public class WindowService : IWindowService
 {
     private readonly ViewRegistry _registry;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<Type, object> _singletonCache = new();
+    private readonly ViewModelResolver _resolver;
     private ContentControl? _navigationHost;
 
     public WindowService(ViewRegistry registry, IServiceProvider serviceProvider)
     {
         _registry = registry;
-        _serviceProvider = serviceProvider;
+        _resolver = new ViewModelResolver(serviceProvider);
     }
 
     public void SetNavigationHost(ContentControl host)
@@ -57,8 +55,12 @@ public class WindowService : IWindowService
 
     public bool? ShowDialog(Type viewModelType)
     {
-        var viewModel = _serviceProvider.GetRequiredService(viewModelType) as ViewModelBase;
-        return ShowDialogInternal(viewModel!);
+        var registration = _registry.GetByViewModel(viewModelType);
+        if (registration is null)
+            throw new InvalidOperationException($"View for {viewModelType.Name} not registered");
+
+        var viewModel = _resolver.Resolve(registration);
+        return ShowDialogInternal(viewModel);
     }
 
     public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
@@ -66,8 +68,12 @@ public class WindowService : IWindowService
 
     public void Show(Type viewModelType)
     {
-        var viewModel = _serviceProvider.GetRequiredService(viewModelType) as ViewModelBase;
-        ShowInternal(viewModel!);
+        var registration = _registry.GetByViewModel(viewModelType);
+        if (registration is null)
+            throw new InvalidOperationException($"View for {viewModelType.Name} not registered");
+
+        var viewModel = _resolver.Resolve(registration);
+        ShowInternal(viewModel);
     }
 
     public void Show<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
@@ -162,24 +168,9 @@ public class WindowService : IWindowService
 
     private FrameworkElement ResolveView(ViewRegistration registration)
     {
-        var viewModel = ResolveViewModel(registration);
+        var viewModel = _resolver.Resolve(registration);
         var view = (FrameworkElement)Activator.CreateInstance(registration.ViewType)!;
         view.DataContext = viewModel;
         return view;
-    }
-
-    private ViewModelBase ResolveViewModel(ViewRegistration registration)
-    {
-        if (registration.IsSingleton)
-        {
-            if (_singletonCache.TryGetValue(registration.ViewModelType, out var cached))
-                return (ViewModelBase)cached;
-
-            var vm = (ViewModelBase)_serviceProvider.GetRequiredService(registration.ViewModelType);
-            _singletonCache[registration.ViewModelType] = vm;
-            return vm;
-        }
-
-        return (ViewModelBase)_serviceProvider.GetRequiredService(registration.ViewModelType);
     }
 }

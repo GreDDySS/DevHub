@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
-using DevHub.Infrastructure.Storage;
+using DevHub.Domain.Models;
 using DevHub.Presentation.Base;
 
 namespace DevHub.Presentation.ViewModels;

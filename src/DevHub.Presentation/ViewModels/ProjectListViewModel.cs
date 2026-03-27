@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
@@ -18,21 +19,44 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     private readonly GetAllProjectsUseCase _getAllProjects;
     private readonly IWindowService _windowService;
     private readonly IProcessLauncher _processLauncher;
-    private readonly JsonSettingsStore _settingsStore;
-    private readonly System.Threading.Timer _debounceTimer;
+    private readonly IAppSettingsStore _settingsStore;
+    private readonly DispatcherTimer _debounceTimer;
 
     public ProjectListViewModel(
         GetAllProjectsUseCase getAllProjects,
         IWindowService windowService,
         IProcessLauncher processLauncher,
-        JsonSettingsStore settingsStore)
+        IAppSettingsStore settingsStore)
     {
         _getAllProjects = getAllProjects;
         _windowService = windowService;
         _processLauncher = processLauncher;
         _settingsStore = settingsStore;
-        _debounceTimer = new System.Threading.Timer(_ => _ = LoadProjectsAsync(), null, Timeout.Infinite, Timeout.Infinite);
-        _ = LoadProjectsAsync();
+        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _debounceTimer.Tick += async (_, _) =>
+        {
+            _debounceTimer.Stop();
+            await SafeLoadProjectsAsync();
+        };
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        await SafeLoadProjectsAsync();
+    }
+
+    private async Task SafeLoadProjectsAsync()
+    {
+        try
+        {
+            await LoadProjectsAsync();
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Failed to load projects: {ex.Message}";
+        }
     }
 
     [ObservableProperty]
@@ -57,7 +81,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         {
             var filter = new ProjectFilter(SearchQuery, StatusFilter);
             var projects = await _getAllProjects.ExecuteAsync(filter);
-            var settings = _settingsStore.Load();
+            var settings = await _settingsStore.LoadAsync();
 
             Projects.Clear();
             foreach (var p in projects)
@@ -71,17 +95,18 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     private void AddProject()
     {
         _windowService.ShowDialog(typeof(AddProjectViewModel));
-        _ = LoadProjectsAsync();
+        _ = SafeLoadProjectsAsync();
     }
 
     partial void OnSearchQueryChanged(string value)
     {
-        _debounceTimer.Change(300, Timeout.Infinite);
+        _debounceTimer.Stop();
+        _debounceTimer.Start();
     }
 
     partial void OnStatusFilterChanged(ProjectStatus? value)
     {
-        _ = LoadProjectsAsync();
+        _ = SafeLoadProjectsAsync();
     }
 
     private void UpdateCounts()

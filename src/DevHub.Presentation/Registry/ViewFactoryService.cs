@@ -17,13 +17,18 @@ public interface IViewFactoryService
 public class ViewFactoryService : IViewFactoryService
 {
     private readonly ViewRegistry _registry;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<Type, object> _singletonCache = new();
+    private IServiceProvider? _serviceProvider;
+    private ViewModelResolver? _resolver;
 
-    public ViewFactoryService(ViewRegistry registry, IServiceProvider serviceProvider)
+    public ViewFactoryService(ViewRegistry registry)
     {
         _registry = registry;
+    }
+
+    public void SetServiceProvider(IServiceProvider serviceProvider)
+    {
         _serviceProvider = serviceProvider;
+        _resolver = new ViewModelResolver(serviceProvider);
     }
 
     public void RegisterAll(IServiceCollection services, Assembly assembly)
@@ -93,7 +98,7 @@ public class ViewFactoryService : IViewFactoryService
         var registration = _registry.GetByViewModel<TViewModel>()
             ?? throw new InvalidOperationException($"View for {typeof(TViewModel).Name} not found");
 
-        var viewModel = ResolveViewModel(registration);
+        var viewModel = Resolve(registration);
         var window = (Window)Activator.CreateInstance(registration.ViewType)!;
         window.DataContext = viewModel;
 
@@ -109,24 +114,17 @@ public class ViewFactoryService : IViewFactoryService
 
     private FrameworkElement ResolveView(ViewRegistration registration)
     {
-        var viewModel = ResolveViewModel(registration);
+        var viewModel = Resolve(registration);
         var view = (FrameworkElement)Activator.CreateInstance(registration.ViewType)!;
         view.DataContext = viewModel;
         return view;
     }
 
-    private ViewModelBase ResolveViewModel(ViewRegistration registration)
+    private ViewModelBase Resolve(ViewRegistration registration)
     {
-        if (registration.IsSingleton)
-        {
-            if (_singletonCache.TryGetValue(registration.ViewModelType, out var cached))
-                return (ViewModelBase)cached;
+        if (_resolver is null)
+            throw new InvalidOperationException("ServiceProvider not set. Call SetServiceProvider first.");
 
-            var vm = (ViewModelBase)_serviceProvider.GetRequiredService(registration.ViewModelType);
-            _singletonCache[registration.ViewModelType] = vm;
-            return vm;
-        }
-
-        return (ViewModelBase)_serviceProvider.GetRequiredService(registration.ViewModelType);
+        return _resolver.Resolve(registration);
     }
 }
