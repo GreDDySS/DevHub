@@ -46,6 +46,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         await SafeLoadProjectsAsync();
     }
 
+    public override async Task OnNavigatedToAsync()
+    {
+        await LoadProjectsAsync();
+    }
+
     private async Task SafeLoadProjectsAsync()
     {
         try

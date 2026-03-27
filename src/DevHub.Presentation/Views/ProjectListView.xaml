@@ -40,7 +40,6 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- Search and Filter -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <hc:TextBox hc:InfoElement.Placeholder="Search projects..."
                      Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
@@ -57,14 +56,12 @@
             </ComboBox>
         </StackPanel>
 
-        <!-- Stats -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="{Binding ActiveCount, StringFormat='Active: {0}'}"
                        Foreground="#4CAF50"
                        Margin="0,0,20,0" />
         </StackPanel>
 
-        <!-- Empty State -->
         <StackPanel Grid.Row="4"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
@@ -79,7 +76,6 @@
                     HorizontalAlignment="Center" />
         </StackPanel>
 
-        <!-- Project List -->
         <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Projects}">
                 <ItemsControl.ItemsPanel>
@@ -162,12 +158,10 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- Loading -->
         <Grid Grid.Row="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <hc:LoadingLine />
         </Grid>
 
-        <!-- Error -->
         <Border Grid.Row="4"
                 Background="#FFEBEE"
                 CornerRadius="8"

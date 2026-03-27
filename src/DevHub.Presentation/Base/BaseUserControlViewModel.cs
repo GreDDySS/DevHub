@@ -27,4 +27,9 @@ public abstract class BaseUserControlViewModel : ViewModelBase
         get => _opacity;
         set => SetProperty(ref _opacity, value);
     }
+
+    public virtual Task OnNavigatedToAsync()
+    {
+        return Task.CompletedTask;
+    }
 }

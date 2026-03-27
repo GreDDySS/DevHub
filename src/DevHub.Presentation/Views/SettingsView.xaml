@@ -12,13 +12,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <TextBlock Grid.Row="0" Text="Settings"
                    FontSize="28"
                    FontWeight="Bold"
                    Margin="0,0,0,24" />
 
-        <!-- IDE Section -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
             <StackPanel>
                 <DockPanel Margin="0,0,0,16">
@@ -71,7 +69,6 @@
             </StackPanel>
         </Border>
 
-        <!-- App Section -->
         <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
             <StackPanel>
                 <TextBlock Text="Application"
@@ -103,20 +100,18 @@
             </StackPanel>
         </Border>
 
-        <!-- Error -->
         <TextBlock Grid.Row="3"
                    Text="{Binding ErrorMessage}"
                    Foreground="Red"
                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                    Margin="0,0,0,16" />
 
-        <!-- Save Button -->
         <Button Grid.Row="4"
                 Content="Save Settings"
                 Command="{Binding SaveCommand}"
                 Style="{StaticResource ButtonPrimary}"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
-                Padding="16,8" />
+                Padding="16,0" />
     </Grid>
 </UserControl>

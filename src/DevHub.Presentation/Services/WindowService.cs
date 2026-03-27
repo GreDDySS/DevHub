@@ -171,6 +171,10 @@ public class WindowService : IWindowService
         var viewModel = _resolver.Resolve(registration);
         var view = (FrameworkElement)Activator.CreateInstance(registration.ViewType)!;
         view.DataContext = viewModel;
+
+        if (viewModel is BaseUserControlViewModel vm)
+            _ = vm.OnNavigatedToAsync();
+
         return view;
     }
 }

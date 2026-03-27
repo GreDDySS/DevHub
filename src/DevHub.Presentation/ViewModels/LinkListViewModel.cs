@@ -34,6 +34,11 @@ public partial class LinkListViewModel : BaseUserControlViewModel
         await SafeLoadLinksAsync();
     }
 
+    public override async Task OnNavigatedToAsync()
+    {
+        await LoadLinksAsync();
+    }
+
     private async Task SafeLoadLinksAsync()
     {
         try
