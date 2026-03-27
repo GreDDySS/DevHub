@@ -1,3 +1,5 @@
+using DevHub.Domain.Models;
+
 namespace DevHub.Infrastructure.Storage;
 
 public class IdeScanner
