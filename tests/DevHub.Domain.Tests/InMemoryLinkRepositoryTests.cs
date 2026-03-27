@@ -49,6 +49,29 @@ public class InMemoryLinkRepositoryTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_ShouldReturnLink()
+    {
+        var repo = new InMemoryLinkRepository();
+        var link = new Link { Url = "https://example.com" };
+
+        await repo.AddAsync(link);
+        var found = await repo.GetByIdAsync(link.Id);
+
+        Assert.NotNull(found);
+        Assert.Equal(link.Id, found.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
+    {
+        var repo = new InMemoryLinkRepository();
+
+        var found = await repo.GetByIdAsync(Guid.NewGuid());
+
+        Assert.Null(found);
+    }
+
+    [Fact]
     public async Task DeleteAsync_ShouldRemoveLink()
     {
         var repo = new InMemoryLinkRepository();

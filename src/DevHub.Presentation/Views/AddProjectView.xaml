@@ -6,7 +6,8 @@
         Width="{Binding Width}"
         Height="{Binding Height}"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        Icon="pack://application:,,,/Images/AppIcon.ico">
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -17,14 +18,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Name -->
         <TextBlock Grid.Row="0" Text="Name" FontWeight="SemiBold" Margin="0,0,0,4" />
         <hc:TextBox Grid.Row="0"
                  Margin="0,0,0,16"
                  hc:InfoElement.Placeholder="Project name"
                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}" />
 
-        <!-- Path -->
         <TextBlock Grid.Row="1" Text="Path" FontWeight="SemiBold" Margin="0,0,0,4" />
         <DockPanel Grid.Row="1" Margin="0,0,0,16">
             <Button DockPanel.Dock="Right"
@@ -35,14 +34,12 @@
                      hc:InfoElement.Placeholder="Project directory path" />
         </DockPanel>
 
-        <!-- Language -->
         <TextBlock Grid.Row="2" Text="Language" FontWeight="SemiBold" Margin="0,0,0,4" />
         <ComboBox Grid.Row="2"
                   ItemsSource="{Binding Languages}"
                   SelectedItem="{Binding Language}"
                   Margin="0,0,0,16" />
 
-        <!-- Description -->
         <TextBlock Grid.Row="3" Text="Description" FontWeight="SemiBold" Margin="0,0,0,4" />
         <hc:TextBox Grid.Row="3"
                  Text="{Binding Description}"
@@ -52,14 +49,12 @@
                  Height="80"
                  Margin="0,0,0,16" />
 
-        <!-- Error -->
         <TextBlock Grid.Row="4"
                    Text="{Binding ErrorMessage}"
                    Foreground="Red"
                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
                    VerticalAlignment="Bottom" />
 
-        <!-- Buttons -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Cancel"
                     Command="{Binding CancelCommand}"

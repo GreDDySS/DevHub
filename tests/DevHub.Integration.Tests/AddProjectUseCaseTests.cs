@@ -1,4 +1,5 @@
 using DevHub.Application.DTOs;
+using DevHub.Application.Exceptions;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Tests.InMemory;

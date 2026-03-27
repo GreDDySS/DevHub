@@ -12,7 +12,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <DockPanel Grid.Row="0" Margin="0,0,0,20">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Links"
@@ -24,7 +23,6 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- Search and Filter -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <hc:TextBox hc:InfoElement.Placeholder="Search links..."
                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
@@ -45,14 +43,12 @@
                     Padding="10,4" />
         </StackPanel>
 
-        <!-- Hint -->
         <TextBlock Grid.Row="2"
                    Text="Press Ctrl+Shift+Y to capture URL from clipboard"
                    Foreground="#999"
                    FontSize="12"
                    Margin="0,0,0,10" />
 
-        <!-- Empty State -->
         <StackPanel Grid.Row="4"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
@@ -67,7 +63,6 @@
                        Margin="0,8,0,0" />
         </StackPanel>
 
-        <!-- Link List -->
         <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Links}">
                 <ItemsControl.ItemTemplate>
@@ -79,7 +74,6 @@
                                 BorderBrush="#E0E0E0"
                                 BorderThickness="1">
                             <DockPanel>
-                                <!-- Type Badge -->
                                 <Border DockPanel.Dock="Right"
                                         Background="{Binding Type, Converter={StaticResource LinkTypeToColorConverter}}"
                                         CornerRadius="4"
@@ -91,7 +85,6 @@
                                                FontWeight="Bold" />
                                 </Border>
 
-                                <!-- Delete Button -->
                                 <Button DockPanel.Dock="Right"
                                         Content="Delete"
                                         Margin="8,0,0,0"
@@ -99,7 +92,6 @@
                                         Command="{Binding DataContext.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding Id}" />
 
-                                <!-- Copy Button -->
                                 <Button DockPanel.Dock="Right"
                                         Content="Copy"
                                         Margin="8,0,0,0"
@@ -107,7 +99,6 @@
                                         Command="{Binding DataContext.CopyUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" />
 
-                                <!-- Content -->
                                 <StackPanel>
                                     <TextBlock Text="{Binding Url}"
                                                TextTrimming="CharacterEllipsis"
@@ -131,7 +122,6 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- Loading -->
         <Grid Grid.Row="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <hc:LoadingLine />
         </Grid>

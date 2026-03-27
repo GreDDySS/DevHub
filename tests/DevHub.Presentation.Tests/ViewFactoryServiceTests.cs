@@ -13,7 +13,7 @@ public class ViewFactoryServiceTests
     {
         var registry = new ViewRegistry();
         var services = new ServiceCollection();
-        var factory = new ViewFactoryService(registry, null!);
+        var factory = new ViewFactoryService(registry);
 
         factory.RegisterAll(services, typeof(TestSingletonViewModel).Assembly);
 
@@ -27,7 +27,7 @@ public class ViewFactoryServiceTests
     {
         var registry = new ViewRegistry();
         var services = new ServiceCollection();
-        var factory = new ViewFactoryService(registry, null!);
+        var factory = new ViewFactoryService(registry);
 
         factory.RegisterAll(services, typeof(TestTransientViewModel).Assembly);
 
@@ -42,7 +42,8 @@ public class ViewFactoryServiceTests
         var registry = new ViewRegistry();
         var services = new ServiceCollection();
         var provider = services.BuildServiceProvider();
-        var factory = new ViewFactoryService(registry, provider);
+        var factory = new ViewFactoryService(registry);
+        factory.SetServiceProvider(provider);
 
         Assert.Throws<InvalidOperationException>(() => factory.GetView<TestSingletonViewModel>());
     }
