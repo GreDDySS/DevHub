@@ -44,4 +44,34 @@ public class ProcessLauncher : IProcessLauncher
             UseShellExecute = true
         });
     }
+
+    public void OpenConsole(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            throw new ArgumentException("Path cannot be empty", nameof(path));
+
+        var targetPath = Directory.Exists(path) ? path : Path.GetDirectoryName(path);
+
+        if (string.IsNullOrWhiteSpace(targetPath) || !Directory.Exists(targetPath))
+            throw new DirectoryNotFoundException($"Directory not found: {path}");
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "wt",
+                Arguments = $"-d \"{targetPath}\"",
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/K cd /d \"{targetPath}\"",
+                UseShellExecute = true
+            });
+        }
+    }
 }

@@ -99,4 +99,18 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
             HasError = true;
         }
     }
+
+    [RelayCommand]
+    private void OpenConsole()
+    {
+        try
+        {
+            _processLauncher.OpenConsole(Path);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            HasError = true;
+        }
+    }
 }

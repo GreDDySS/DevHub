@@ -144,6 +144,11 @@
                                     <Button Content="💻 IDE"
                                             Command="{Binding OpenInIdeCommand}"
                                             FontSize="11"
+                                            Padding="8,4"
+                                            Margin="0,0,8,0" />
+                                    <Button Content=">_ Console"
+                                            Command="{Binding OpenConsoleCommand}"
+                                            FontSize="11"
                                             Padding="8,4" />
                                 </StackPanel>
                                 <TextBlock Text="{Binding ErrorMessage}"
