@@ -38,7 +38,40 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     public bool IsHidden => Dto.IsHidden;
     public DateTime UpdatedAt => Dto.UpdatedAt;
 
-    public string StatusColor => Status switch
+    private DateTime? _lastFileWrite;
+
+    public DateTime? LastFileWrite
+    {
+        get => _lastFileWrite;
+        set
+        {
+            _lastFileWrite = value;
+            OnPropertyChanged(nameof(EffectiveStatus));
+            OnPropertyChanged(nameof(StatusColor));
+            OnPropertyChanged(nameof(StatusText));
+        }
+    }
+
+    public void RefreshLastWriteTime()
+    {
+        LastFileWrite = _processLauncher.GetLastWriteTime(Path);
+    }
+
+    public ProjectStatus EffectiveStatus
+    {
+        get
+        {
+            if (Status == ProjectStatus.Active && !IsHidden)
+            {
+                var checkDate = LastFileWrite ?? UpdatedAt;
+                if (DateTime.UtcNow - checkDate > TimeSpan.FromDays(14))
+                    return ProjectStatus.Paused;
+            }
+            return Status;
+        }
+    }
+
+    public string StatusColor => EffectiveStatus switch
     {
         ProjectStatus.Active => "#4CAF50",
         ProjectStatus.Completed => "#2196F3",
@@ -46,6 +79,8 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
         ProjectStatus.Archived => "#9E9E9E",
         _ => "#000000"
     };
+
+    public string StatusText => EffectiveStatus.ToString();
 
     public string LanguageIcon => Language switch
     {

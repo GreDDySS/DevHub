@@ -74,4 +74,36 @@ public class ProcessLauncher : IProcessLauncher
             });
         }
     }
+
+    public DateTime? GetLastWriteTime(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+                return null;
+
+            var excluded = new HashSet<string> { ".git", "node_modules", ".venv", "venv", "bin", "obj", "dist", "build", "__pycache__" };
+
+            var latestWrite = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                .Where(f => !IsExcluded(f, excluded))
+                .Select(f =>
+                {
+                    try { return File.GetLastWriteTimeUtc(f); }
+                    catch { return DateTime.MinValue; }
+                })
+                .DefaultIfEmpty(DateTime.MinValue)
+                .Max();
+
+            return latestWrite == DateTime.MinValue ? null : latestWrite;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool IsExcluded(string filePath, HashSet<string> excluded)
+    {
+        return excluded.Any(e => filePath.Contains($"\\{e}\\") || filePath.Contains($"/{e}/"));
+    }
 }

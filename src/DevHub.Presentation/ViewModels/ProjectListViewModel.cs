@@ -108,6 +108,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
             foreach (var p in projects)
             {
                 var card = new ProjectCardViewModel(p, _processLauncher, _windowService, settings);
+                card.RefreshLastWriteTime();
                 card.OnEditCompleted += () => _ = SafeLoadProjectsAsync();
                 card.OnFavoriteToggled += async (id, isFavorite) =>
                 {
@@ -152,6 +153,6 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     private void UpdateCounts()
     {
         TotalCount = Projects.Count;
-        ActiveCount = Projects.Count(p => p.Status == ProjectStatus.Active);
+        ActiveCount = Projects.Count(p => p.EffectiveStatus == ProjectStatus.Active);
     }
 }

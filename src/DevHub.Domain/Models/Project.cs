@@ -91,4 +91,12 @@ public class Project : BaseModel
         get => _lastAccessedAt;
         set => SetProperty(ref _lastAccessedAt, value);
     }
+
+    private bool _autoStatusEnabled = true;
+
+    public bool AutoStatusEnabled
+    {
+        get => _autoStatusEnabled;
+        set => SetProperty(ref _autoStatusEnabled, value);
+    }
 }
