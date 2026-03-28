@@ -1,13 +1,17 @@
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
 
 namespace DevHub.Application.UseCases.Links;
 
-public class CaptureLinkUseCase
+public partial class CaptureLinkUseCase
 {
     private readonly ILinkRepository _repository;
     private readonly IClipboardService _clipboardService;
+    private static readonly HttpClient _httpClient = new();
 
     public CaptureLinkUseCase(ILinkRepository repository, IClipboardService clipboardService)
     {
@@ -22,11 +26,13 @@ public class CaptureLinkUseCase
         if (string.IsNullOrWhiteSpace(text) || !IsValidUrl(text))
             return null;
 
+        var url = text.Trim();
+
         var link = new Link
         {
-            Url = text.Trim(),
-            Title = text.Trim(),
-            Type = DetectLinkType(text),
+            Url = url,
+            Title = await ExtractTitleAsync(url),
+            Type = DetectLinkType(url),
             ProjectId = projectId,
             Tags = [],
             CapturedAt = DateTime.UtcNow
@@ -42,6 +48,47 @@ public class CaptureLinkUseCase
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 
+    private static async Task<string> ExtractTitleAsync(string url)
+    {
+        var lower = url.ToLowerInvariant();
+
+        try
+        {
+            if (lower.Contains("youtube.com") || lower.Contains("youtu.be"))
+                return await ExtractYouTubeTitleAsync(url);
+
+            if (lower.Contains("github.com"))
+                return ExtractGitHubTitle(url);
+        }
+        catch { }
+
+        return url;
+    }
+
+    private static async Task<string> ExtractYouTubeTitleAsync(string url)
+    {
+        var oEmbedUrl = $"https://www.youtube.com/oembed?url={Uri.EscapeDataString(url)}&format=json";
+        var response = await _httpClient.GetStringAsync(oEmbedUrl);
+        using var doc = JsonDocument.Parse(response);
+
+        if (doc.RootElement.TryGetProperty("title", out var title))
+            return title.GetString() ?? url;
+
+        return url;
+    }
+
+    private static string ExtractGitHubTitle(string url)
+    {
+        var match = GitHubRepoRegex().Match(url);
+        if (match.Success)
+        {
+            var owner = match.Groups["owner"].Value;
+            var repo = match.Groups["repo"].Value;
+            return $"{owner}/{repo}";
+        }
+        return url;
+    }
+
     private static LinkType DetectLinkType(string url)
     {
         url = url.ToLowerInvariant();
@@ -55,4 +102,7 @@ public class CaptureLinkUseCase
 
         return LinkType.Article;
     }
+
+    [GeneratedRegex(@"github\.com/(?<owner>[^/]+)/(?<repo>[^/?#]+)")]
+    private static partial Regex GitHubRepoRegex();
 }
