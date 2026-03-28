@@ -16,6 +16,7 @@
         </Style>
         <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
         <converters:BoolToHideConverter x:Key="BoolToHideConverter" />
+        <converters:ViewModeToIconConverter x:Key="ViewModeToIconConverter" />
     </UserControl.Resources>
 
     <Grid Margin="20">
@@ -58,6 +59,11 @@
                 <ComboBoxItem Content="Paused" />
                 <ComboBoxItem Content="Archived" />
             </ComboBox>
+            <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}"
+                    Command="{Binding ToggleViewModeCommand}"
+                    Margin="8,0,0,0"
+                    Padding="8,4"
+                    ToolTip="Toggle view" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">

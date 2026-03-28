@@ -10,6 +10,7 @@ using DevHub.Domain.Interfaces;
 using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
+using DevHub.Presentation.Converters;
 
 namespace DevHub.Presentation.ViewModels;
 
@@ -84,6 +85,15 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
     [ObservableProperty]
     private bool _showHidden;
+
+    [ObservableProperty]
+    private ViewMode _viewMode = ViewMode.Tiles;
+
+    [RelayCommand]
+    private void ToggleViewMode()
+    {
+        ViewMode = ViewMode == ViewMode.Tiles ? ViewMode.List : ViewMode.Tiles;
+    }
 
     [RelayCommand]
     private async Task LoadProjectsAsync()
