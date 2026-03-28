@@ -3,7 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:domain="clr-namespace:DevHub.Domain.Models;assembly=DevHub.Domain"
-             xmlns:attached="clr-namespace:DevHub.Presentation.Attached">
+             xmlns:attached="clr-namespace:DevHub.Presentation.Attached"
+             xmlns:converters="clr-namespace:DevHub.Presentation.Converters"
+             xmlns:vm="clr-namespace:DevHub.Presentation.ViewModels">
+    <UserControl.Resources>
+        <converters:ViewModeToIconConverter x:Key="ViewModeToIconConverter" />
+        <converters:ListVisibilityConverter x:Key="ListVisibilityConverter" />
+        <converters:FoldersVisibilityConverter x:Key="FoldersVisibilityConverter" />
+    </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -41,7 +48,12 @@
             </ComboBox>
             <Button Content="Reset"
                     Command="{Binding ResetFiltersCommand}"
-                    Padding="10,4" />
+                    Padding="10,4"
+                    Margin="0,0,8,0" />
+            <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}"
+                    Command="{Binding ToggleViewModeCommand}"
+                    Padding="10,4"
+                    ToolTip="Toggle view" />
         </StackPanel>
 
         <TextBlock Grid.Row="2"
@@ -64,7 +76,9 @@
                        Margin="0,8,0,0" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
+        <!-- List View -->
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding Links}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type domain:Link}">
@@ -101,7 +115,7 @@
                                         CommandParameter="{Binding}" />
 
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Url}"
+                                    <TextBlock Text="{Binding Title}"
                                                TextTrimming="CharacterEllipsis"
                                                FontSize="13"
                                                FontWeight="SemiBold"
@@ -109,15 +123,71 @@
                                                Cursor="Hand"
                                                attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
-                                    <TextBlock Text="{Binding Title}"
+                                    <TextBlock Text="{Binding Url}"
                                                Foreground="#666"
                                                FontSize="11"
-                                               TextTrimming="CharacterEllipsis"
-                                               Visibility="{Binding Title, Converter={StaticResource NullToVisibilityConverter}}" />
+                                               TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding CapturedAt, StringFormat='Captured: {0:dd.MM.yyyy HH:mm}'}"
                                                Foreground="#999"
                                                FontSize="10"
                                                Margin="0,4,0,0" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Folders View -->
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding ViewMode, Converter={StaticResource FoldersVisibilityConverter}}">
+            <ItemsControl ItemsSource="{Binding Folders}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LinkFolderViewModel}">
+                        <Border Background="White"
+                                CornerRadius="8"
+                                Padding="16"
+                                Margin="0,0,0,12"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Right"
+                                        Background="#E3F2FD"
+                                        CornerRadius="10"
+                                        Padding="8,4"
+                                        VerticalAlignment="Top"
+                                        Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding Count}"
+                                               Foreground="#1565C0"
+                                               FontWeight="Bold"
+                                               FontSize="12" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,8" />
+                                    <ItemsControl ItemsSource="{Binding Links}" MaxHeight="200">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type domain:Link}">
+                                                <DockPanel Margin="0,0,0,4">
+                                                    <TextBlock DockPanel.Dock="Right"
+                                                               Text="{Binding Type}"
+                                                               FontSize="9"
+                                                               Foreground="#999"
+                                                               Margin="8,0,0,0" />
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontSize="12"
+                                                               Foreground="#1565C0"
+                                                               Cursor="Hand"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </DockPanel>
                         </Border>

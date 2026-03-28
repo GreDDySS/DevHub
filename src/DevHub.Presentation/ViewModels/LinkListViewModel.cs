@@ -7,6 +7,7 @@ using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
+using DevHub.Presentation.Converters;
 
 namespace DevHub.Presentation.ViewModels;
 
@@ -56,6 +57,9 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     private ObservableCollection<Link> _links = [];
 
     [ObservableProperty]
+    private ObservableCollection<LinkFolderViewModel> _folders = [];
+
+    [ObservableProperty]
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
@@ -64,15 +68,24 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     [ObservableProperty]
     private int _totalCount;
 
+    [ObservableProperty]
+    private ViewMode _viewMode = ViewMode.List;
+
+    [RelayCommand]
+    private void ToggleViewMode()
+    {
+        ViewMode = ViewMode == ViewMode.List ? ViewMode.Folders : ViewMode.List;
+    }
+
     [RelayCommand]
     private async Task LoadLinksAsync()
     {
         await ExecuteWithLoadingAsync(async () =>
         {
-            var links = await _repository.GetAllAsync();
+            var allLinks = await _repository.GetAllAsync();
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
-                links = links.Where(l =>
+                allLinks = allLinks.Where(l =>
                     (l.Url?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (l.Title?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false))
                     .ToList();
@@ -80,15 +93,77 @@ public partial class LinkListViewModel : BaseUserControlViewModel
             if (SelectedTypeIndex >= 0)
             {
                 var filterType = (LinkType)SelectedTypeIndex;
-                links = links.Where(l => l.Type == filterType).ToList();
+                allLinks = allLinks.Where(l => l.Type == filterType).ToList();
             }
 
+            var sorted = allLinks.OrderByDescending(l => l.CapturedAt).ToList();
+
             Links.Clear();
-            foreach (var link in links.OrderByDescending(l => l.CapturedAt))
+            foreach (var link in sorted)
                 Links.Add(link);
+
+            BuildFolders(sorted);
 
             TotalCount = Links.Count;
         });
+    }
+
+    private void BuildFolders(List<Link> links)
+    {
+        Folders.Clear();
+
+        var groups = links.GroupBy(l => l.Type).OrderBy(g => g.Key);
+
+        foreach (var group in groups)
+        {
+            var folderLinks = group.ToList();
+
+            if (group.Key == LinkType.Other)
+            {
+                var domainGroups = folderLinks
+                    .GroupBy(l => ExtractDomain(l.Url))
+                    .OrderByDescending(g => g.Count())
+                    .ToList();
+
+                foreach (var dg in domainGroups)
+                {
+                    if (dg.Count() >= 5)
+                    {
+                        Folders.Add(new LinkFolderViewModel(dg.Key, dg.ToList()));
+                    }
+                    else
+                    {
+                        var otherFolder = Folders.FirstOrDefault(f => f.Name == "Other");
+                        if (otherFolder == null)
+                        {
+                            otherFolder = new LinkFolderViewModel("Other", []);
+                            Folders.Add(otherFolder);
+                        }
+                        foreach (var link in dg)
+                            otherFolder.Links.Add(link);
+                    }
+                }
+            }
+            else
+            {
+                Folders.Add(new LinkFolderViewModel(group.Key.ToString(), folderLinks));
+            }
+        }
+
+        foreach (var folder in Folders)
+            folder.UpdateCount();
+    }
+
+    private static string ExtractDomain(string url)
+    {
+        try
+        {
+            return new Uri(url).Host;
+        }
+        catch
+        {
+            return url;
+        }
     }
 
     [RelayCommand]
