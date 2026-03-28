@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:vm="clr-namespace:DevHub.Presentation.ViewModels"
-             xmlns:converters="clr-namespace:DevHub.Presentation.Converters">
+             xmlns:converters="clr-namespace:DevHub.Presentation.Converters"
+             xmlns:attached="clr-namespace:DevHub.Presentation.Attached">
     <UserControl.Resources>
         <Style TargetType="Border" x:Key="CardStyle">
             <Setter Property="Background" Value="White" />
@@ -78,7 +79,7 @@
                     HorizontalAlignment="Center" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" PreviewMouseDoubleClick="ScrollViewer_PreviewMouseDoubleClick">
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Projects}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -87,7 +88,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ProjectCardViewModel}">
-                        <Border Style="{StaticResource CardStyle}" Width="280" Cursor="Hand">
+                        <Border Style="{StaticResource CardStyle}" Width="280" Cursor="Hand"
+                                attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}">
                             <DockPanel>
                                 <Button DockPanel.Dock="Right"
                                         Content="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}"

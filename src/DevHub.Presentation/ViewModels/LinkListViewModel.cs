@@ -109,6 +109,20 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     }
 
     [RelayCommand]
+    private void OpenInBrowser(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch { }
+    }
+
+    [RelayCommand]
     private void ResetFilters()
     {
         SearchQuery = string.Empty;
