@@ -118,6 +118,13 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     }
 
     public event Action? OnEditCompleted;
+    public event Action<Guid, bool>? OnFavoriteToggled;
+
+    [RelayCommand]
+    private void ToggleFavorite()
+    {
+        OnFavoriteToggled?.Invoke(Id, !IsFavorite);
+    }
 
     [RelayCommand]
     private void Edit()

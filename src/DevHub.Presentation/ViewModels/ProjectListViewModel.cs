@@ -17,6 +17,7 @@ namespace DevHub.Presentation.ViewModels;
 public partial class ProjectListViewModel : BaseUserControlViewModel
 {
     private readonly GetAllProjectsUseCase _getAllProjects;
+    private readonly UpdateProjectUseCase _updateProject;
     private readonly IWindowService _windowService;
     private readonly IProcessLauncher _processLauncher;
     private readonly IAppSettingsStore _settingsStore;
@@ -24,11 +25,13 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
     public ProjectListViewModel(
         GetAllProjectsUseCase getAllProjects,
+        UpdateProjectUseCase updateProject,
         IWindowService windowService,
         IProcessLauncher processLauncher,
         IAppSettingsStore settingsStore)
     {
         _getAllProjects = getAllProjects;
+        _updateProject = updateProject;
         _windowService = windowService;
         _processLauncher = processLauncher;
         _settingsStore = settingsStore;
@@ -93,6 +96,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
             {
                 var card = new ProjectCardViewModel(p, _processLauncher, _windowService, settings);
                 card.OnEditCompleted += () => _ = SafeLoadProjectsAsync();
+                card.OnFavoriteToggled += async (id, isFavorite) =>
+                {
+                    await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsFavorite: isFavorite));
+                    await SafeLoadProjectsAsync();
+                };
                 Projects.Add(card);
             }
 
