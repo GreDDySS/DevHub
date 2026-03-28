@@ -32,6 +32,9 @@ public class GetAllProjectsUseCase
     {
         var query = projects.AsEnumerable();
 
+        if (!filter.ShowHidden)
+            query = query.Where(p => !p.IsHidden);
+
         if (filter.Status is not null)
             query = query.Where(p => p.Status == filter.Status);
 
@@ -57,5 +60,6 @@ public class GetAllProjectsUseCase
         p.Tags,
         p.PreferredIde,
         p.IsFavorite,
+        p.IsHidden,
         p.UpdatedAt);
 }

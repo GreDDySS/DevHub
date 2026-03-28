@@ -10,4 +10,5 @@ public record UpdateProjectRequest(
     ProgrammingLanguage? Language = null,
     List<string>? Tags = null,
     string? PreferredIde = null,
-    bool? IsFavorite = null);
+    bool? IsFavorite = null,
+    bool? IsHidden = null);

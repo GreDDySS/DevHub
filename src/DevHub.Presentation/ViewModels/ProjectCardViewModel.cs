@@ -35,6 +35,7 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     public List<string> Tags => Dto.Tags;
     public string? PreferredIde => Dto.PreferredIde;
     public bool IsFavorite => Dto.IsFavorite;
+    public bool IsHidden => Dto.IsHidden;
     public DateTime UpdatedAt => Dto.UpdatedAt;
 
     public string StatusColor => Status switch
@@ -119,11 +120,18 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
 
     public event Action? OnEditCompleted;
     public event Action<Guid, bool>? OnFavoriteToggled;
+    public event Action<Guid, bool>? OnHiddenToggled;
 
     [RelayCommand]
     private void ToggleFavorite()
     {
         OnFavoriteToggled?.Invoke(Id, !IsFavorite);
+    }
+
+    [RelayCommand]
+    private void ToggleHidden()
+    {
+        OnHiddenToggled?.Invoke(Id, !IsHidden);
     }
 
     [RelayCommand]

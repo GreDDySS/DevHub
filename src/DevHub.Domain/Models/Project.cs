@@ -76,6 +76,14 @@ public class Project : BaseModel
         set => SetProperty(ref _isFavorite, value);
     }
 
+    private bool _isHidden;
+
+    public bool IsHidden
+    {
+        get => _isHidden;
+        set => SetProperty(ref _isHidden, value);
+    }
+
     private DateTime? _lastAccessedAt;
 
     public DateTime? LastAccessedAt

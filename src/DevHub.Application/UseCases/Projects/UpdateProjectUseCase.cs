@@ -26,6 +26,7 @@ public class UpdateProjectUseCase
         if (request.Tags is not null) project.Tags = request.Tags;
         if (request.PreferredIde is not null) project.PreferredIde = request.PreferredIde;
         if (request.IsFavorite is not null) project.IsFavorite = request.IsFavorite.Value;
+        if (request.IsHidden is not null) project.IsHidden = request.IsHidden.Value;
 
         project.MarkUpdated();
         await _repository.UpdateAsync(project);

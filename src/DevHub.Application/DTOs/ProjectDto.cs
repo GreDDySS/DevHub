@@ -13,4 +13,5 @@ public record ProjectDto(
     List<string> Tags,
     string? PreferredIde,
     bool IsFavorite,
+    bool IsHidden,
     DateTime UpdatedAt);

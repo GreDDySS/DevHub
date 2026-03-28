@@ -15,6 +15,7 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
+        <converters:BoolToHideConverter x:Key="BoolToHideConverter" />
     </UserControl.Resources>
 
     <Grid Margin="20">
@@ -62,7 +63,11 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="{Binding ActiveCount, StringFormat='Active: {0}'}"
                        Foreground="#4CAF50"
-                       Margin="0,0,20,0" />
+                       Margin="0,0,20,0"
+                       VerticalAlignment="Center" />
+            <CheckBox Content="Show hidden"
+                      IsChecked="{Binding ShowHidden}"
+                      VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Grid.Row="4"
@@ -91,15 +96,21 @@
                         <Border Style="{StaticResource CardStyle}" Width="280" Cursor="Hand"
                                 attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}">
                             <DockPanel>
-                                <Button DockPanel.Dock="Right"
-                                        Content="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}"
-                                        Command="{Binding ToggleFavoriteCommand}"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        FontSize="16"
-                                        Padding="4"
-                                        VerticalAlignment="Top"
-                                        HorizontalAlignment="Right" />
+                                <StackPanel DockPanel.Dock="Right" Orientation="Vertical" HorizontalAlignment="Right">
+                                    <Button Content="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}"
+                                            Command="{Binding ToggleFavoriteCommand}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            FontSize="16"
+                                            Padding="4" />
+                                    <Button Content="{Binding IsHidden, Converter={StaticResource BoolToHideConverter}}"
+                                            Command="{Binding ToggleHiddenCommand}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            FontSize="10"
+                                            Foreground="#999"
+                                            Padding="4" />
+                                </StackPanel>
                                 <StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding LanguageIcon}"

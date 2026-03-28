@@ -82,12 +82,15 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     [ObservableProperty]
     private int _activeCount;
 
+    [ObservableProperty]
+    private bool _showHidden;
+
     [RelayCommand]
     private async Task LoadProjectsAsync()
     {
         await ExecuteWithLoadingAsync(async () =>
         {
-            var filter = new ProjectFilter(SearchQuery, StatusFilter);
+            var filter = new ProjectFilter(SearchQuery, StatusFilter, ShowHidden: ShowHidden);
             var projects = await _getAllProjects.ExecuteAsync(filter);
             var settings = await _settingsStore.LoadAsync();
 
@@ -99,6 +102,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
                 card.OnFavoriteToggled += async (id, isFavorite) =>
                 {
                     await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsFavorite: isFavorite));
+                    await SafeLoadProjectsAsync();
+                };
+                card.OnHiddenToggled += async (id, isHidden) =>
+                {
+                    await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsHidden: isHidden));
                     await SafeLoadProjectsAsync();
                 };
                 Projects.Add(card);
@@ -122,6 +130,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     }
 
     partial void OnStatusFilterChanged(ProjectStatus? value)
+    {
+        _ = SafeLoadProjectsAsync();
+    }
+
+    partial void OnShowHiddenChanged(bool value)
     {
         _ = SafeLoadProjectsAsync();
     }
