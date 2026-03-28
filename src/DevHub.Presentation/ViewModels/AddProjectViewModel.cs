@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -5,6 +6,9 @@ using DevHub.Application.DTOs;
 using DevHub.Application.Interfaces;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
+using DevHub.Domain.Interfaces;
+using DevHub.Domain.Models;
+using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Base;
 
 namespace DevHub.Presentation.ViewModels;
@@ -14,15 +18,19 @@ public partial class AddProjectViewModel : BaseWindowViewModel
     private readonly AddProjectUseCase _addProjectUseCase;
     private readonly UpdateProjectUseCase _updateProjectUseCase;
     private readonly IWindowService _windowService;
+    private readonly IAppSettingsStore _settingsStore;
+    private readonly List<IdeEntry> _cachedIdes = [];
 
     public AddProjectViewModel(
         AddProjectUseCase addProjectUseCase,
         UpdateProjectUseCase updateProjectUseCase,
-        IWindowService windowService)
+        IWindowService windowService,
+        IAppSettingsStore settingsStore)
     {
         _addProjectUseCase = addProjectUseCase;
         _updateProjectUseCase = updateProjectUseCase;
         _windowService = windowService;
+        _settingsStore = settingsStore;
         Title = "Add Project";
         Width = 500;
         Height = 450;
@@ -43,20 +51,88 @@ public partial class AddProjectViewModel : BaseWindowViewModel
     private string? _description;
 
     [ObservableProperty]
+    private string? _notes;
+
+    [ObservableProperty]
     private ProgrammingLanguage _language = ProgrammingLanguage.CSharp;
+
+    [ObservableProperty]
+    private ObservableCollection<IdeEntry> _availableIdes = [];
+
+    [ObservableProperty]
+    private IdeEntry? _selectedIde;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _tags = [];
+
+    [ObservableProperty]
+    private string _newTag = string.Empty;
 
     public bool IsEditing => _editingProjectId.HasValue;
 
     public Array Languages => Enum.GetValues<ProgrammingLanguage>();
 
-    public void SetEditMode(Guid projectId, string name, string path, string? description, ProgrammingLanguage language)
+    private async Task LoadIdesAsync()
+    {
+        try
+        {
+            if (_cachedIdes.Count == 0)
+            {
+                var settings = await _settingsStore.LoadAsync();
+                _cachedIdes.AddRange(settings.Ides);
+            }
+            AvailableIdes = new ObservableCollection<IdeEntry>(_cachedIdes);
+        }
+        catch { }
+    }
+
+    public void SetEditMode(Guid projectId, string name, string path, string? description,
+        ProgrammingLanguage language, string? notes, string? preferredIde, List<string> tags)
     {
         _editingProjectId = projectId;
         Name = name;
         Path = path;
         Description = description;
         Language = language;
+        Notes = notes;
+
+        LoadIdesSync();
+        SelectedIde = AvailableIdes.FirstOrDefault(i => i.Path == preferredIde);
+
+        Tags = new ObservableCollection<string>(tags);
         Title = "Edit Project";
+        Height = 580;
+    }
+
+    private void LoadIdesSync()
+    {
+        try
+        {
+            if (_cachedIdes.Count == 0)
+            {
+                var settings = Task.Run(() => _settingsStore.LoadAsync()).GetAwaiter().GetResult();
+                _cachedIdes.AddRange(settings.Ides);
+            }
+            AvailableIdes = new ObservableCollection<IdeEntry>(_cachedIdes);
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    private void AddTag()
+    {
+        var tag = NewTag.Trim();
+        if (!string.IsNullOrEmpty(tag) && !Tags.Contains(tag))
+        {
+            Tags.Add(tag);
+            NewTag = string.Empty;
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveTag(string tag)
+    {
+        Tags.Remove(tag);
     }
 
     [RelayCommand]
@@ -67,10 +143,13 @@ public partial class AddProjectViewModel : BaseWindowViewModel
 
         await ExecuteWithLoadingAsync(async () =>
         {
+            var preferredIde = SelectedIde?.Path;
+
             if (IsEditing)
             {
                 await _updateProjectUseCase.ExecuteAsync(_editingProjectId!.Value,
-                    new UpdateProjectRequest(Name, Description, Language: Language));
+                    new UpdateProjectRequest(Name, Description, Notes, Language: Language,
+                        Tags: Tags.ToList(), PreferredIde: preferredIde));
             }
             else
             {

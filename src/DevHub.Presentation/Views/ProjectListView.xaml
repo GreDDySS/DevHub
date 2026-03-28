@@ -76,7 +76,7 @@
                     HorizontalAlignment="Center" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" PreviewMouseDoubleClick="ScrollViewer_PreviewMouseDoubleClick">
             <ItemsControl ItemsSource="{Binding Projects}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -136,17 +136,17 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button Content="📁 Explorer"
+                                    <Button Content="Explorer"
                                             Command="{Binding OpenInExplorerCommand}"
                                             FontSize="11"
                                             Padding="8,4"
                                             Margin="0,0,8,0" />
-                                    <Button Content="💻 IDE"
+                                    <Button Content="IDE"
                                             Command="{Binding OpenInIdeCommand}"
                                             FontSize="11"
                                             Padding="8,4"
                                             Margin="0,0,8,0" />
-                                    <Button Content=">_ Console"
+                                    <Button Content="Console"
                                             Command="{Binding OpenConsoleCommand}"
                                             FontSize="11"
                                             Padding="8,4" />

@@ -63,6 +63,17 @@ public class WindowService : IWindowService
         return ShowDialogInternal(viewModel);
     }
 
+    public bool? ShowDialog(Type viewModelType, Action<object> configure)
+    {
+        var registration = _registry.GetByViewModel(viewModelType);
+        if (registration is null)
+            throw new InvalidOperationException($"View for {viewModelType.Name} not registered");
+
+        var viewModel = _resolver.Resolve(registration);
+        configure(viewModel);
+        return ShowDialogInternal(viewModel);
+    }
+
     public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
         => ShowDialogInternal(viewModel);
 

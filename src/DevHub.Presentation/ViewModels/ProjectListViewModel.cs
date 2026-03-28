@@ -90,7 +90,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
             Projects.Clear();
             foreach (var p in projects)
-                Projects.Add(new ProjectCardViewModel(p, _processLauncher, settings));
+            {
+                var card = new ProjectCardViewModel(p, _processLauncher, _windowService, settings);
+                card.OnEditCompleted += () => _ = SafeLoadProjectsAsync();
+                Projects.Add(card);
+            }
 
             UpdateCounts();
         });

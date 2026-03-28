@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
@@ -11,14 +12,16 @@ namespace DevHub.Presentation.ViewModels;
 public partial class ProjectCardViewModel : BaseUserControlViewModel
 {
     private readonly IProcessLauncher _processLauncher;
+    private readonly IWindowService _windowService;
     private readonly AppSettings _settings;
 
     public ProjectDto Dto { get; }
 
-    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher, AppSettings settings)
+    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher, IWindowService windowService, AppSettings settings)
     {
         Dto = dto;
         _processLauncher = processLauncher;
+        _windowService = windowService;
         _settings = settings;
     }
 
@@ -112,5 +115,19 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
             ErrorMessage = ex.Message;
             HasError = true;
         }
+    }
+
+    public event Action? OnEditCompleted;
+
+    [RelayCommand]
+    private void Edit()
+    {
+        _windowService.ShowDialog(typeof(AddProjectViewModel), vm =>
+        {
+            if (vm is AddProjectViewModel editVm)
+                editVm.SetEditMode(Id, Name, Path, Description, Language, Notes, PreferredIde, Tags);
+        });
+
+        OnEditCompleted?.Invoke();
     }
 }

@@ -6,6 +6,7 @@ public interface IWindowService
     object? GetCurrentView();
 
     bool? ShowDialog(Type viewModelType);
+    bool? ShowDialog(Type viewModelType, Action<object> configure);
     void Show(Type viewModelType);
 
     bool Confirm(string title, string message);
