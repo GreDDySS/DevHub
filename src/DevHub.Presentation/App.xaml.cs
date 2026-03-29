@@ -64,6 +64,7 @@ public partial class App : System.Windows.Application
             services.AddSingleton<AddProjectUseCase>();
             services.AddSingleton<UpdateProjectUseCase>();
             services.AddSingleton<CaptureLinkUseCase>();
+            services.AddSingleton<DetectProjectsUseCase>();
 
             // Presentation services
             var registry = new ViewRegistry();

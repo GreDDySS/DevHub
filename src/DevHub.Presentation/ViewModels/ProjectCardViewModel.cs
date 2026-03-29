@@ -52,16 +52,16 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
         }
     }
 
-    public void RefreshLastWriteTime()
+    public async Task RefreshLastWriteAsync()
     {
-        LastFileWrite = _processLauncher.GetLastWriteTime(Path);
+        LastFileWrite = await Task.Run(() => _processLauncher.GetLastWriteTime(Path));
     }
 
     public ProjectStatus EffectiveStatus
     {
         get
         {
-            if (Status == ProjectStatus.Active && !IsHidden)
+            if (Status == ProjectStatus.Active)
             {
                 var checkDate = LastFileWrite ?? UpdatedAt;
                 if (DateTime.UtcNow - checkDate > TimeSpan.FromDays(14))

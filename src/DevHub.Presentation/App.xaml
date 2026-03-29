@@ -14,6 +14,8 @@
             <local:InverseBoolConverter x:Key="InverseBoolConverter" />
             <local:LinkTypeToColorConverter x:Key="LinkTypeToColorConverter" />
             <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <local:NullableStatusConverter x:Key="NullableStatusConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

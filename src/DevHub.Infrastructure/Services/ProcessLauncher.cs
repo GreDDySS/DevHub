@@ -84,7 +84,7 @@ public class ProcessLauncher : IProcessLauncher
 
             var excluded = new HashSet<string> { ".git", "node_modules", ".venv", "venv", "bin", "obj", "dist", "build", "__pycache__" };
 
-            var latestWrite = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+            var latestWrite = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly)
                 .Where(f => !IsExcluded(f, excluded))
                 .Select(f =>
                 {
@@ -93,6 +93,19 @@ public class ProcessLauncher : IProcessLauncher
                 })
                 .DefaultIfEmpty(DateTime.MinValue)
                 .Max();
+
+            if (latestWrite == DateTime.MinValue)
+            {
+                latestWrite = Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly)
+                    .Where(d => !excluded.Contains(Path.GetFileName(d)))
+                    .Select(d =>
+                    {
+                        try { return Directory.GetLastWriteTimeUtc(d); }
+                        catch { return DateTime.MinValue; }
+                    })
+                    .DefaultIfEmpty(DateTime.MinValue)
+                    .Max();
+            }
 
             return latestWrite == DateTime.MinValue ? null : latestWrite;
         }

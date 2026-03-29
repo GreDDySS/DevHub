@@ -75,7 +75,16 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
-    private ProjectStatus? _statusFilter;
+    private StatusFilterItem _statusFilter = Statuses[0];
+
+    public static List<StatusFilterItem> Statuses { get; } =
+    [
+        new("All", null),
+        new("Active", ProjectStatus.Active),
+        new("Paused", ProjectStatus.Paused),
+        new("Completed", ProjectStatus.Completed),
+        new("Archived", ProjectStatus.Archived)
+    ];
 
     [ObservableProperty]
     private int _totalCount;
@@ -100,15 +109,13 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
     {
         await ExecuteWithLoadingAsync(async () =>
         {
-            var filter = new ProjectFilter(SearchQuery, StatusFilter, ShowHidden: ShowHidden);
+            var filter = new ProjectFilter(SearchQuery, null, ShowHidden: ShowHidden);
             var projects = await _getAllProjects.ExecuteAsync(filter);
             var settings = await _settingsStore.LoadAsync();
 
-            Projects.Clear();
-            foreach (var p in projects)
+            var cards = projects.Select(p =>
             {
                 var card = new ProjectCardViewModel(p, _processLauncher, _windowService, settings);
-                card.RefreshLastWriteTime();
                 card.OnEditCompleted += () => _ = SafeLoadProjectsAsync();
                 card.OnFavoriteToggled += async (id, isFavorite) =>
                 {
@@ -120,7 +127,18 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
                     await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsHidden: isHidden));
                     await SafeLoadProjectsAsync();
                 };
-                Projects.Add(card);
+                return card;
+            }).ToList();
+
+            await Task.WhenAll(cards.Select(card => card.RefreshLastWriteAsync()));
+
+            var statusValue = StatusFilter.Value;
+
+            Projects.Clear();
+            foreach (var card in cards)
+            {
+                if (statusValue is null || card.EffectiveStatus == statusValue)
+                    Projects.Add(card);
             }
 
             UpdateCounts();
@@ -134,13 +152,20 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         _ = SafeLoadProjectsAsync();
     }
 
+    [RelayCommand]
+    private void AutoDetect()
+    {
+        _windowService.ShowDialog(typeof(AutoDetectProjectsViewModel));
+        _ = SafeLoadProjectsAsync();
+    }
+
     partial void OnSearchQueryChanged(string value)
     {
         _debounceTimer.Stop();
         _debounceTimer.Start();
     }
 
-    partial void OnStatusFilterChanged(ProjectStatus? value)
+    partial void OnStatusFilterChanged(StatusFilterItem value)
     {
         _ = SafeLoadProjectsAsync();
     }

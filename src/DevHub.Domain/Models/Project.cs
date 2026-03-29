@@ -99,4 +99,15 @@ public class Project : BaseModel
         get => _autoStatusEnabled;
         set => SetProperty(ref _autoStatusEnabled, value);
     }
+
+    public ProjectStatus GetEffectiveStatus(DateTime? lastFileWrite = null)
+    {
+        if (AutoStatusEnabled && Status == ProjectStatus.Active)
+        {
+            var checkDate = lastFileWrite ?? UpdatedAt;
+            if (DateTime.UtcNow - checkDate > TimeSpan.FromDays(14))
+                return ProjectStatus.Paused;
+        }
+        return Status;
+    }
 }

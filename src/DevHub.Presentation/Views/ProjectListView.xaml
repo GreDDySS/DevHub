@@ -4,7 +4,8 @@
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:vm="clr-namespace:DevHub.Presentation.ViewModels"
              xmlns:converters="clr-namespace:DevHub.Presentation.Converters"
-             xmlns:attached="clr-namespace:DevHub.Presentation.Attached">
+             xmlns:attached="clr-namespace:DevHub.Presentation.Attached"
+             xmlns:domain="clr-namespace:DevHub.Domain.Enums;assembly=DevHub.Domain">
     <UserControl.Resources>
         <Style TargetType="Border" x:Key="CardStyle">
             <Setter Property="Background" Value="White" />
@@ -17,6 +18,10 @@
         <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
         <converters:BoolToHideConverter x:Key="BoolToHideConverter" />
         <converters:ViewModeToIconConverter x:Key="ViewModeToIconConverter" />
+        <converters:NullableStatusConverter x:Key="NullableStatusConverter" />
+        <DataTemplate x:Key="StatusItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource NullableStatusConverter}}" />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid Margin="20">
@@ -30,11 +35,16 @@
 
         <!-- Header -->
         <DockPanel Grid.Row="0" Margin="0,0,0,20">
-            <Button DockPanel.Dock="Right"
-                    Content="+ Add Project"
-                    Command="{Binding AddProjectCommand}"
-                    Style="{StaticResource ButtonPrimary}"
-                    Padding="16,0" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="+ Add"
+                        Command="{Binding AddProjectCommand}"
+                        Style="{StaticResource ButtonPrimary}"
+                        Padding="16,0"
+                        Margin="0,0,8,0" />
+                <Button Content="Auto-detect"
+                        Command="{Binding AutoDetectCommand}"
+                        Padding="16,0" />
+            </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Projects"
                            FontSize="28"
@@ -50,15 +60,10 @@
                      Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                      Width="300"
                      Margin="0,0,10,0" />
-            <ComboBox SelectedItem="{Binding StatusFilter}"
-                      Width="150"
-                      Margin="0,0,10,0">
-                <ComboBoxItem Content="All" Tag="{x:Null}" />
-                <ComboBoxItem Content="Active" />
-                <ComboBoxItem Content="Completed" />
-                <ComboBoxItem Content="Paused" />
-                <ComboBoxItem Content="Archived" />
-            </ComboBox>
+            <ComboBox ItemsSource="{Binding Statuses}"
+                      SelectedItem="{Binding StatusFilter}"
+                      Width="120"
+                      Margin="0,0,10,0" />
             <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}"
                     Command="{Binding ToggleViewModeCommand}"
                     Margin="8,0,0,0"
