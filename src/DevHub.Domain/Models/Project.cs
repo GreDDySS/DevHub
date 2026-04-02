@@ -68,6 +68,14 @@ public class Project : BaseModel
         set => SetProperty(ref _preferredIde, value);
     }
 
+    private List<string> _additionalIdes = [];
+
+    public List<string> AdditionalIdes
+    {
+        get => _additionalIdes;
+        set => SetProperty(ref _additionalIdes, value);
+    }
+
     private bool _isFavorite;
 
     public bool IsFavorite
