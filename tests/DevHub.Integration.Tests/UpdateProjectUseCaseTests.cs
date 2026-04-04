@@ -1,6 +1,8 @@
 using DevHub.Application.DTOs;
 using DevHub.Application.Exceptions;
 using DevHub.Application.UseCases.Projects;
+using DevHub.Domain.Enums;
+using DevHub.Domain.Models;
 using DevHub.Domain.Tests.InMemory;
 
 namespace DevHub.Integration.Tests;
@@ -13,12 +15,12 @@ public class UpdateProjectUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new UpdateProjectUseCase(repo);
 
-        var project = new Domain.Models.Project { Name = "Old", Path = "D:\\Test" };
+        var project = Project.Create("Old", "D:\\Test", ProgrammingLanguage.Other);
         await repo.AddAsync(project);
 
         await useCase.ExecuteAsync(project.Id, new UpdateProjectRequest(Name: "New"));
 
-        var updated = await repo.GetByIdAsync(project.Id);
+        var updated = await repo.GetByIdAsync(default, project.Id);
         Assert.Equal("New", updated!.Name);
     }
 
@@ -38,12 +40,13 @@ public class UpdateProjectUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new UpdateProjectUseCase(repo);
 
-        var project = new Domain.Models.Project { Name = "Original", Path = "D:\\Test", Description = "Desc" };
+        var project = Project.Create("Original", "D:\\Test", ProgrammingLanguage.Other);
+        project.UpdateDescription("Desc");
         await repo.AddAsync(project);
 
         await useCase.ExecuteAsync(project.Id, new UpdateProjectRequest(Name: "Updated"));
 
-        var updated = await repo.GetByIdAsync(project.Id);
+        var updated = await repo.GetByIdAsync(default, project.Id);
         Assert.Equal("Updated", updated!.Name);
         Assert.Equal("Desc", updated.Description);
     }

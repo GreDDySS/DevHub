@@ -10,7 +10,7 @@ public class InMemoryLinkRepositoryTests
     public async Task AddAsync_ShouldAddLink()
     {
         var repo = new InMemoryLinkRepository();
-        var link = new Link { Url = "https://example.com", Type = LinkType.Article };
+        var link = Link.Create("https://example.com", LinkType.Article);
 
         await repo.AddAsync(link);
         var all = await repo.GetAllAsync();
@@ -25,9 +25,15 @@ public class InMemoryLinkRepositoryTests
         var repo = new InMemoryLinkRepository();
         var projectId = Guid.NewGuid();
 
-        await repo.AddAsync(new Link { Url = "https://a.com", ProjectId = projectId });
-        await repo.AddAsync(new Link { Url = "https://b.com", ProjectId = projectId });
-        await repo.AddAsync(new Link { Url = "https://c.com" });
+        var link1 = Link.Create("https://a.com");
+        link1.SetProjectId(projectId);
+        var link2 = Link.Create("https://b.com");
+        link2.SetProjectId(projectId);
+        var link3 = Link.Create("https://c.com");
+
+        await repo.AddAsync(link1);
+        await repo.AddAsync(link2);
+        await repo.AddAsync(link3);
 
         var links = await repo.GetByProjectIdAsync(projectId);
 
@@ -38,24 +44,24 @@ public class InMemoryLinkRepositoryTests
     public async Task UpdateAsync_ShouldUpdateLink()
     {
         var repo = new InMemoryLinkRepository();
-        var link = new Link { Url = "https://old.com" };
+        var link = Link.Create("https://old.com");
 
         await repo.AddAsync(link);
-        link.Url = "https://new.com";
+        link.SetTitle("Updated");
         await repo.UpdateAsync(link);
 
-        var found = await repo.GetByIdAsync(link.Id);
-        Assert.Equal("https://new.com", found!.Url);
+        var found = await repo.GetByIdAsync(default, link.Id);
+        Assert.Equal("Updated", found!.Title);
     }
 
     [Fact]
     public async Task GetByIdAsync_ShouldReturnLink()
     {
         var repo = new InMemoryLinkRepository();
-        var link = new Link { Url = "https://example.com" };
+        var link = Link.Create("https://example.com");
 
         await repo.AddAsync(link);
-        var found = await repo.GetByIdAsync(link.Id);
+        var found = await repo.GetByIdAsync(default, link.Id);
 
         Assert.NotNull(found);
         Assert.Equal(link.Id, found.Id);
@@ -66,7 +72,7 @@ public class InMemoryLinkRepositoryTests
     {
         var repo = new InMemoryLinkRepository();
 
-        var found = await repo.GetByIdAsync(Guid.NewGuid());
+        var found = await repo.GetByIdAsync(default, Guid.NewGuid());
 
         Assert.Null(found);
     }
@@ -75,7 +81,7 @@ public class InMemoryLinkRepositoryTests
     public async Task DeleteAsync_ShouldRemoveLink()
     {
         var repo = new InMemoryLinkRepository();
-        var link = new Link { Url = "https://example.com" };
+        var link = Link.Create("https://example.com");
 
         await repo.AddAsync(link);
         await repo.DeleteAsync(link.Id);

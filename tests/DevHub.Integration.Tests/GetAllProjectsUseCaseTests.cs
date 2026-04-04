@@ -1,6 +1,7 @@
 using DevHub.Application.DTOs;
 using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
+using DevHub.Domain.Models;
 using DevHub.Domain.Tests.InMemory;
 
 namespace DevHub.Integration.Tests;
@@ -13,7 +14,7 @@ public class GetAllProjectsUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new GetAllProjectsUseCase(repo);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Empty(result);
     }
@@ -24,10 +25,10 @@ public class GetAllProjectsUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new GetAllProjectsUseCase(repo);
 
-        await repo.AddAsync(new Domain.Models.Project { Name = "A", Path = "D:\\A" });
-        await repo.AddAsync(new Domain.Models.Project { Name = "B", Path = "D:\\B" });
+        await repo.AddAsync(Project.Create("A", "D:\\A", ProgrammingLanguage.Other));
+        await repo.AddAsync(Project.Create("B", "D:\\B", ProgrammingLanguage.Other));
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Equal(2, result.Count);
     }
@@ -38,8 +39,13 @@ public class GetAllProjectsUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new GetAllProjectsUseCase(repo);
 
-        await repo.AddAsync(new Domain.Models.Project { Name = "A", Path = "D:\\A", Status = ProjectStatus.Active });
-        await repo.AddAsync(new Domain.Models.Project { Name = "B", Path = "D:\\B", Status = ProjectStatus.Archived });
+        var a = Project.Create("A", "D:\\A", ProgrammingLanguage.Other);
+        a.ChangeStatus(ProjectStatus.Active);
+        await repo.AddAsync(a);
+
+        var b = Project.Create("B", "D:\\B", ProgrammingLanguage.Other);
+        b.ChangeStatus(ProjectStatus.Archived);
+        await repo.AddAsync(b);
 
         var result = await useCase.ExecuteAsync(new ProjectFilter(Status: ProjectStatus.Active));
 
@@ -53,8 +59,8 @@ public class GetAllProjectsUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new GetAllProjectsUseCase(repo);
 
-        await repo.AddAsync(new Domain.Models.Project { Name = "WebApp", Path = "D:\\WebApp" });
-        await repo.AddAsync(new Domain.Models.Project { Name = "DesktopApp", Path = "D:\\Desktop" });
+        await repo.AddAsync(Project.Create("WebApp", "D:\\WebApp", ProgrammingLanguage.Other));
+        await repo.AddAsync(Project.Create("DesktopApp", "D:\\Desktop", ProgrammingLanguage.Other));
 
         var result = await useCase.ExecuteAsync(new ProjectFilter(SearchQuery: "Web"));
 
@@ -68,10 +74,14 @@ public class GetAllProjectsUseCaseTests
         var repo = new InMemoryProjectRepository();
         var useCase = new GetAllProjectsUseCase(repo);
 
-        await repo.AddAsync(new Domain.Models.Project { Name = "A", Path = "D\\A", IsFavorite = false });
-        await repo.AddAsync(new Domain.Models.Project { Name = "B", Path = "D\\B", IsFavorite = true });
+        var a = Project.Create("A", "D\\A", ProgrammingLanguage.Other);
+        await repo.AddAsync(a);
 
-        var result = await useCase.ExecuteAsync();
+        var b = Project.Create("B", "D\\B", ProgrammingLanguage.Other);
+        b.ToggleFavorite();
+        await repo.AddAsync(b);
+
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Equal("B", result[0].Name);
     }

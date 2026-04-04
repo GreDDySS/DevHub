@@ -6,46 +6,78 @@ namespace DevHub.Domain.Tests;
 public class LinkTests
 {
     [Fact]
-    public void Link_ShouldInheritBaseModel()
+    public void Link_Create_ShouldInitializeWithCorrectValues()
     {
-        var link = new Link();
+        var link = Link.Create("https://example.com", LinkType.Article);
 
-        Assert.IsAssignableFrom<BaseModel>(link);
         Assert.NotEqual(Guid.Empty, link.Id);
-    }
-
-    [Fact]
-    public void Link_DefaultValues_ShouldBeCorrect()
-    {
-        var link = new Link();
-
-        Assert.Equal(string.Empty, link.Url);
+        Assert.Equal("https://example.com", link.Url);
+        Assert.Equal(LinkType.Article, link.Type);
         Assert.Null(link.Title);
-        Assert.Equal(LinkType.Other, link.Type);
         Assert.Null(link.ProjectId);
         Assert.Empty(link.Tags);
         Assert.Null(link.Notes);
     }
 
     [Fact]
-    public void Link_PropertiesShouldBeSettable()
+    public void Link_Create_ThrowsOnInvalidUrl()
     {
-        var projectId = Guid.NewGuid();
-        var link = new Link
-        {
-            Url = "https://github.com/test/repo",
-            Title = "Test Repository",
-            Type = LinkType.Repository,
-            ProjectId = projectId,
-            Tags = ["git", "open-source"],
-            Notes = "Useful repo"
-        };
+        Assert.Throws<DomainException>(() => Link.Create(""));
+        Assert.Throws<DomainException>(() => Link.Create("not-a-url"));
+        Assert.Throws<DomainException>(() => Link.Create("ftp://example.com"));
+    }
 
-        Assert.Equal("https://github.com/test/repo", link.Url);
-        Assert.Equal("Test Repository", link.Title);
-        Assert.Equal(LinkType.Repository, link.Type);
+    [Fact]
+    public void Link_SetTitle_ShouldSetTitle()
+    {
+        var link = Link.Create("https://example.com");
+
+        link.SetTitle("My Title");
+
+        Assert.Equal("My Title", link.Title);
+    }
+
+    [Fact]
+    public void Link_SetProjectId_ShouldSetProjectId()
+    {
+        var link = Link.Create("https://example.com");
+        var projectId = Guid.NewGuid();
+
+        link.SetProjectId(projectId);
+
         Assert.Equal(projectId, link.ProjectId);
+    }
+
+    [Fact]
+    public void Link_SetType_ShouldChangeType()
+    {
+        var link = Link.Create("https://example.com");
+
+        link.SetType(LinkType.Repository);
+
+        Assert.Equal(LinkType.Repository, link.Type);
+    }
+
+    [Fact]
+    public void Link_AddTag_ShouldAddUniqueTag()
+    {
+        var link = Link.Create("https://example.com");
+
+        link.AddTag("git");
+        link.AddTag("open-source");
+        link.AddTag("GIT"); // duplicate
+
         Assert.Equal(2, link.Tags.Count);
-        Assert.Equal("Useful repo", link.Notes);
+    }
+
+    [Fact]
+    public void Link_SetTags_ShouldReplaceAllTags()
+    {
+        var link = Link.Create("https://example.com");
+        link.AddTag("old");
+
+        link.SetTags(["new1", "new2"]);
+
+        Assert.Equal(2, link.Tags.Count);
     }
 }

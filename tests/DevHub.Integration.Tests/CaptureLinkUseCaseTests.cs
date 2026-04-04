@@ -8,12 +8,16 @@ namespace DevHub.Integration.Tests;
 
 public class CaptureLinkUseCaseTests
 {
-    private class MockClipboardService : IClipboardService
+    private class MockClipboardService(string? text) : IClipboardService
     {
-        private readonly string? _text;
-        public MockClipboardService(string? text) => _text = text;
-        public Task<string?> GetTextAsync() => Task.FromResult(_text);
-        public Task SetTextAsync(string text) => Task.CompletedTask;
+        public Task<string?> GetTextAsync(CancellationToken ct = default) => Task.FromResult(text);
+        public Task SetTextAsync(string text, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private static CaptureLinkUseCase CreateUseCase(InMemoryLinkRepository repo, MockClipboardService clipboard)
+    {
+        var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        return new CaptureLinkUseCase(repo, clipboard, httpClient);
     }
 
     [Fact]
@@ -21,9 +25,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://github.com/user/repo");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.NotNull(result);
         Assert.Equal("https://github.com/user/repo", result.Url);
@@ -35,9 +39,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://youtube.com/watch?v=123");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.NotNull(result);
         Assert.Equal(LinkType.YouTube, result.Type);
@@ -48,9 +52,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://blog.example.com/post");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.NotNull(result);
         Assert.Equal(LinkType.Article, result.Type);
@@ -61,9 +65,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://docs.example.com/api");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.NotNull(result);
         Assert.Equal(LinkType.Documentation, result.Type);
@@ -74,9 +78,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("not a url");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Null(result);
     }
@@ -86,9 +90,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService(null);
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Null(result);
     }
@@ -98,9 +102,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("   ");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.Null(result);
     }
@@ -110,7 +114,7 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://example.com");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
         var projectId = Guid.NewGuid();
 
         var result = await useCase.ExecuteAsync(projectId);
@@ -124,9 +128,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://example.com");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        var result = await useCase.ExecuteAsync();
+        var result = await useCase.ExecuteAsync(null);
 
         Assert.NotNull(result);
         Assert.Null(result.ProjectId);
@@ -137,9 +141,9 @@ public class CaptureLinkUseCaseTests
     {
         var repo = new InMemoryLinkRepository();
         var clipboard = new MockClipboardService("https://example.com");
-        var useCase = new CaptureLinkUseCase(repo, clipboard);
+        var useCase = CreateUseCase(repo, clipboard);
 
-        await useCase.ExecuteAsync();
+        await useCase.ExecuteAsync(null);
 
         var all = await repo.GetAllAsync();
         Assert.Single(all);

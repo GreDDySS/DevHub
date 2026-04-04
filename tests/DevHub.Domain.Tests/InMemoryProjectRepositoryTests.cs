@@ -10,7 +10,7 @@ public class InMemoryProjectRepositoryTests
     public async Task AddAsync_ShouldAddProject()
     {
         var repo = new InMemoryProjectRepository();
-        var project = new Project { Name = "Test", Path = "D:\\Test", Language = ProgrammingLanguage.CSharp };
+        var project = Project.Create("Test", "D:\\Test", ProgrammingLanguage.CSharp);
 
         await repo.AddAsync(project);
         var all = await repo.GetAllAsync();
@@ -23,10 +23,10 @@ public class InMemoryProjectRepositoryTests
     public async Task GetByIdAsync_ShouldReturnProject()
     {
         var repo = new InMemoryProjectRepository();
-        var project = new Project { Name = "Test", Path = "D:\\Test" };
+        var project = Project.Create("Test", "D:\\Test", ProgrammingLanguage.CSharp);
 
         await repo.AddAsync(project);
-        var found = await repo.GetByIdAsync(project.Id);
+        var found = await repo.GetByIdAsync(default, project.Id);
 
         Assert.NotNull(found);
         Assert.Equal(project.Id, found.Id);
@@ -37,7 +37,7 @@ public class InMemoryProjectRepositoryTests
     {
         var repo = new InMemoryProjectRepository();
 
-        var found = await repo.GetByIdAsync(Guid.NewGuid());
+        var found = await repo.GetByIdAsync(default, Guid.NewGuid());
 
         Assert.Null(found);
     }
@@ -46,13 +46,13 @@ public class InMemoryProjectRepositoryTests
     public async Task UpdateAsync_ShouldUpdateProject()
     {
         var repo = new InMemoryProjectRepository();
-        var project = new Project { Name = "Old", Path = "D:\\Test" };
+        var project = Project.Create("Old", "D:\\Test", ProgrammingLanguage.CSharp);
 
         await repo.AddAsync(project);
-        project.Name = "New";
+        project.Rename("New");
         await repo.UpdateAsync(project);
 
-        var found = await repo.GetByIdAsync(project.Id);
+        var found = await repo.GetByIdAsync(default, project.Id);
         Assert.Equal("New", found!.Name);
     }
 
@@ -60,7 +60,7 @@ public class InMemoryProjectRepositoryTests
     public async Task DeleteAsync_ShouldRemoveProject()
     {
         var repo = new InMemoryProjectRepository();
-        var project = new Project { Name = "Test", Path = "D:\\Test" };
+        var project = Project.Create("Test", "D:\\Test", ProgrammingLanguage.CSharp);
 
         await repo.AddAsync(project);
         await repo.DeleteAsync(project.Id);
