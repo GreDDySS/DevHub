@@ -1,22 +1,15 @@
 using DevHub.Application.DTOs;
-using DevHub.Domain.Enums;
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
 
 namespace DevHub.Application.UseCases.Projects;
 
-public class GetAllProjectsUseCase
+public class GetAllProjectsUseCase(IProjectRepository repository) : IGetAllProjectsUseCase
 {
-    private readonly IProjectRepository _repository;
-
-    public GetAllProjectsUseCase(IProjectRepository repository)
+    public async Task<List<ProjectDto>> ExecuteAsync(ProjectFilter? filter, CancellationToken ct = default)
     {
-        _repository = repository;
-    }
-
-    public async Task<List<ProjectDto>> ExecuteAsync(ProjectFilter? filter = null)
-    {
-        var projects = await _repository.GetAllAsync();
+        var projects = await repository.GetAllAsync(ct);
 
         if (filter is not null)
             projects = ApplyFilter(projects, filter);

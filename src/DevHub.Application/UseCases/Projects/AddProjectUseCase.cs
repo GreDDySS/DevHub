@@ -1,47 +1,29 @@
 using DevHub.Application.DTOs;
 using DevHub.Application.Exceptions;
-using DevHub.Domain.Enums;
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
 
 namespace DevHub.Application.UseCases.Projects;
 
-public class AddProjectUseCase
+public class AddProjectUseCase(IProjectRepository repository) : IAddProjectUseCase
 {
-    private readonly IProjectRepository _repository;
-
-    public AddProjectUseCase(IProjectRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public async Task<Project> ExecuteAsync(CreateProjectRequest request)
+    public async Task<Project> ExecuteAsync(CreateProjectRequest request, CancellationToken ct = default)
     {
         Validate(request);
 
-        var project = new Project
-        {
-            Id = Guid.NewGuid(),
-            Name = request.Name.Trim(),
-            Path = request.Path.Trim(),
-            Description = request.Description?.Trim(),
-            Language = request.Language,
-            Status = ProjectStatus.Active,
-            Tags = new List<string>(),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var project = Project.Create(request.Name, request.Path, request.Language);
 
-        await _repository.AddAsync(project);
+        await repository.AddAsync(project, ct);
         return project;
     }
 
     private static void Validate(CreateProjectRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
-            throw new ValidationException("Project name is required");
+            throw new ValidationException("Project name is required.");
 
         if (string.IsNullOrWhiteSpace(request.Path))
-            throw new ValidationException("Project path is required");
+            throw new ValidationException("Project path is required.");
     }
 }

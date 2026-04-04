@@ -1,10 +1,13 @@
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Models;
 
 namespace DevHub.Application.UseCases.Projects;
 
-public class DetectProjectsUseCase
+public class DetectProjectsUseCase : IDetectProjectsUseCase
 {
+    private const int MaxScanDepth = 5;
+
     private static readonly HashSet<string> ExcludedFolders = new(StringComparer.OrdinalIgnoreCase)
     {
         "node_modules", ".venv", "venv", "__pycache__", ".git", "bin", "obj",
@@ -53,16 +56,7 @@ public class DetectProjectsUseCase
             var language = DetectLanguage(dir);
             if (language.HasValue)
             {
-                projects.Add(new Project
-                {
-                    Name = Path.GetFileName(dir),
-                    Path = dir,
-                    Language = language.Value,
-                    Status = ProjectStatus.Active,
-                    Tags = [],
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
+                projects.Add(Project.Create(Path.GetFileName(dir), dir, language.Value));
             }
         }
 
@@ -70,13 +64,11 @@ public class DetectProjectsUseCase
     }
 
     private ProgrammingLanguage? DetectLanguage(string directory)
-    {
-        return ScanDirectory(directory, 0);
-    }
+        => ScanDirectory(directory, 0);
 
     private ProgrammingLanguage? ScanDirectory(string directory, int depth)
     {
-        if (depth > 5)
+        if (depth > MaxScanDepth)
             return null;
 
         try
@@ -102,7 +94,10 @@ public class DetectProjectsUseCase
                     return result;
             }
         }
-        catch { }
+        catch
+        {
+            // Ignore inaccessible directories
+        }
 
         return null;
     }

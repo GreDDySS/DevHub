@@ -5,9 +5,9 @@ public interface IWindowService
     void NavigateTo(string key);
     object? GetCurrentView();
 
-    bool? ShowDialog(Type viewModelType);
-    bool? ShowDialog(Type viewModelType, Action<object> configure);
-    void Show(Type viewModelType);
+    bool? ShowDialog(System.Type viewModelType);
+    bool? ShowDialog(System.Type viewModelType, System.Action<object> configure);
+    void Show(System.Type viewModelType);
 
     bool Confirm(string title, string message);
     string? OpenFolderDialog(string initialDirectory = "");

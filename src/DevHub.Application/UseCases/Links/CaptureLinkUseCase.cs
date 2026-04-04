@@ -1,74 +1,65 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
 
 namespace DevHub.Application.UseCases.Links;
 
-public partial class CaptureLinkUseCase
+public partial class CaptureLinkUseCase(ILinkRepository repository, IClipboardService clipboardService, HttpClient httpClient) : ICaptureLinkUseCase
 {
-    private readonly ILinkRepository _repository;
-    private readonly IClipboardService _clipboardService;
-    private static readonly HttpClient _httpClient = new();
+    private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(10);
 
-    public CaptureLinkUseCase(ILinkRepository repository, IClipboardService clipboardService)
+    public async Task<Link?> ExecuteAsync(Guid? projectId, CancellationToken ct = default)
     {
-        _repository = repository;
-        _clipboardService = clipboardService;
-    }
-
-    public async Task<Link?> ExecuteAsync(Guid? projectId = null)
-    {
-        var text = await _clipboardService.GetTextAsync();
+        var text = await clipboardService.GetTextAsync(ct);
 
         if (string.IsNullOrWhiteSpace(text) || !IsValidUrl(text))
             return null;
 
         var url = text.Trim();
 
-        var link = new Link
-        {
-            Url = url,
-            Title = await ExtractTitleAsync(url),
-            Type = DetectLinkType(url),
-            ProjectId = projectId,
-            Tags = [],
-            CapturedAt = DateTime.UtcNow
-        };
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(HttpTimeout);
 
-        await _repository.AddAsync(link);
+        var link = Link.Create(url, DetectLinkType(url));
+        link.SetTitle(await ExtractTitleAsync(url, cts.Token));
+        link.SetProjectId(projectId);
+
+        await repository.AddAsync(link, ct);
         return link;
     }
 
     private static bool IsValidUrl(string text)
-    {
-        return Uri.TryCreate(text.Trim(), UriKind.Absolute, out var uri)
+        => Uri.TryCreate(text.Trim(), UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-    }
 
-    private static async Task<string> ExtractTitleAsync(string url)
+    private async Task<string> ExtractTitleAsync(string url, CancellationToken ct)
     {
         var lower = url.ToLowerInvariant();
 
         try
         {
             if (lower.Contains("youtube.com") || lower.Contains("youtu.be"))
-                return await ExtractYouTubeTitleAsync(url);
+                return await ExtractYouTubeTitleAsync(url, ct);
 
             if (lower.Contains("github.com"))
                 return ExtractGitHubTitle(url);
         }
-        catch { }
+        catch
+        {
+            // Network errors are acceptable — fall back to URL
+        }
 
         return url;
     }
 
-    private static async Task<string> ExtractYouTubeTitleAsync(string url)
+    private async Task<string> ExtractYouTubeTitleAsync(string url, CancellationToken ct)
     {
         var oEmbedUrl = $"https://www.youtube.com/oembed?url={Uri.EscapeDataString(url)}&format=json";
-        var response = await _httpClient.GetStringAsync(oEmbedUrl);
+        var response = await httpClient.GetStringAsync(oEmbedUrl, ct);
         using var doc = JsonDocument.Parse(response);
 
         if (doc.RootElement.TryGetProperty("title", out var title))
@@ -81,11 +72,8 @@ public partial class CaptureLinkUseCase
     {
         var match = GitHubRepoRegex().Match(url);
         if (match.Success)
-        {
-            var owner = match.Groups["owner"].Value;
-            var repo = match.Groups["repo"].Value;
-            return $"{owner}/{repo}";
-        }
+            return $"{match.Groups["owner"].Value}/{match.Groups["repo"].Value}";
+
         return url;
     }
 

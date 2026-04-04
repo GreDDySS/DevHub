@@ -1,34 +1,27 @@
 using DevHub.Application.DTOs;
 using DevHub.Application.Exceptions;
+using DevHub.Application.Interfaces;
 using DevHub.Domain.Interfaces;
 
 namespace DevHub.Application.UseCases.Projects;
 
-public class UpdateProjectUseCase
+public class UpdateProjectUseCase(IProjectRepository repository) : IUpdateProjectUseCase
 {
-    private readonly IProjectRepository _repository;
-
-    public UpdateProjectUseCase(IProjectRepository repository)
+    public async Task ExecuteAsync(Guid id, UpdateProjectRequest request, CancellationToken ct = default)
     {
-        _repository = repository;
-    }
+        var project = await repository.GetByIdAsync(ct, id)
+            ?? throw new NotFoundException($"Project {id} not found.");
 
-    public async Task ExecuteAsync(Guid id, UpdateProjectRequest request)
-    {
-        var project = await _repository.GetByIdAsync(id)
-            ?? throw new NotFoundException($"Project {id} not found");
+        if (request.Name is not null) project.Rename(request.Name);
+        if (request.Description is not null) project.UpdateDescription(request.Description);
+        if (request.Notes is not null) project.UpdateNotes(request.Notes);
+        if (request.Status is not null) project.ChangeStatus(request.Status.Value);
+        if (request.Language is not null) project.ChangeLanguage(request.Language.Value);
+        if (request.Tags is not null) project.SetTags(request.Tags);
+        if (request.PreferredIde is not null) project.SetPreferredIde(request.PreferredIde);
+        if (request.IsFavorite is not null && request.IsFavorite.Value != project.IsFavorite) project.ToggleFavorite();
+        if (request.IsHidden is not null && request.IsHidden.Value != project.IsHidden) project.ToggleHidden();
 
-        if (request.Name is not null) project.Name = request.Name.Trim();
-        if (request.Description is not null) project.Description = request.Description.Trim();
-        if (request.Notes is not null) project.Notes = request.Notes.Trim();
-        if (request.Status is not null) project.Status = request.Status.Value;
-        if (request.Language is not null) project.Language = request.Language.Value;
-        if (request.Tags is not null) project.Tags = request.Tags;
-        if (request.PreferredIde is not null) project.PreferredIde = request.PreferredIde;
-        if (request.IsFavorite is not null) project.IsFavorite = request.IsFavorite.Value;
-        if (request.IsHidden is not null) project.IsHidden = request.IsHidden.Value;
-
-        project.MarkUpdated();
-        await _repository.UpdateAsync(project);
+        await repository.UpdateAsync(project, ct);
     }
 }
