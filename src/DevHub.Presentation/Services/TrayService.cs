@@ -3,6 +3,7 @@ namespace DevHub.Presentation.Services;
 public class TrayService : IDisposable
 {
     private System.Windows.Forms.NotifyIcon? _notifyIcon;
+    private System.Windows.Forms.ContextMenuStrip? _contextMenu;
 
     public event Action? TrayDoubleClick;
     public event Action? ShowWindowRequested;
@@ -19,7 +20,7 @@ public class TrayService : IDisposable
 
         _notifyIcon.DoubleClick += (_, _) => TrayDoubleClick?.Invoke();
 
-        var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+        _contextMenu = new System.Windows.Forms.ContextMenuStrip();
 
         var showItem = new System.Windows.Forms.ToolStripMenuItem("Show DevHub");
         showItem.Click += (_, _) => ShowWindowRequested?.Invoke();
@@ -27,11 +28,11 @@ public class TrayService : IDisposable
         var exitItem = new System.Windows.Forms.ToolStripMenuItem("Exit");
         exitItem.Click += (_, _) => ExitRequested?.Invoke();
 
-        contextMenu.Items.Add(showItem);
-        contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-        contextMenu.Items.Add(exitItem);
+        _contextMenu.Items.Add(showItem);
+        _contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+        _contextMenu.Items.Add(exitItem);
 
-        _notifyIcon.ContextMenuStrip = contextMenu;
+        _notifyIcon.ContextMenuStrip = _contextMenu;
     }
 
     public void Show()
@@ -49,9 +50,7 @@ public class TrayService : IDisposable
     public void ShowBalloon(string title, string message)
     {
         if (_notifyIcon is not null)
-        {
             _notifyIcon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Info);
-        }
     }
 
     public void Dispose()
@@ -62,6 +61,9 @@ public class TrayService : IDisposable
             _notifyIcon.Dispose();
             _notifyIcon = null;
         }
+
+        _contextMenu?.Dispose();
+        _contextMenu = null;
     }
 
     private static System.Drawing.Icon LoadAppIcon()

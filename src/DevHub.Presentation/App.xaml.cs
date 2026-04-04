@@ -127,7 +127,7 @@ public partial class App : System.Windows.Application
                 trayService.Dispose();
                 (hotkeyService as IDisposable)?.Dispose();
                 Log.CloseAndFlush();
-                Shutdown();
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
             };
 
             Log.Debug("Creating MainWindow...");
@@ -179,7 +179,6 @@ public partial class App : System.Windows.Application
                                     ? Domain.Enums.CloseAction.MinimizeToTray
                                     : Domain.Enums.CloseAction.Exit
                             };
-                            // Fire-and-forget save on close (acceptable here)
                             _ = settingsStore.SaveAsync(settings);
                         }
 
@@ -188,6 +187,13 @@ public partial class App : System.Windows.Application
                             args.Cancel = true;
                             windowService.MinimizeToTray();
                             trayService.Show();
+                        }
+                        else
+                        {
+                            trayService.Dispose();
+                            (hotkeyService as IDisposable)?.Dispose();
+                            Log.CloseAndFlush();
+                            System.Diagnostics.Process.GetCurrentProcess().Kill();
                         }
                     }
                     else
@@ -200,6 +206,13 @@ public partial class App : System.Windows.Application
                     args.Cancel = true;
                     windowService.MinimizeToTray();
                     trayService.Show();
+                }
+                else
+                {
+                    trayService.Dispose();
+                    (hotkeyService as IDisposable)?.Dispose();
+                    Log.CloseAndFlush();
+                    System.Diagnostics.Process.GetCurrentProcess().Kill();
                 }
             };
 
