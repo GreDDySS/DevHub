@@ -4,6 +4,6 @@ namespace DevHub.Domain.Interfaces;
 
 public interface IAppSettingsStore
 {
-    Task<AppSettings> LoadAsync();
-    Task SaveAsync(AppSettings settings);
+    Task<AppSettings> LoadAsync(CancellationToken ct = default);
+    Task SaveAsync(AppSettings settings, CancellationToken ct = default);
 }

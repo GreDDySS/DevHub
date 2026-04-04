@@ -1,8 +1,9 @@
 using DevHub.Domain.Enums;
+using DevHub.Domain.Models;
 
 namespace DevHub.Domain.Models;
 
-public class AppSettings
+public record AppSettings
 {
     public List<IdeEntry> Ides { get; set; } = [];
     public int DefaultIdeIndex { get; set; }

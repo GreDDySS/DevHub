@@ -4,10 +4,10 @@ namespace DevHub.Domain.Interfaces;
 
 public interface ILinkRepository
 {
-    Task<List<Link>> GetAllAsync();
-    Task<Link?> GetByIdAsync(Guid id);
-    Task<List<Link>> GetByProjectIdAsync(Guid projectId);
-    Task AddAsync(Link link);
-    Task UpdateAsync(Link link);
-    Task DeleteAsync(Guid id);
+    Task<List<Link>> GetAllAsync(CancellationToken ct = default);
+    Task<Link?> GetByIdAsync(CancellationToken ct, Guid id);
+    Task<List<Link>> GetByProjectIdAsync(Guid projectId, CancellationToken ct = default);
+    Task AddAsync(Link link, CancellationToken ct = default);
+    Task UpdateAsync(Link link, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

@@ -1,112 +1,165 @@
 using DevHub.Domain.Enums;
+using DevHub.Domain.Events;
 
 namespace DevHub.Domain.Models;
 
-public class Project : BaseModel
+public class Project : BaseEntity
 {
-    private string _name = string.Empty;
+    private const int MaxNameLength = 200;
+    private const int MaxDescriptionLength = 1000;
+    private const int MaxNotesLength = 5000;
+    private const int MaxTagsCount = 50;
+    private const int MaxTagLength = 50;
 
-    public string Name
+    public string Name { get; set; } = string.Empty;
+
+    public string Path { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public string? Notes { get; set; }
+
+    public ProgrammingLanguage Language { get; set; }
+
+    public ProjectStatus Status { get; set; }
+
+    public List<string> Tags { get; set; } = [];
+
+    public string? PreferredIde { get; set; }
+
+    public bool IsFavorite { get; set; }
+
+    public bool IsHidden { get; set; }
+
+    public DateTime? LastAccessedAt { get; set; }
+
+    public bool AutoStatusEnabled { get; set; } = true;
+
+    public static Project Create(string name, string path, ProgrammingLanguage language)
     {
-        get => _name;
-        set => SetProperty(ref _name, value);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Project name is required.");
+        if (name.Length > MaxNameLength)
+            throw new DomainException($"Project name cannot exceed {MaxNameLength} characters.");
+        if (string.IsNullOrWhiteSpace(path))
+            throw new DomainException("Project path is required.");
+
+        return new Project
+        {
+            Name = name.Trim(),
+            Path = path.Trim(),
+            Language = language,
+            Status = ProjectStatus.Active,
+            Tags = [],
+            AutoStatusEnabled = true
+        };
     }
 
-    private string _path = string.Empty;
-
-    public string Path
+    public void Rename(string name)
     {
-        get => _path;
-        set => SetProperty(ref _path, value);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Project name is required.");
+        if (name.Length > MaxNameLength)
+            throw new DomainException($"Project name cannot exceed {MaxNameLength} characters.");
+
+        Name = name.Trim();
+        BumpUpdated();
     }
 
-    private string? _description;
-
-    public string? Description
+    public void UpdateDescription(string? description)
     {
-        get => _description;
-        set => SetProperty(ref _description, value);
+        if (description?.Length > MaxDescriptionLength)
+            throw new DomainException($"Description cannot exceed {MaxDescriptionLength} characters.");
+
+        Description = description?.Trim();
+        BumpUpdated();
     }
 
-    private string? _notes;
-
-    public string? Notes
+    public void UpdateNotes(string? notes)
     {
-        get => _notes;
-        set => SetProperty(ref _notes, value);
+        if (notes?.Length > MaxNotesLength)
+            throw new DomainException($"Notes cannot exceed {MaxNotesLength} characters.");
+
+        Notes = notes?.Trim();
+        BumpUpdated();
     }
 
-    private ProgrammingLanguage _language = ProgrammingLanguage.Other;
-
-    public ProgrammingLanguage Language
+    public void ChangeStatus(ProjectStatus status)
     {
-        get => _language;
-        set => SetProperty(ref _language, value);
+        Status = status;
+        BumpUpdated();
     }
 
-    private ProjectStatus _status = ProjectStatus.Active;
-
-    public ProjectStatus Status
+    public void ChangeLanguage(ProgrammingLanguage language)
     {
-        get => _status;
-        set => SetProperty(ref _status, value);
+        Language = language;
+        BumpUpdated();
     }
 
-    private List<string> _tags = [];
-
-    public List<string> Tags
+    public void ToggleFavorite()
     {
-        get => _tags;
-        set => SetProperty(ref _tags, value);
+        IsFavorite = !IsFavorite;
+        AddDomainEvent(new ProjectFavoriteToggledEvent(Id, IsFavorite));
+        BumpUpdated();
     }
 
-    private string? _preferredIde;
-
-    public string? PreferredIde
+    public void ToggleHidden()
     {
-        get => _preferredIde;
-        set => SetProperty(ref _preferredIde, value);
+        IsHidden = !IsHidden;
+        AddDomainEvent(new ProjectHiddenToggledEvent(Id, IsHidden));
+        BumpUpdated();
     }
 
-    private List<string> _additionalIdes = [];
-
-    public List<string> AdditionalIdes
+    public void SetPreferredIde(string? idePath)
     {
-        get => _additionalIdes;
-        set => SetProperty(ref _additionalIdes, value);
+        PreferredIde = idePath;
+        BumpUpdated();
     }
 
-    private bool _isFavorite;
-
-    public bool IsFavorite
+    public void SetTags(IEnumerable<string> tags)
     {
-        get => _isFavorite;
-        set => SetProperty(ref _isFavorite, value);
+        ArgumentNullException.ThrowIfNull(tags);
+
+        var tagList = tags
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Select(t => t.Trim())
+            .Where(t => t.Length <= MaxTagLength)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(MaxTagsCount)
+            .ToList();
+
+        Tags = tagList;
+        BumpUpdated();
     }
 
-    private bool _isHidden;
-
-    public bool IsHidden
+    public void AddTag(string tag)
     {
-        get => _isHidden;
-        set => SetProperty(ref _isHidden, value);
+        if (string.IsNullOrWhiteSpace(tag))
+            throw new DomainException("Tag cannot be empty.");
+        if (tag.Length > MaxTagLength)
+            throw new DomainException($"Tag cannot exceed {MaxTagLength} characters.");
+        if (Tags.Count >= MaxTagsCount)
+            throw new DomainException($"Cannot add more than {MaxTagsCount} tags.");
+
+        var trimmed = tag.Trim();
+        if (!Tags.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
+        {
+            Tags.Add(trimmed);
+            BumpUpdated();
+        }
     }
 
-    private DateTime? _lastAccessedAt;
-
-    public DateTime? LastAccessedAt
+    public void RemoveTag(string tag)
     {
-        get => _lastAccessedAt;
-        set => SetProperty(ref _lastAccessedAt, value);
+        Tags.RemoveAll(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
+        BumpUpdated();
     }
 
-    private bool _autoStatusEnabled = true;
+    public void MarkAccessed() => LastAccessedAt = DateTime.UtcNow;
 
-    public bool AutoStatusEnabled
-    {
-        get => _autoStatusEnabled;
-        set => SetProperty(ref _autoStatusEnabled, value);
-    }
+    public void EnableAutoStatus() => AutoStatusEnabled = true;
+
+    public void DisableAutoStatus() => AutoStatusEnabled = false;
 
     public ProjectStatus GetEffectiveStatus(DateTime? lastFileWrite = null)
     {

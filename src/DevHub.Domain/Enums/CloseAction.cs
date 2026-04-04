@@ -2,7 +2,7 @@ namespace DevHub.Domain.Enums;
 
 public enum CloseAction
 {
-    Exit,
-    MinimizeToTray,
-    Ask
+    Exit = 0,
+    MinimizeToTray = 1,
+    Ask = 2
 }
