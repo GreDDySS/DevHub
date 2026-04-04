@@ -5,7 +5,6 @@
         Title="{Binding Title}"
         Width="{Binding Width}"
         Height="{Binding Height}"
-        WindowState="{Binding WindowState}"
         WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/Images/AppIcon.ico">
     <Grid>

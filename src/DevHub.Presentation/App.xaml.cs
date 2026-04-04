@@ -41,10 +41,20 @@ public partial class App : System.Windows.Application
             DispatcherUnhandledException += (_, args) =>
             {
                 Log.Error(args.Exception, "Dispatcher unhandled exception");
-                args.Handled = true;
+                // Don't swallow all errors — only handle gracefully recoverable ones
+                if (args.Exception is OperationCanceledException)
+                {
+                    args.Handled = true;
+                }
             };
 
             var services = new ServiceCollection();
+
+            // HttpClient with timeout
+            services.AddHttpClient<CaptureLinkUseCase>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             // Repositories
             services.AddSingleton<IProjectRepository, JsonProjectRepository>();
@@ -54,31 +64,34 @@ public partial class App : System.Windows.Application
             services.AddSingleton<IProcessLauncher, ProcessLauncher>();
             services.AddSingleton<IClipboardService, Services.ClipboardService>();
             services.AddSingleton<IHotkeyService, WindowsHotkeyService>();
-            services.AddSingleton<IdeScanner>();
+            services.AddSingleton<IIdeScanner, IdeScanner>();
             services.AddSingleton<IAppSettingsStore, JsonSettingsStore>();
             services.AddSingleton<TrayService>();
             services.AddSingleton<IAutostartService, AutostartService>();
 
-            // Use Cases
+            // Use Cases — register as interfaces
+            services.AddSingleton<IGetAllProjectsUseCase, GetAllProjectsUseCase>();
+            services.AddSingleton<IAddProjectUseCase, AddProjectUseCase>();
+            services.AddSingleton<IUpdateProjectUseCase, UpdateProjectUseCase>();
+            services.AddSingleton<ICaptureLinkUseCase, CaptureLinkUseCase>();
+            services.AddSingleton<IDetectProjectsUseCase, DetectProjectsUseCase>();
+
+            // Also register concrete types for DI resolution
             services.AddSingleton<GetAllProjectsUseCase>();
             services.AddSingleton<AddProjectUseCase>();
             services.AddSingleton<UpdateProjectUseCase>();
-            services.AddSingleton<CaptureLinkUseCase>();
             services.AddSingleton<DetectProjectsUseCase>();
 
             // Presentation services
             var registry = new ViewRegistry();
             services.AddSingleton(registry);
-            services.AddSingleton<IWindowService, WindowService>();
-            services.AddSingleton(sp => (WindowService)sp.GetRequiredService<IWindowService>());
+            services.AddSingleton<WindowService>();
+            services.AddSingleton<IWindowService>(sp => sp.GetRequiredService<WindowService>());
 
-            // ViewModels — регистрируются только через ViewFactoryService
-
-            // Автоматическая регистрация ViewModels и Views
+            // ViewModels — registered through ViewFactoryService
             var factory = new ViewFactoryService(registry);
             factory.RegisterAll(services, typeof(App).Assembly);
 
-            // Один BuildServiceProvider
             Services = services.BuildServiceProvider();
             factory.SetServiceProvider(Services);
 
@@ -87,7 +100,7 @@ public partial class App : System.Windows.Application
             var mainViewModel = Services.GetRequiredService<ViewModels.MainViewModel>();
             var trayService = Services.GetRequiredService<TrayService>();
             var hotkeyService = Services.GetRequiredService<IHotkeyService>();
-            var captureLink = Services.GetRequiredService<CaptureLinkUseCase>();
+            var captureLink = Services.GetRequiredService<ICaptureLinkUseCase>();
             var settingsStore = Services.GetRequiredService<IAppSettingsStore>();
 
             Log.Debug("Loading settings...");
@@ -133,16 +146,23 @@ public partial class App : System.Windows.Application
 
             hotkeyService.HotkeyPressed += async _ =>
             {
-                Log.Debug("Hotkey pressed, capturing link from clipboard");
-                var link = await captureLink.ExecuteAsync();
-                if (link is not null)
+                try
                 {
-                    Log.Information("Link captured: {Url}", link.Url);
-                    trayService.ShowBalloon("DevHub", $"Link captured: {link.Url}");
+                    Log.Debug("Hotkey pressed, capturing link from clipboard");
+                    var link = await captureLink.ExecuteAsync(null);
+                    if (link is not null)
+                    {
+                        Log.Information("Link captured: {Url}", link.Url);
+                        trayService.ShowBalloon("DevHub", $"Link captured: {link.Url}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to capture link on hotkey press");
                 }
             };
 
-            mainWindow.Closing += async (s, args) =>
+            mainWindow.Closing += (s, args) =>
             {
                 var action = settings.CloseAction;
 
@@ -153,10 +173,14 @@ public partial class App : System.Windows.Application
                     {
                         if (dialog.ShouldRemember)
                         {
-                            settings.CloseAction = dialog.MinimizeToTray
-                                ? Domain.Enums.CloseAction.MinimizeToTray
-                                : Domain.Enums.CloseAction.Exit;
-                            await settingsStore.SaveAsync(settings);
+                            settings = settings with
+                            {
+                                CloseAction = dialog.MinimizeToTray
+                                    ? Domain.Enums.CloseAction.MinimizeToTray
+                                    : Domain.Enums.CloseAction.Exit
+                            };
+                            // Fire-and-forget save on close (acceptable here)
+                            _ = settingsStore.SaveAsync(settings);
                         }
 
                         if (dialog.MinimizeToTray)

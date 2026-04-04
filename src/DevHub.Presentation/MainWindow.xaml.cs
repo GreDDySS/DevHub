@@ -1,7 +1,6 @@
 using System.Windows;
 using DevHub.Presentation.Services;
 using DevHub.Presentation.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DevHub.Presentation;
 

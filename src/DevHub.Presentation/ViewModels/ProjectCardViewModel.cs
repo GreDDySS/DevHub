@@ -13,17 +13,24 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
 {
     private readonly IProcessLauncher _processLauncher;
     private readonly IWindowService _windowService;
-    private readonly AppSettings _settings;
+    private readonly List<IdeEntry> _ides;
+    private readonly int _defaultIdeIndex;
 
-    public ProjectDto Dto { get; }
-
-    public ProjectCardViewModel(ProjectDto dto, IProcessLauncher processLauncher, IWindowService windowService, AppSettings settings)
+    public ProjectCardViewModel(
+        ProjectDto dto,
+        IProcessLauncher processLauncher,
+        IWindowService windowService,
+        List<IdeEntry> ides,
+        int defaultIdeIndex)
     {
         Dto = dto;
         _processLauncher = processLauncher;
         _windowService = windowService;
-        _settings = settings;
+        _ides = ides;
+        _defaultIdeIndex = defaultIdeIndex;
     }
+
+    public ProjectDto Dto { get; }
 
     public Guid Id => Dto.Id;
     public string Name => Dto.Name;
@@ -43,18 +50,20 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     public DateTime? LastFileWrite
     {
         get => _lastFileWrite;
-        set
+        private set
         {
             _lastFileWrite = value;
             OnPropertyChanged(nameof(EffectiveStatus));
-            OnPropertyChanged(nameof(StatusColor));
-            OnPropertyChanged(nameof(StatusText));
         }
     }
 
-    public async Task RefreshLastWriteAsync()
+    public async Task RefreshLastWriteAsync(CancellationToken ct = default)
     {
-        LastFileWrite = await Task.Run(() => _processLauncher.GetLastWriteTime(Path));
+        try
+        {
+            LastFileWrite = await Task.Run(() => _processLauncher.GetLastWriteTime(Path), ct);
+        }
+        catch { /* Ignore file system errors */ }
     }
 
     public ProjectStatus EffectiveStatus
@@ -71,44 +80,19 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
         }
     }
 
-    public string StatusColor => EffectiveStatus switch
-    {
-        ProjectStatus.Active => "#4CAF50",
-        ProjectStatus.Completed => "#2196F3",
-        ProjectStatus.Paused => "#FF9800",
-        ProjectStatus.Archived => "#9E9E9E",
-        _ => "#000000"
-    };
-
     public string StatusText => EffectiveStatus.ToString();
 
-    public string LanguageIcon => Language switch
-    {
-        ProgrammingLanguage.CSharp => "🔷",
-        ProgrammingLanguage.Python => "🐍",
-        ProgrammingLanguage.Rust => "🦀",
-        ProgrammingLanguage.JavaScript => "🟨",
-        ProgrammingLanguage.TypeScript => "🔵",
-        ProgrammingLanguage.Go => "🐹",
-        ProgrammingLanguage.Java => "☕",
-        ProgrammingLanguage.Cpp => "⚙️",
-        _ => "📄"
-    };
-
     public string FormattedUpdatedAt => UpdatedAt.ToString("dd.MM.yyyy HH:mm");
+
+    public Action? OnEditCompleted { get; set; }
+    public Action<Guid, bool>? OnFavoriteToggled { get; set; }
+    public Action<Guid, bool>? OnHiddenToggled { get; set; }
 
     [RelayCommand]
     private void OpenInExplorer()
     {
-        try
-        {
-            _processLauncher.OpenInExplorer(Path);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-            HasError = true;
-        }
+        try { _processLauncher.OpenInExplorer(Path); }
+        catch (Exception ex) { ErrorMessage = ex.Message; HasError = true; }
     }
 
     [RelayCommand]
@@ -120,8 +104,8 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
 
             if (!string.IsNullOrEmpty(PreferredIde))
                 idePath = PreferredIde;
-            else if (_settings.Ides.Count > 0 && _settings.DefaultIdeIndex < _settings.Ides.Count)
-                idePath = _settings.Ides[_settings.DefaultIdeIndex].Path;
+            else if (_ides.Count > 0 && _defaultIdeIndex < _ides.Count)
+                idePath = _ides[_defaultIdeIndex].Path;
 
             if (string.IsNullOrEmpty(idePath))
             {
@@ -132,42 +116,21 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
 
             _processLauncher.OpenInIde(idePath, Path);
         }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-            HasError = true;
-        }
+        catch (Exception ex) { ErrorMessage = ex.Message; HasError = true; }
     }
 
     [RelayCommand]
     private void OpenConsole()
     {
-        try
-        {
-            _processLauncher.OpenConsole(Path);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-            HasError = true;
-        }
-    }
-
-    public event Action? OnEditCompleted;
-    public event Action<Guid, bool>? OnFavoriteToggled;
-    public event Action<Guid, bool>? OnHiddenToggled;
-
-    [RelayCommand]
-    private void ToggleFavorite()
-    {
-        OnFavoriteToggled?.Invoke(Id, !IsFavorite);
+        try { _processLauncher.OpenConsole(Path); }
+        catch (Exception ex) { ErrorMessage = ex.Message; HasError = true; }
     }
 
     [RelayCommand]
-    private void ToggleHidden()
-    {
-        OnHiddenToggled?.Invoke(Id, !IsHidden);
-    }
+    private void ToggleFavorite() => OnFavoriteToggled?.Invoke(Id, !IsFavorite);
+
+    [RelayCommand]
+    private void ToggleHidden() => OnHiddenToggled?.Invoke(Id, !IsHidden);
 
     [RelayCommand]
     private void Edit()
@@ -177,7 +140,6 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
             if (vm is AddProjectViewModel editVm)
                 editVm.SetEditMode(Id, Name, Path, Description, Language, Notes, PreferredIde, Tags);
         });
-
         OnEditCompleted?.Invoke();
     }
 }

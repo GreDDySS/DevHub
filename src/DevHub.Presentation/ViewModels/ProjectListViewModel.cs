@@ -4,10 +4,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
 using DevHub.Application.Interfaces;
-using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
-using DevHub.Infrastructure.Storage;
+using DevHub.Domain.Models;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
 using DevHub.Presentation.Converters;
@@ -15,18 +14,22 @@ using DevHub.Presentation.Converters;
 namespace DevHub.Presentation.ViewModels;
 
 [SingletonViewModel]
+[NavigationView("projects")]
 public partial class ProjectListViewModel : BaseUserControlViewModel
 {
-    private readonly GetAllProjectsUseCase _getAllProjects;
-    private readonly UpdateProjectUseCase _updateProject;
+    private const int DebounceMs = 300;
+
+    private readonly IGetAllProjectsUseCase _getAllProjects;
+    private readonly IUpdateProjectUseCase _updateProject;
     private readonly IWindowService _windowService;
     private readonly IProcessLauncher _processLauncher;
     private readonly IAppSettingsStore _settingsStore;
     private readonly DispatcherTimer _debounceTimer;
+    private AppSettings? _cachedSettings;
 
     public ProjectListViewModel(
-        GetAllProjectsUseCase getAllProjects,
-        UpdateProjectUseCase updateProject,
+        IGetAllProjectsUseCase getAllProjects,
+        IUpdateProjectUseCase updateProject,
         IWindowService windowService,
         IProcessLauncher processLauncher,
         IAppSettingsStore settingsStore)
@@ -36,17 +39,14 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         _windowService = windowService;
         _processLauncher = processLauncher;
         _settingsStore = settingsStore;
-        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
-        _debounceTimer.Tick += async (_, _) =>
-        {
-            _debounceTimer.Stop();
-            await SafeLoadProjectsAsync();
-        };
-        _ = InitializeAsync();
+
+        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
+        _debounceTimer.Tick += DebounceTimer_Tick;
     }
 
-    private async Task InitializeAsync()
+    private async void DebounceTimer_Tick(object? sender, EventArgs e)
     {
+        _debounceTimer.Stop();
         await SafeLoadProjectsAsync();
     }
 
@@ -57,10 +57,7 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
     private async Task SafeLoadProjectsAsync()
     {
-        try
-        {
-            await LoadProjectsAsync();
-        }
+        try { await LoadProjectsAsync(); }
         catch (Exception ex)
         {
             HasError = true;
@@ -86,23 +83,14 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         new("Archived", ProjectStatus.Archived)
     ];
 
-    [ObservableProperty]
-    private int _totalCount;
-
-    [ObservableProperty]
-    private int _activeCount;
-
-    [ObservableProperty]
-    private bool _showHidden;
-
-    [ObservableProperty]
-    private ViewMode _viewMode = ViewMode.Tiles;
+    [ObservableProperty] private int _totalCount;
+    [ObservableProperty] private int _activeCount;
+    [ObservableProperty] private bool _showHidden;
+    [ObservableProperty] private ViewMode _viewMode = ViewMode.Tiles;
 
     [RelayCommand]
     private void ToggleViewMode()
-    {
-        ViewMode = ViewMode == ViewMode.Tiles ? ViewMode.List : ViewMode.Tiles;
-    }
+        => ViewMode = ViewMode == ViewMode.Tiles ? ViewMode.List : ViewMode.Tiles;
 
     [RelayCommand]
     private async Task LoadProjectsAsync()
@@ -111,18 +99,25 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         {
             var filter = new ProjectFilter(SearchQuery, null, ShowHidden: ShowHidden);
             var projects = await _getAllProjects.ExecuteAsync(filter);
-            var settings = await _settingsStore.LoadAsync();
+
+            _cachedSettings ??= await _settingsStore.LoadAsync();
+            var ides = _cachedSettings.Ides;
+            var defaultIdeIndex = _cachedSettings.DefaultIdeIndex;
+
+            // Dispose old cards to prevent memory leaks
+            foreach (var card in Projects)
+                card.Dispose();
 
             var cards = projects.Select(p =>
             {
-                var card = new ProjectCardViewModel(p, _processLauncher, _windowService, settings);
-                card.OnEditCompleted += () => _ = SafeLoadProjectsAsync();
-                card.OnFavoriteToggled += async (id, isFavorite) =>
+                var card = new ProjectCardViewModel(p, _processLauncher, _windowService, ides, defaultIdeIndex);
+                card.OnEditCompleted = () => _ = SafeLoadProjectsAsync();
+                card.OnFavoriteToggled = async (id, isFavorite) =>
                 {
                     await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsFavorite: isFavorite));
                     await SafeLoadProjectsAsync();
                 };
-                card.OnHiddenToggled += async (id, isHidden) =>
+                card.OnHiddenToggled = async (id, isHidden) =>
                 {
                     await _updateProject.ExecuteAsync(id, new UpdateProjectRequest(IsHidden: isHidden));
                     await SafeLoadProjectsAsync();
@@ -130,10 +125,9 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
                 return card;
             }).ToList();
 
-            await Task.WhenAll(cards.Select(card => card.RefreshLastWriteAsync()));
+            await Task.WhenAll(cards.Select(c => c.RefreshLastWriteAsync()));
 
             var statusValue = StatusFilter.Value;
-
             Projects.Clear();
             foreach (var card in cards)
             {
@@ -165,19 +159,19 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
         _debounceTimer.Start();
     }
 
-    partial void OnStatusFilterChanged(StatusFilterItem value)
-    {
-        _ = SafeLoadProjectsAsync();
-    }
-
-    partial void OnShowHiddenChanged(bool value)
-    {
-        _ = SafeLoadProjectsAsync();
-    }
+    partial void OnStatusFilterChanged(StatusFilterItem value) => _ = SafeLoadProjectsAsync();
+    partial void OnShowHiddenChanged(bool value) => _ = SafeLoadProjectsAsync();
 
     private void UpdateCounts()
     {
         TotalCount = Projects.Count;
         ActiveCount = Projects.Count(p => p.EffectiveStatus == ProjectStatus.Active);
+    }
+
+    protected override void OnDispose()
+    {
+        foreach (var card in Projects)
+            card.Dispose();
+        Projects.Clear();
     }
 }

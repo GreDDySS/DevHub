@@ -15,37 +15,30 @@ namespace DevHub.Presentation.ViewModels;
 [NavigationView("links")]
 public partial class LinkListViewModel : BaseUserControlViewModel
 {
+    private const int DebounceMs = 300;
+    private const int MinDomainGroupSize = 5;
+
     private readonly ILinkRepository _repository;
     private readonly DispatcherTimer _debounceTimer;
 
     public LinkListViewModel(ILinkRepository repository)
     {
         _repository = repository;
-        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
-        _debounceTimer.Tick += async (_, _) =>
-        {
-            _debounceTimer.Stop();
-            await SafeLoadLinksAsync();
-        };
-        _ = InitializeAsync();
+        _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
+        _debounceTimer.Tick += DebounceTimer_Tick;
     }
 
-    private async Task InitializeAsync()
+    private async void DebounceTimer_Tick(object? sender, EventArgs e)
     {
+        _debounceTimer.Stop();
         await SafeLoadLinksAsync();
     }
 
-    public override async Task OnNavigatedToAsync()
-    {
-        await LoadLinksAsync();
-    }
+    public override async Task OnNavigatedToAsync() => await LoadLinksAsync();
 
     private async Task SafeLoadLinksAsync()
     {
-        try
-        {
-            await LoadLinksAsync();
-        }
+        try { await LoadLinksAsync(); }
         catch (Exception ex)
         {
             HasError = true;
@@ -53,29 +46,16 @@ public partial class LinkListViewModel : BaseUserControlViewModel
         }
     }
 
-    [ObservableProperty]
-    private ObservableCollection<Link> _links = [];
-
-    [ObservableProperty]
-    private ObservableCollection<LinkFolderViewModel> _folders = [];
-
-    [ObservableProperty]
-    private string _searchQuery = string.Empty;
-
-    [ObservableProperty]
-    private int _selectedTypeIndex = -1;
-
-    [ObservableProperty]
-    private int _totalCount;
-
-    [ObservableProperty]
-    private ViewMode _viewMode = ViewMode.List;
+    [ObservableProperty] private ObservableCollection<Link> _links = [];
+    [ObservableProperty] private ObservableCollection<LinkFolderViewModel> _folders = [];
+    [ObservableProperty] private string _searchQuery = string.Empty;
+    [ObservableProperty] private int _selectedTypeIndex = -1;
+    [ObservableProperty] private int _totalCount;
+    [ObservableProperty] private ViewMode _viewMode = ViewMode.List;
 
     [RelayCommand]
     private void ToggleViewMode()
-    {
-        ViewMode = ViewMode == ViewMode.List ? ViewMode.Folders : ViewMode.List;
-    }
+        => ViewMode = ViewMode == ViewMode.List ? ViewMode.Folders : ViewMode.List;
 
     [RelayCommand]
     private async Task LoadLinksAsync()
@@ -103,7 +83,6 @@ public partial class LinkListViewModel : BaseUserControlViewModel
                 Links.Add(link);
 
             BuildFolders(sorted);
-
             TotalCount = Links.Count;
         });
     }
@@ -111,7 +90,6 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     private void BuildFolders(List<Link> links)
     {
         Folders.Clear();
-
         var groups = links.GroupBy(l => l.Type).OrderBy(g => g.Key);
 
         foreach (var group in groups)
@@ -127,10 +105,8 @@ public partial class LinkListViewModel : BaseUserControlViewModel
 
                 foreach (var dg in domainGroups)
                 {
-                    if (dg.Count() >= 5)
-                    {
+                    if (dg.Count() >= MinDomainGroupSize)
                         Folders.Add(new LinkFolderViewModel(dg.Key, dg.ToList()));
-                    }
                     else
                     {
                         var otherFolder = Folders.FirstOrDefault(f => f.Name == "Other");
@@ -156,14 +132,8 @@ public partial class LinkListViewModel : BaseUserControlViewModel
 
     private static string ExtractDomain(string url)
     {
-        try
-        {
-            return new Uri(url).Host;
-        }
-        catch
-        {
-            return url;
-        }
+        try { return new Uri(url).Host; }
+        catch { return url; }
     }
 
     [RelayCommand]
@@ -176,11 +146,8 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     [RelayCommand]
     private void CopyUrl(Link link)
     {
-        try
-        {
-            System.Windows.Clipboard.SetText(link.Url);
-        }
-        catch { }
+        try { System.Windows.Clipboard.SetText(link.Url); }
+        catch { /* Clipboard may be unavailable */ }
     }
 
     [RelayCommand]
@@ -194,7 +161,7 @@ public partial class LinkListViewModel : BaseUserControlViewModel
                 UseShellExecute = true
             });
         }
-        catch { }
+        catch { /* URL may be invalid */ }
     }
 
     [RelayCommand]
@@ -210,8 +177,5 @@ public partial class LinkListViewModel : BaseUserControlViewModel
         _debounceTimer.Start();
     }
 
-    partial void OnSelectedTypeIndexChanged(int value)
-    {
-        _ = SafeLoadLinksAsync();
-    }
+    partial void OnSelectedTypeIndexChanged(int value) => _ = SafeLoadLinksAsync();
 }

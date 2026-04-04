@@ -4,26 +4,24 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.DTOs;
 using DevHub.Application.Interfaces;
-using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
-using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Base;
 
 namespace DevHub.Presentation.ViewModels;
 
 public partial class AddProjectViewModel : BaseWindowViewModel
 {
-    private readonly AddProjectUseCase _addProjectUseCase;
-    private readonly UpdateProjectUseCase _updateProjectUseCase;
+    private readonly IAddProjectUseCase _addProjectUseCase;
+    private readonly IUpdateProjectUseCase _updateProjectUseCase;
     private readonly IWindowService _windowService;
     private readonly IAppSettingsStore _settingsStore;
     private readonly List<IdeEntry> _cachedIdes = [];
 
     public AddProjectViewModel(
-        AddProjectUseCase addProjectUseCase,
-        UpdateProjectUseCase updateProjectUseCase,
+        IAddProjectUseCase addProjectUseCase,
+        IUpdateProjectUseCase updateProjectUseCase,
         IWindowService windowService,
         IAppSettingsStore settingsStore)
     {
@@ -47,29 +45,16 @@ public partial class AddProjectViewModel : BaseWindowViewModel
     [Required(ErrorMessage = "Path is required")]
     private string _path = string.Empty;
 
-    [ObservableProperty]
-    private string? _description;
-
-    [ObservableProperty]
-    private string? _notes;
-
-    [ObservableProperty]
-    private ProgrammingLanguage _language = ProgrammingLanguage.CSharp;
-
-    [ObservableProperty]
-    private ObservableCollection<IdeEntry> _availableIdes = [];
-
-    [ObservableProperty]
-    private IdeEntry? _selectedIde;
-
-    [ObservableProperty]
-    private ObservableCollection<string> _tags = [];
-
-    [ObservableProperty]
-    private string _newTag = string.Empty;
+    [ObservableProperty] private string? _description;
+    [ObservableProperty] private string? _notes;
+    [ObservableProperty] private ProgrammingLanguage _language = ProgrammingLanguage.CSharp;
+    [ObservableProperty] private ObservableCollection<IdeEntry> _availableIdes = [];
+    [ObservableProperty] private IdeEntry? _selectedIde;
+    [ObservableProperty] private ObservableCollection<string> _tags = [];
+    [ObservableProperty] private string _newTag = string.Empty;
+    [ObservableProperty] private bool _saveCompleted;
 
     public bool IsEditing => _editingProjectId.HasValue;
-
     public Array Languages => Enum.GetValues<ProgrammingLanguage>();
 
     private async Task LoadIdesAsync()
@@ -83,7 +68,7 @@ public partial class AddProjectViewModel : BaseWindowViewModel
             }
             AvailableIdes = new ObservableCollection<IdeEntry>(_cachedIdes);
         }
-        catch { }
+        catch { /* IDE loading is non-critical */ }
     }
 
     public void SetEditMode(Guid projectId, string name, string path, string? description,
@@ -98,7 +83,6 @@ public partial class AddProjectViewModel : BaseWindowViewModel
 
         LoadIdesSync();
         SelectedIde = AvailableIdes.FirstOrDefault(i => i.Path == preferredIde);
-
         Tags = new ObservableCollection<string>(tags);
         Title = "Edit Project";
         Height = 580;
@@ -115,7 +99,7 @@ public partial class AddProjectViewModel : BaseWindowViewModel
             }
             AvailableIdes = new ObservableCollection<IdeEntry>(_cachedIdes);
         }
-        catch { }
+        catch { /* IDE loading is non-critical */ }
     }
 
     [RelayCommand]
@@ -130,10 +114,7 @@ public partial class AddProjectViewModel : BaseWindowViewModel
     }
 
     [RelayCommand]
-    private void RemoveTag(string tag)
-    {
-        Tags.Remove(tag);
-    }
+    private void RemoveTag(string tag) => Tags.Remove(tag);
 
     [RelayCommand]
     private async Task SaveAsync()
@@ -171,11 +152,5 @@ public partial class AddProjectViewModel : BaseWindowViewModel
     }
 
     [RelayCommand]
-    private void Cancel()
-    {
-        _windowService.CloseWindow(this);
-    }
-
-    [ObservableProperty]
-    private bool _saveCompleted;
+    private void Cancel() => _windowService.CloseWindow(this);
 }

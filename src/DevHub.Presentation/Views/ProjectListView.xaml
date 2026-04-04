@@ -21,6 +21,8 @@
         <converters:NullableStatusConverter x:Key="NullableStatusConverter" />
         <converters:TilesVisibilityConverter x:Key="TilesVisibilityConverter" />
         <converters:ListVisibilityConverter x:Key="ListVisibilityConverter" />
+        <converters:LanguageIconConverter x:Key="LanguageIconConverter" />
+        <converters:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
         <DataTemplate x:Key="StatusItemTemplate">
             <TextBlock Text="{Binding Converter={StaticResource NullableStatusConverter}}" />
         </DataTemplate>
@@ -127,7 +129,7 @@
                                 </StackPanel>
                                 <StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding LanguageIcon}"
+                                    <TextBlock Text="{Binding Language, Converter={StaticResource LanguageIconConverter}}"
                                                FontSize="20"
                                                VerticalAlignment="Center"
                                                Margin="0,0,8,0" />
@@ -135,7 +137,7 @@
                                                FontSize="16"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center" />
-                                    <Border Background="{Binding StatusColor}"
+                                    <Border Background="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}"
                                             CornerRadius="4"
                                             Padding="6,2"
                                             Margin="10,0,0,0"
@@ -243,7 +245,7 @@
                                 </StackPanel>
                                 <DockPanel>
                                     <Border DockPanel.Dock="Right"
-                                            Background="{Binding StatusColor}"
+                                            Background="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}"
                                             CornerRadius="4"
                                             Padding="6,2"
                                             Margin="12,0,0,0"
@@ -264,7 +266,7 @@
                                                    Foreground="#666" />
                                     </Border>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding LanguageIcon}"
+                                        <TextBlock Text="{Binding Language, Converter={StaticResource LanguageIconConverter}}"
                                                    FontSize="14"
                                                    Margin="0,0,8,0"
                                                    VerticalAlignment="Center" />

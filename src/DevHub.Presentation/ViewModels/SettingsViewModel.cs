@@ -3,10 +3,9 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
+using DevHub.Domain.Enums;
 using DevHub.Domain.Interfaces;
 using DevHub.Domain.Models;
-using DevHub.Domain.Enums;
-using DevHub.Infrastructure.Storage;
 using DevHub.Presentation.Attributes;
 using DevHub.Presentation.Base;
 using DevHub.Presentation.Services;
@@ -14,25 +13,27 @@ using DevHub.Presentation.Services;
 namespace DevHub.Presentation.ViewModels;
 
 [SingletonViewModel]
+[NavigationView("settings")]
 public partial class SettingsViewModel : BaseUserControlViewModel
 {
     private readonly IAppSettingsStore _settingsStore;
     private readonly IAutostartService _autostartService;
     private readonly IWindowService _windowService;
-    private readonly IdeScanner _ideScanner;
+    private readonly IIdeScanner _ideScanner;
 
     public SettingsViewModel(
         IAppSettingsStore settingsStore,
         IAutostartService autostartService,
         IWindowService windowService,
-        IdeScanner ideScanner)
+        IIdeScanner ideScanner)
     {
         _settingsStore = settingsStore;
         _autostartService = autostartService;
         _windowService = windowService;
         _ideScanner = ideScanner;
-        _ = InitializeAsync();
     }
+
+    public override async Task OnNavigatedToAsync() => await InitializeAsync();
 
     private async Task InitializeAsync()
     {
@@ -40,6 +41,7 @@ public partial class SettingsViewModel : BaseUserControlViewModel
         {
             Settings = await _settingsStore.LoadAsync();
             Ides = new ObservableCollection<IdeEntry>(Settings.Ides);
+            SelectedIdeIndex = Settings.DefaultIdeIndex;
         }
         catch (Exception ex)
         {
@@ -50,11 +52,14 @@ public partial class SettingsViewModel : BaseUserControlViewModel
         }
     }
 
-    [ObservableProperty]
-    private AppSettings _settings = new();
+    [ObservableProperty] private AppSettings _settings = new();
+    [ObservableProperty] private ObservableCollection<IdeEntry> _ides = [];
+    [ObservableProperty] private int _selectedIdeIndex;
 
-    [ObservableProperty]
-    private ObservableCollection<IdeEntry> _ides = [];
+    partial void OnSelectedIdeIndexChanged(int value)
+    {
+        Settings.DefaultIdeIndex = value;
+    }
 
     public bool IsCloseExit
     {
@@ -80,6 +85,7 @@ public partial class SettingsViewModel : BaseUserControlViewModel
         try
         {
             Settings.Ides = Ides.ToList();
+            Settings.DefaultIdeIndex = SelectedIdeIndex;
             _autostartService.SetEnabled(Settings.AutostartEnabled);
             await _settingsStore.SaveAsync(Settings);
             _windowService.ShowNotification("Settings", "Settings saved successfully");
@@ -99,22 +105,29 @@ public partial class SettingsViewModel : BaseUserControlViewModel
 
         var name = Path.GetFileNameWithoutExtension(path);
         Ides.Add(new IdeEntry(name, path));
+
+        if (Ides.Count == 1)
+            SelectedIdeIndex = 0;
     }
 
     [RelayCommand]
     private void RemoveIde(IdeEntry entry)
     {
+        var index = Ides.IndexOf(entry);
         Ides.Remove(entry);
 
-        if (Settings.DefaultIdeIndex >= Ides.Count)
-            Settings.DefaultIdeIndex = Math.Max(0, Ides.Count - 1);
+        if (Ides.Count == 0)
+            SelectedIdeIndex = 0;
+        else if (index >= Ides.Count)
+            SelectedIdeIndex = Ides.Count - 1;
+        else if (index == SelectedIdeIndex)
+            SelectedIdeIndex = Math.Max(0, index);
     }
 
     [RelayCommand]
     private void AutoDetect()
     {
         var detected = _ideScanner.Scan();
-
         var existing = Ides.Select(i => i.Path).ToHashSet();
         foreach (var ide in detected)
         {
@@ -122,7 +135,7 @@ public partial class SettingsViewModel : BaseUserControlViewModel
                 Ides.Add(ide);
         }
 
-        if (Ides.Count > 0 && Settings.DefaultIdeIndex >= Ides.Count)
-            Settings.DefaultIdeIndex = 0;
+        if (Ides.Count > 0 && SelectedIdeIndex >= Ides.Count)
+            SelectedIdeIndex = 0;
     }
 }

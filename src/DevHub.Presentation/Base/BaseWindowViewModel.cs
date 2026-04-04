@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Windows;
 
 namespace DevHub.Presentation.Base;
 
@@ -29,23 +28,9 @@ public abstract class BaseWindowViewModel : ViewModelBase
         set => SetProperty(ref _height, value);
     }
 
-    private WindowState _windowState = WindowState.Normal;
+    public virtual void OnWindowLoaded() { }
 
-    public WindowState WindowState
-    {
-        get => _windowState;
-        set => SetProperty(ref _windowState, value);
-    }
+    public virtual void OnWindowClosing(CancelEventArgs e) { }
 
-    public virtual void OnWindowLoaded()
-    {
-    }
-
-    public virtual void OnWindowClosing(CancelEventArgs e)
-    {
-    }
-
-    public virtual void OnWindowClosed()
-    {
-    }
+    public virtual void OnWindowClosed() { }
 }

@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
 using DevHub.Presentation.Attributes;
@@ -19,17 +18,9 @@ public partial class MainViewModel : BaseWindowViewModel
         Height = 800;
     }
 
-    [RelayCommand]
-    private void GoToProjects() => _windowService.NavigateTo("projects");
+    [RelayCommand] private void GoToProjects() => _windowService.NavigateTo("projects");
+    [RelayCommand] private void GoToLinks() => _windowService.NavigateTo("links");
+    [RelayCommand] private void GoToSettings() => _windowService.NavigateTo("settings");
 
-    [RelayCommand]
-    private void GoToLinks() => _windowService.NavigateTo("links");
-
-    [RelayCommand]
-    private void GoToSettings() => _windowService.NavigateTo("settings");
-
-    public override void OnWindowLoaded()
-    {
-        _windowService.NavigateTo("projects");
-    }
+    public override void OnWindowLoaded() => _windowService.NavigateTo("projects");
 }

@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevHub.Application.Interfaces;
-using DevHub.Application.UseCases.Projects;
 using DevHub.Domain.Models;
 using DevHub.Presentation.Base;
 
@@ -10,13 +9,13 @@ namespace DevHub.Presentation.ViewModels;
 
 public partial class AutoDetectProjectsViewModel : BaseWindowViewModel
 {
-    private readonly DetectProjectsUseCase _detectUseCase;
-    private readonly AddProjectUseCase _addProjectUseCase;
+    private readonly IDetectProjectsUseCase _detectUseCase;
+    private readonly IAddProjectUseCase _addProjectUseCase;
     private readonly IWindowService _windowService;
 
     public AutoDetectProjectsViewModel(
-        DetectProjectsUseCase detectUseCase,
-        AddProjectUseCase addProjectUseCase,
+        IDetectProjectsUseCase detectUseCase,
+        IAddProjectUseCase addProjectUseCase,
         IWindowService windowService)
     {
         _detectUseCase = detectUseCase;
@@ -27,20 +26,11 @@ public partial class AutoDetectProjectsViewModel : BaseWindowViewModel
         Height = 500;
     }
 
-    [ObservableProperty]
-    private string? _rootPath;
-
-    [ObservableProperty]
-    private ObservableCollection<Project> _detectedProjects = [];
-
-    [ObservableProperty]
-    private bool _hasDetected;
-
-    [ObservableProperty]
-    private int _addedCount;
-
-    [ObservableProperty]
-    private bool _isDone;
+    [ObservableProperty] private string? _rootPath;
+    [ObservableProperty] private ObservableCollection<Project> _detectedProjects = [];
+    [ObservableProperty] private bool _hasDetected;
+    [ObservableProperty] private int _addedCount;
+    [ObservableProperty] private bool _isDone;
 
     [RelayCommand]
     private void BrowseFolder()
@@ -56,8 +46,7 @@ public partial class AutoDetectProjectsViewModel : BaseWindowViewModel
     [RelayCommand]
     private void Scan()
     {
-        if (string.IsNullOrWhiteSpace(RootPath))
-            return;
+        if (string.IsNullOrWhiteSpace(RootPath)) return;
 
         var projects = _detectUseCase.Execute(RootPath);
         DetectedProjects = new ObservableCollection<Project>(projects);
@@ -78,14 +67,8 @@ public partial class AutoDetectProjectsViewModel : BaseWindowViewModel
     }
 
     [RelayCommand]
-    private void RemoveProject(Project project)
-    {
-        DetectedProjects.Remove(project);
-    }
+    private void RemoveProject(Project project) => DetectedProjects.Remove(project);
 
     [RelayCommand]
-    private void Close()
-    {
-        _windowService.CloseWindow(this);
-    }
+    private void Close() => _windowService.CloseWindow(this);
 }

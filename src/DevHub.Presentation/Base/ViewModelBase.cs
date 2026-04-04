@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DevHub.Presentation.Base;
 
-public abstract class ViewModelBase : ObservableValidator
+public abstract class ViewModelBase : ObservableValidator, IDisposable
 {
     private bool _isLoading;
 
@@ -28,6 +28,10 @@ public abstract class ViewModelBase : ObservableValidator
         set => SetProperty(ref _hasError, value);
     }
 
+    private readonly List<IDisposable> _disposables = [];
+
+    protected void TrackDisposable(IDisposable disposable) => _disposables.Add(disposable);
+
     protected async Task ExecuteWithLoadingAsync(Func<Task> action)
     {
         try
@@ -49,31 +53,20 @@ public abstract class ViewModelBase : ObservableValidator
         }
     }
 
-    protected async Task<T?> ExecuteWithLoadingAsync<T>(Func<Task<T>> action)
-    {
-        try
-        {
-            IsLoading = true;
-            HasError = false;
-            ErrorMessage = null;
-
-            return await action();
-        }
-        catch (Exception ex)
-        {
-            HasError = true;
-            ErrorMessage = ex.Message;
-            return default;
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
     protected void ClearError()
     {
         HasError = false;
         ErrorMessage = null;
     }
+
+    public void Dispose()
+    {
+        foreach (var disposable in _disposables)
+            disposable.Dispose();
+        _disposables.Clear();
+        OnDispose();
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void OnDispose() { }
 }

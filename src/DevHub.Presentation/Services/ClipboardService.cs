@@ -4,31 +4,45 @@ namespace DevHub.Presentation.Services;
 
 public class ClipboardService : IClipboardService
 {
-    public async Task<string?> GetTextAsync()
+    public Task<string?> GetTextAsync(CancellationToken ct = default)
     {
-        return await Task.Run(() =>
+        var tcs = new TaskCompletionSource<string?>();
+        var thread = new Thread(() =>
         {
-            string? text = null;
-            var thread = new Thread(() =>
+            try
             {
+                string? text = null;
                 if (System.Windows.Clipboard.ContainsText())
                     text = System.Windows.Clipboard.GetText();
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            return text;
+                tcs.SetResult(text);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
         });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return tcs.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
     }
 
-    public async Task SetTextAsync(string text)
+    public Task SetTextAsync(string text, CancellationToken ct = default)
     {
-        await Task.Run(() =>
+        var tcs = new TaskCompletionSource();
+        var thread = new Thread(() =>
         {
-            var thread = new Thread(() => System.Windows.Clipboard.SetText(text));
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
+            try
+            {
+                System.Windows.Clipboard.SetText(text);
+                tcs.SetResult();
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
         });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return tcs.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
     }
 }
