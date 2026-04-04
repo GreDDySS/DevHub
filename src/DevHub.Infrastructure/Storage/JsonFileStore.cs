@@ -19,17 +19,19 @@ public abstract class JsonFileStore<T> where T : class
         };
     }
 
-    protected async Task<List<T>> LoadAllAsync()
+    protected async Task<List<T>> LoadAllAsync(CancellationToken ct = default)
     {
         AppPaths.EnsureDirectoriesExist();
 
         if (!File.Exists(_filePath))
             return [];
 
-        await _lock.WaitAsync();
+        await _lock.WaitAsync(ct);
         try
         {
-            var json = await File.ReadAllTextAsync(_filePath);
+            ct.ThrowIfCancellationRequested();
+
+            var json = await File.ReadAllTextAsync(_filePath, ct);
             if (string.IsNullOrWhiteSpace(json))
                 return [];
 
@@ -46,13 +48,15 @@ public abstract class JsonFileStore<T> where T : class
         }
     }
 
-    protected async Task SaveAllAsync(List<T> items)
+    protected async Task SaveAllAsync(List<T> items, CancellationToken ct = default)
     {
         AppPaths.EnsureDirectoriesExist();
 
-        await _lock.WaitAsync();
+        await _lock.WaitAsync(ct);
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var wrapper = new JsonDataWrapper<T>
             {
                 Version = 1,
@@ -61,7 +65,11 @@ public abstract class JsonFileStore<T> where T : class
             };
 
             var json = JsonSerializer.Serialize(wrapper, _jsonOptions);
-            await File.WriteAllTextAsync(_filePath, json);
+
+            // Atomic write: write to temp file first, then replace
+            var tempPath = _filePath + ".tmp";
+            await File.WriteAllTextAsync(tempPath, json, ct);
+            File.Replace(tempPath, _filePath, null);
         }
         finally
         {

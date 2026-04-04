@@ -4,49 +4,45 @@ using DevHub.Infrastructure.Configuration;
 
 namespace DevHub.Infrastructure.Storage;
 
-public class JsonLinkRepository : JsonFileStore<Link>, ILinkRepository
+public class JsonLinkRepository(string filePath = null!) : JsonFileStore<Link>(filePath ?? AppPaths.LinksFile), ILinkRepository
 {
-    public JsonLinkRepository() : base(AppPaths.LinksFile)
-    {
-    }
+    public async Task<List<Link>> GetAllAsync(CancellationToken ct = default)
+        => await LoadAllAsync(ct);
 
-    public async Task<List<Link>> GetAllAsync()
-        => await LoadAllAsync();
-
-    public async Task<Link?> GetByIdAsync(Guid id)
+    public async Task<Link?> GetByIdAsync(CancellationToken ct, Guid id)
     {
-        var links = await LoadAllAsync();
+        var links = await LoadAllAsync(ct);
         return links.FirstOrDefault(l => l.Id == id);
     }
 
-    public async Task<List<Link>> GetByProjectIdAsync(Guid projectId)
+    public async Task<List<Link>> GetByProjectIdAsync(Guid projectId, CancellationToken ct = default)
     {
-        var links = await LoadAllAsync();
+        var links = await LoadAllAsync(ct);
         return links.Where(l => l.ProjectId == projectId).ToList();
     }
 
-    public async Task AddAsync(Link link)
+    public async Task AddAsync(Link link, CancellationToken ct = default)
     {
-        var links = await LoadAllAsync();
+        var links = await LoadAllAsync(ct);
         links.Add(link);
-        await SaveAllAsync(links);
+        await SaveAllAsync(links, ct);
     }
 
-    public async Task UpdateAsync(Link link)
+    public async Task UpdateAsync(Link link, CancellationToken ct = default)
     {
-        var links = await LoadAllAsync();
+        var links = await LoadAllAsync(ct);
         var index = links.FindIndex(l => l.Id == link.Id);
         if (index >= 0)
         {
             links[index] = link;
-            await SaveAllAsync(links);
+            await SaveAllAsync(links, ct);
         }
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var links = await LoadAllAsync();
+        var links = await LoadAllAsync(ct);
         links.RemoveAll(l => l.Id == id);
-        await SaveAllAsync(links);
+        await SaveAllAsync(links, ct);
     }
 }

@@ -4,43 +4,39 @@ using DevHub.Infrastructure.Configuration;
 
 namespace DevHub.Infrastructure.Storage;
 
-public class JsonProjectRepository : JsonFileStore<Project>, IProjectRepository
+public class JsonProjectRepository(string filePath = null!) : JsonFileStore<Project>(filePath ?? AppPaths.ProjectsFile), IProjectRepository
 {
-    public JsonProjectRepository() : base(AppPaths.ProjectsFile)
-    {
-    }
+    public async Task<List<Project>> GetAllAsync(CancellationToken ct = default)
+        => await LoadAllAsync(ct);
 
-    public async Task<List<Project>> GetAllAsync()
-        => await LoadAllAsync();
-
-    public async Task<Project?> GetByIdAsync(Guid id)
+    public async Task<Project?> GetByIdAsync(CancellationToken ct, Guid id)
     {
-        var projects = await LoadAllAsync();
+        var projects = await LoadAllAsync(ct);
         return projects.FirstOrDefault(p => p.Id == id);
     }
 
-    public async Task AddAsync(Project project)
+    public async Task AddAsync(Project project, CancellationToken ct = default)
     {
-        var projects = await LoadAllAsync();
+        var projects = await LoadAllAsync(ct);
         projects.Add(project);
-        await SaveAllAsync(projects);
+        await SaveAllAsync(projects, ct);
     }
 
-    public async Task UpdateAsync(Project project)
+    public async Task UpdateAsync(Project project, CancellationToken ct = default)
     {
-        var projects = await LoadAllAsync();
+        var projects = await LoadAllAsync(ct);
         var index = projects.FindIndex(p => p.Id == project.Id);
         if (index >= 0)
         {
             projects[index] = project;
-            await SaveAllAsync(projects);
+            await SaveAllAsync(projects, ct);
         }
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var projects = await LoadAllAsync();
+        var projects = await LoadAllAsync(ct);
         projects.RemoveAll(p => p.Id == id);
-        await SaveAllAsync(projects);
+        await SaveAllAsync(projects, ct);
     }
 }
