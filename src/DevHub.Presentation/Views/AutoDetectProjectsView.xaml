@@ -6,112 +6,68 @@
         Title="{Binding Title}"
         Width="{Binding Width}"
         Height="{Binding Height}"
+        MinHeight="400"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
-        Icon="pack://application:,,,/Images/AppIcon.ico">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        ResizeMode="CanResize"
+        Icon="pack://application:,,,/Images/AppIcon.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+    <Border Background="{StaticResource BgBaseBrush}" CornerRadius="12" Effect="{StaticResource ShadowXl}" Margin="8">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- Folder selection -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,12">
-            <Button DockPanel.Dock="Right"
-                    Content="Browse..."
-                    Command="{Binding BrowseFolderCommand}"
-                    Margin="8,0,0,0"
-                    Padding="12,4" />
-            <hc:TextBox Text="{Binding RootPath}"
-                        hc:InfoElement.Placeholder="Select root folder with projects..." />
-        </DockPanel>
+            <!-- Title -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,16">
+                <Button DockPanel.Dock="Right" Content="✕" Command="{Binding CloseCommand}" Style="{StaticResource BtnIcon}" FontSize="16" Padding="8" IsCancel="True" />
+                <TextBlock Text="{Binding Title}" Style="{StaticResource TextH1}" />
+            </DockPanel>
 
-        <!-- Info -->
-        <TextBlock Grid.Row="1"
-                   Text="{Binding DetectedProjects.Count, StringFormat='Found {0} projects'}"
-                   Foreground="#666"
-                   FontSize="13"
-                   Margin="0,0,0,8"
-                   Visibility="{Binding HasDetected, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <!-- Folder Selection -->
+            <DockPanel Grid.Row="1" Margin="0,0,0,12">
+                <Button DockPanel.Dock="Right" Content="Browse" Command="{Binding BrowseFolderCommand}" Style="{StaticResource BtnSecondary}" Margin="8,0,0,0" />
+                <TextBox Style="{StaticResource InputBox}" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
 
-        <TextBlock Grid.Row="1"
-                   Text="Select a folder containing your projects"
-                   Foreground="#999"
-                   FontSize="12" />
+            <!-- Content -->
+            <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                <TextBlock Text="{Binding DetectedProjects.Count, StringFormat='Found {0} projects'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,0,0,4" Visibility="{Binding HasDetected, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <TextBlock Text="Select a folder and click Browse to scan for projects" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,0,0,8" />
+                <TextBlock Text="{Binding AddedCount, StringFormat='Added {0} projects!'}" Foreground="{StaticResource SuccessBrush}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-        <!-- Progress after adding -->
-        <TextBlock Grid.Row="2"
-                   Text="{Binding AddedCount, StringFormat='Added {0} projects successfully!'}"
-                   Foreground="#4CAF50"
-                   FontSize="14"
-                   FontWeight="SemiBold"
-                   Margin="0,0,0,8"
-                   Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400" Visibility="{Binding HasDetected, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding DetectedProjects}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type domain:Project}">
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="12" Margin="0,0,0,4" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="✕" Command="{Binding DataContext.RemoveProjectCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource BtnIcon}" Width="24" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding Language}" FontSize="11" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,12,0" />
+                                                <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
 
-        <!-- Detected projects list -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding HasDetected, Converter={StaticResource BoolToVisibilityConverter}}">
-            <ItemsControl ItemsSource="{Binding DetectedProjects}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type domain:Project}">
-                        <Border Background="White"
-                                CornerRadius="8"
-                                Padding="12"
-                                Margin="0,0,0,4"
-                                BorderBrush="#E0E0E0"
-                                BorderThickness="1">
-                            <DockPanel>
-                            <Button DockPanel.Dock="Right"
-                                    Content="x"
-                                    Command="{Binding DataContext.RemoveProjectCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding}"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Foreground="#999"
-                                    Width="24"
-                                    Padding="0" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}"
-                                           FontSize="14"
-                                           FontWeight="SemiBold" />
-                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="{Binding Language}"
-                                               FontSize="11"
-                                               Foreground="#1565C0"
-                                               Margin="0,0,12,0" />
-                                    <TextBlock Text="{Binding Path}"
-                                               FontSize="11"
-                                               Foreground="#999"
-                                               TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </StackPanel>
-                            </DockPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <!-- Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel"
-                    Command="{Binding CloseCommand}"
-                    Margin="0,0,8,0"
-                    Padding="16,6" />
-            <Button Content="Add All"
-                    Command="{Binding AddAllCommand}"
-                    IsEnabled="{Binding HasDetected}"
-                    Padding="16,6"
-                    Style="{StaticResource ButtonPrimary}"
-                    Visibility="{Binding IsDone, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-            <Button Content="Done"
-                    Command="{Binding CloseCommand}"
-                    Padding="16,6"
-                    Style="{StaticResource ButtonPrimary}"
-                    Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibilityConverter}}" />
-        </StackPanel>
-    </Grid>
+            <!-- Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Cancel" Command="{Binding CloseCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" Padding="20,8" IsCancel="True" />
+                <Button Content="Add All" Command="{Binding AddAllCommand}" Style="{StaticResource BtnPrimary}" Padding="20,8" IsEnabled="{Binding HasDetected}" IsDefault="True" Visibility="{Binding IsDone, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                <Button Content="Done" Command="{Binding CloseCommand}" Style="{StaticResource BtnPrimary}" Padding="20,8" IsDefault="True" Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

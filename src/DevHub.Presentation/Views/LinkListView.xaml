@@ -10,127 +10,105 @@
         <converters:ViewModeToIconConverter x:Key="ViewModeToIconConverter" />
         <converters:ListVisibilityConverter x:Key="ListVisibilityConverter" />
         <converters:FoldersVisibilityConverter x:Key="FoldersVisibilityConverter" />
+        <converters:LinkTypeToColorConverter x:Key="LinkTypeToColorConverter" />
+
+        <Style x:Key="LinkCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BgCardBrush}" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Effect" Value="{StaticResource ShadowSm}" />
+        </Style>
+
+        <Style x:Key="LinkTypeBadge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinWidth" Value="60" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
     </UserControl.Resources>
-    <Grid Margin="20">
+
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <DockPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Capture from clipboard" Command="{Binding CaptureLinkCommand}" Style="{StaticResource BtnPrimary}" ToolTip="Ctrl+Shift+Y" />
+            </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Links"
-                           FontSize="28"
-                           FontWeight="Bold" />
-                <TextBlock Text="{Binding TotalCount, StringFormat=' ({0})'}"
-                           FontSize="28"
-                           Foreground="#888" />
+                <TextBlock Text="Links" Style="{StaticResource TextDisplay}" />
+                <TextBlock Text="{Binding TotalCount, StringFormat=' ({0})'}" FontSize="28" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
         </DockPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <hc:TextBox hc:InfoElement.Placeholder="Search links..."
-                        Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                        Width="300"
-                        Margin="0,0,10,0" />
-            <ComboBox SelectedIndex="{Binding SelectedTypeIndex}"
-                      Width="150"
-                      Margin="0,0,10,0">
-                <ComboBoxItem Content="All types" IsSelected="True" />
-                <ComboBoxItem Content="YouTube" />
-                <ComboBoxItem Content="Article" />
-                <ComboBoxItem Content="Repository" />
-                <ComboBoxItem Content="Documentation" />
-                <ComboBoxItem Content="Other" />
-            </ComboBox>
-            <Button Content="Reset"
-                    Command="{Binding ResetFiltersCommand}"
-                    Padding="10,4"
-                    Margin="0,0,8,0" />
-            <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}"
-                    Command="{Binding ToggleViewModeCommand}"
-                    Padding="10,4"
-                    ToolTip="Toggle view" />
-        </StackPanel>
+        <!-- Filter Bar -->
+        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16" Effect="{StaticResource ShadowSm}" Margin="0,0,0,12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Reset" Command="{Binding ResetFiltersCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" />
+                    <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}" Command="{Binding ToggleViewModeCommand}" Style="{StaticResource BtnSecondary}" ToolTip="Toggle view" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <hc:TextBox hc:InfoElement.Placeholder="Search links..." Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="280" Margin="0,0,12,0" />
+                    <ComboBox SelectedIndex="{Binding SelectedTypeIndex}" Width="140" Margin="0,0,12,0" Foreground="{StaticResource TextPrimaryBrush}">
+                        <ComboBoxItem Content="All types" IsSelected="True" />
+                        <ComboBoxItem Content="YouTube" />
+                        <ComboBoxItem Content="Article" />
+                        <ComboBoxItem Content="Repository" />
+                        <ComboBoxItem Content="Documentation" />
+                        <ComboBoxItem Content="Other" />
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-        <TextBlock Grid.Row="2"
-                   Text="Press Ctrl+Shift+Y to capture URL from clipboard"
-                   Foreground="#999"
-                   FontSize="12"
-                   Margin="0,0,0,10" />
+        <!-- Hint -->
+        <TextBlock Grid.Row="2" Text="💡 Copy a URL to clipboard and press Ctrl+Shift+Y to capture" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,0,0,16" />
 
-        <StackPanel Grid.Row="4"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Visibility="{Binding Links.Count, Converter={StaticResource CountToVisibilityConverter}}">
-            <TextBlock Text="No links yet"
-                       FontSize="18"
-                       Foreground="#999"
-                       HorizontalAlignment="Center" />
-            <TextBlock Text="Copy a URL and press Ctrl+Shift+Y to capture it"
-                       Foreground="#BBB"
-                       HorizontalAlignment="Center"
-                       Margin="0,8,0,0" />
+        <!-- Empty State -->
+        <StackPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding Links.Count, Converter={StaticResource CountToVisibilityConverter}}">
+            <TextBlock Text="🔗" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16" />
+            <TextBlock Text="No links yet" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+            <TextBlock Text="Copy a URL and press Ctrl+Shift+Y to capture it" FontSize="14" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,8,0,0" />
         </StackPanel>
 
         <!-- List View -->
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding Links}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type domain:Link}">
-                        <Border Background="White"
-                                CornerRadius="8"
-                                Padding="12"
-                                Margin="0,0,0,8"
-                                BorderBrush="#E0E0E0"
-                                BorderThickness="1">
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource LinkCard}">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+                                            <Setter Property="Effect" Value="{StaticResource ShadowMd}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <DockPanel>
-                                <Border DockPanel.Dock="Right"
-                                        Background="{Binding Type, Converter={StaticResource LinkTypeToColorConverter}}"
-                                        CornerRadius="4"
-                                        Padding="8,4"
-                                        Margin="8,0,0,0">
-                                    <TextBlock Text="{Binding Type}"
-                                               FontSize="10"
-                                               Foreground="White"
-                                               FontWeight="Bold" />
-                                </Border>
-
-                                <Button DockPanel.Dock="Right"
-                                        Content="Delete"
-                                        Margin="8,0,0,0"
-                                        Padding="8,2"
-                                        Command="{Binding DataContext.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding Id}" />
-
-                                <Button DockPanel.Dock="Right"
-                                        Content="Copy"
-                                        Margin="8,0,0,0"
-                                        Padding="8,2"
-                                        Command="{Binding DataContext.CopyUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" />
-
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}"
-                                               TextTrimming="CharacterEllipsis"
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Foreground="#1565C0"
-                                               Cursor="Hand"
-                                               attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                               attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
-                                    <TextBlock Text="{Binding Url}"
-                                               Foreground="#666"
-                                               FontSize="11"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding CapturedAt, StringFormat='Captured: {0:dd.MM.yyyy HH:mm}'}"
-                                               Foreground="#999"
-                                               FontSize="10"
-                                               Margin="0,4,0,0" />
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Style="{StaticResource LinkTypeBadge}" Background="{Binding Type, Converter={StaticResource LinkTypeToColorConverter}}">
+                                        <TextBlock Text="{Binding Type}" FontSize="10" Foreground="White" FontWeight="SemiBold" TextAlignment="Center" />
+                                    </Border>
+                                    <Button Content="Copy" Command="{Binding DataContext.CopyUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource BtnSecondary}" Margin="8,0,0,0" Padding="8,4" />
+                                    <Button Content="Delete" Command="{Binding DataContext.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Id}" Style="{StaticResource BtnDanger}" Margin="6,0,0,0" Padding="8,4" />
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
+                                    <TextBlock Text="{Binding Url}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                    <TextBlock Text="{Binding CapturedAt, StringFormat='Captured: {0:dd.MM.yyyy HH:mm}'}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -140,54 +118,29 @@
         </ScrollViewer>
 
         <!-- Folders View -->
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding ViewMode, Converter={StaticResource FoldersVisibilityConverter}}">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource FoldersVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding Folders}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:LinkFolderViewModel}">
-                        <Border Background="White"
-                                CornerRadius="8"
-                                Padding="16"
-                                Margin="0,0,0,12"
-                                BorderBrush="#E0E0E0"
-                                BorderThickness="1">
+                        <Border Background="{StaticResource BgCardBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16" Margin="0,0,0,12" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Effect="{StaticResource ShadowSm}">
                             <DockPanel>
-                                <Border DockPanel.Dock="Right"
-                                        Background="#E3F2FD"
-                                        CornerRadius="10"
-                                        Padding="8,4"
-                                        VerticalAlignment="Top"
-                                        Margin="8,0,0,0">
-                                    <TextBlock Text="{Binding Count}"
-                                               Foreground="#1565C0"
-                                               FontWeight="Bold"
-                                               FontSize="12" />
+                                <Border DockPanel.Dock="Right" Background="{StaticResource BgInputBrush}" CornerRadius="{StaticResource RadiusFull}" Padding="10,5" VerticalAlignment="Top" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding Count}" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="12" TextAlignment="Center" />
                                 </Border>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Name}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
-                                               Margin="0,0,0,8" />
-                                    <ItemsControl ItemsSource="{Binding Links}" MaxHeight="200">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type domain:Link}">
-                                                <DockPanel Margin="0,0,0,4">
-                                                    <TextBlock DockPanel.Dock="Right"
-                                                               Text="{Binding Type}"
-                                                               FontSize="9"
-                                                               Foreground="#999"
-                                                               Margin="8,0,0,0" />
-                                                    <TextBlock Text="{Binding Title}"
-                                                               FontSize="12"
-                                                               Foreground="#1565C0"
-                                                               Cursor="Hand"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                               attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
-                                                </DockPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                                    <ScrollViewer MaxHeight="250" VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding Links}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type domain:Link}">
+                                                    <DockPanel Margin="0,0,0,4">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Type}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" Margin="8,0,0,0" />
+                                                        <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" TextTrimming="CharacterEllipsis" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -196,8 +149,9 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Grid Grid.Row="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-            <hc:LoadingLine />
-        </Grid>
+        <!-- Loading Overlay -->
+        <Border Grid.Row="3" Background="#CC18181B" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Panel.ZIndex="10">
+            <hc:LoadingLine Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Top" Margin="0,8,0,0" />
+        </Border>
     </Grid>
 </UserControl>

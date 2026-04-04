@@ -3,116 +3,69 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:storage="clr-namespace:DevHub.Domain.Models;assembly=DevHub.Domain">
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Settings"
-                   FontSize="28"
-                   FontWeight="Bold"
-                   Margin="0,0,0,24" />
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Settings" Style="{StaticResource TextDisplay}" Margin="0,0,0,24" />
 
-        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+        <!-- IDE Section -->
+        <Border Grid.Row="1" Background="{StaticResource BgCardBrush}" CornerRadius="{StaticResource RadiusLg}" Padding="20" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Effect="{StaticResource ShadowSm}" Margin="0,0,0,16">
             <StackPanel>
                 <DockPanel Margin="0,0,0,16">
-                    <TextBlock Text="IDE Configuration"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center" />
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Auto-detect"
-                                Command="{Binding AutoDetectCommand}"
-                                Margin="0,0,8,0"
-                                Padding="10,4" />
-                        <Button Content="+"
-                                Command="{Binding AddIdeCommand}"
-                                Padding="10,4" />
+                    <TextBlock Text="IDE Configuration" Style="{StaticResource TextH2}" VerticalAlignment="Center" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Auto-detect" Command="{Binding AutoDetectCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" />
+                        <Button Content="+ Add IDE" Command="{Binding AddIdeCommand}" Style="{StaticResource BtnPrimary}" />
                     </StackPanel>
                 </DockPanel>
 
                 <ItemsControl ItemsSource="{Binding Ides}" x:Name="IdeItemsControl">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type storage:IdeEntry}">
-                            <DockPanel Margin="0,0,0,8">
-                                <RadioButton DockPanel.Dock="Left"
-                                             Margin="0,0,8,0"
-                                             VerticalAlignment="Center"
-                                             GroupName="DefaultIde"
-                                             Checked="IdeRadioButton_Checked" />
-                                <Button DockPanel.Dock="Right"
-                                        Content="Remove"
-                                        Margin="8,0,0,0"
-                                        Padding="8,2"
-                                        Command="{Binding DataContext.RemoveIdeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" />
-                                <TextBlock Text="{Binding Name}"
-                                           FontWeight="SemiBold"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,8,0" />
-                                <TextBlock Text="{Binding Path}"
-                                           Foreground="#888"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
-                            </DockPanel>
+                            <Border Background="{StaticResource BgInputBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="12" Margin="0,0,0,6">
+                                <DockPanel>
+                                    <RadioButton DockPanel.Dock="Left" Margin="0,0,12,0" VerticalAlignment="Center" GroupName="DefaultIde" Checked="IdeRadioButton_Checked" />
+                                    <Button DockPanel.Dock="Right" Content="Remove" Style="{StaticResource BtnDanger}" Margin="8,0,0,0" Padding="8,4" Command="{Binding DataContext.RemoveIdeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBlock Text="{Binding Path}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Text="No IDEs configured. Click Auto-detect or + to add."
-                           Foreground="#999"
-                           FontStyle="Italic"
-                           Visibility="{Binding Ides.Count, Converter={StaticResource CountToVisibilityConverter}}" />
+                <TextBlock Text="No IDEs configured. Click Auto-detect or + Add IDE to get started." Foreground="{StaticResource TextMutedBrush}" FontStyle="Italic" Visibility="{Binding Ides.Count, Converter={StaticResource CountToVisibilityConverter}}" Margin="0,8,0,0" />
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+        <!-- Application Section -->
+        <Border Grid.Row="2" Background="{StaticResource BgCardBrush}" CornerRadius="{StaticResource RadiusLg}" Padding="20" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Effect="{StaticResource ShadowSm}" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock Text="Application"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,16" />
+                <TextBlock Text="Application" Style="{StaticResource TextH2}" Margin="0,0,0,16" />
 
-                <CheckBox Content="Start with Windows"
-                          IsChecked="{Binding Settings.AutostartEnabled}"
-                          Margin="0,0,0,16" />
+                <CheckBox Content="Start with Windows" IsChecked="{Binding Settings.AutostartEnabled}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16" />
 
-                <TextBlock Text="On window close:"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,8" />
+                <TextBlock Text="On window close:" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
 
-                <RadioButton Content="Exit application"
-                             GroupName="CloseAction"
-                             IsChecked="{Binding IsCloseExit}"
-                             Margin="0,0,0,4" />
-
-                <RadioButton Content="Minimize to tray"
-                             GroupName="CloseAction"
-                             IsChecked="{Binding IsCloseTray}"
-                             Margin="0,0,0,4" />
-
-                <RadioButton Content="Ask every time"
-                             GroupName="CloseAction"
-                             IsChecked="{Binding IsCloseAsk}" />
+                <RadioButton Content="Exit application" GroupName="CloseAction" IsChecked="{Binding IsCloseExit}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
+                <RadioButton Content="Minimize to tray" GroupName="CloseAction" IsChecked="{Binding IsCloseTray}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
+                <RadioButton Content="Ask every time" GroupName="CloseAction" IsChecked="{Binding IsCloseAsk}" Foreground="{StaticResource TextSecondaryBrush}" />
             </StackPanel>
         </Border>
 
-        <TextBlock Grid.Row="3"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="Red"
-                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
-                   Margin="0,0,0,16" />
+        <!-- Error -->
+        <Border Grid.Row="3" Background="#1FEF4444" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusMd}" Padding="12" Margin="0,0,0,16" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" />
+        </Border>
 
-        <Button Grid.Row="4"
-                Content="Save Settings"
-                Command="{Binding SaveCommand}"
-                Style="{StaticResource ButtonPrimary}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Bottom"
-                Padding="16,0" />
+        <!-- Save Button -->
+        <Button Grid.Row="4" Content="Save Settings" Command="{Binding SaveCommand}" Style="{StaticResource BtnPrimary}" HorizontalAlignment="Left" Padding="24,10" />
     </Grid>
 </UserControl>
