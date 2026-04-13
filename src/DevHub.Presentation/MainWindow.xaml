@@ -19,22 +19,24 @@
         <Geometry x:Key="IconClose">M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z</Geometry>
         <Geometry x:Key="IconMaximize">M3 3v18h18V3H3zm16 16H5V5h14v14z</Geometry>
         <Geometry x:Key="IconMinimize">M3 15h18v2H3z</Geometry>
+        <Geometry x:Key="IconMoon">M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.44c.44-.06.9-.1 1.36-.1z</Geometry>
+        <Geometry x:Key="IconSun">M12 7a5 5 0 100 10 5 5 0 000-10zm0 18a13 13 0 100-26 13 13 0 000 26zm0-22a9 9 0 019 9 1 1 0 01-1.44.36A7 7 0 0012 4a7 7 0 00-7 7c0 .12.01.24.02.36A9 9 0 0112 3z</Geometry>
+        <Geometry x:Key="IconGitHub">M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.1.65-.22.65-.5v-1.86c-2.3.5-2.78-.95-2.78-.95-.38-.95-.95-1.22-.95-1.22-.77-.53.06-.5.06-.5.84.07 1.28.87 1.28.87.74 1.27 1.95.9 2.43.69.07-.54.29-.9.52-1.1-1.85-.21-3.79-.95-3.79-4.23 0-.88.31-1.61.84-2.18-.09-.2-.36-.97.08-2.15 0 0 .69-.23 2.24.84.65-.19 1.35-.29 2.04-.29.69 0 1.39.1 2.04.29 1.55-1.07 2.24-.84 2.24-.84.44 1.18.17 1.95.08 2.15.53.57.84 1.3.84 2.18 0 3.29-1.95 4.02-3.8 4.23.3.27.57.78.57 1.58v2.34c0 .28.15.61.65.5C19.14 20.67 22 16.92 22 12A10 10 0 0012 2z</Geometry>
     </Window.Resources>
 
     <Border Background="{StaticResource BgWindowBrush}"
-            CornerRadius="12"
-            Effect="{StaticResource ShadowXl}"
+            CornerRadius="16"
+            Effect="{StaticResource ShadowLg}"
             Margin="8">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="36" />
+                <RowDefinition Height="40" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Title Bar -->
             <Border Grid.Row="0"
-                    Background="{StaticResource BgBaseBrush}"
-                    CornerRadius="12,12,0,0"
+                    Background="{StaticResource BgSidebarBrush}"
+                    CornerRadius="16,16,0,0"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -49,68 +51,71 @@
                         </Button>
                     </StackPanel>
                     <TextBlock Text="{Binding Title}"
-                               FontSize="12"
+                               FontSize="13"
                                Foreground="{StaticResource TextMutedBrush}"
                                VerticalAlignment="Center"
-                               Margin="16,0,0,0" />
+                               Margin="20,0,0,0" />
                 </DockPanel>
             </Border>
 
-            <!-- Main Content -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding SidebarWidth}" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Sidebar -->
                 <Border Grid.Column="0"
                         Background="{StaticResource BgSidebarBrush}"
-                        CornerRadius="0,0,0,12">
+                        CornerRadius="0,0,0,16">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- Logo -->
-                        <Border Grid.Row="0" Height="56" Margin="16,12,16,8">
+                        <Border Grid.Row="0" Margin="8,12,8,8">
                             <DockPanel>
-                                <Button DockPanel.Dock="Right"
-                                        Style="{StaticResource BtnIcon}"
+                                <Button x:Name="ToggleBtn"
+                                        DockPanel.Dock="Right"
+                                        Style="{StaticResource BtnIconNoHover}"
                                         Click="ToggleSidebar_Click"
-                                        ToolTip="Toggle sidebar">
-                                    <Path Data="{StaticResource IconChevron}"
+                                        ToolTip="Toggle sidebar"
+                                        Width="32" Height="32"
+                                        Padding="0">
+                                    <Path x:Name="ChevronPath"
+                                          Data="{StaticResource IconChevron}"
                                           Fill="{StaticResource TextMutedBrush}"
-                                          Width="16" Height="16"
+                                          Width="14" Height="14"
                                           Stretch="Uniform">
                                         <Path.RenderTransform>
-                                            <RotateTransform x:Name="ChevronRotate" Angle="0" CenterX="8" CenterY="8" />
+                                            <RotateTransform x:Name="ChevronRotate" Angle="0" CenterX="7" CenterY="7" />
                                         </Path.RenderTransform>
                                     </Path>
                                 </Button>
-                                <TextBlock Text="DevHub"
-                                           FontSize="18"
+                                <TextBlock x:Name="LogoText"
+                                           Text="{Binding SidebarTitle}"
+                                           FontSize="20"
                                            FontWeight="Bold"
                                            Foreground="{StaticResource PrimaryBrush}"
-                                           VerticalAlignment="Center" />
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center" />
                             </DockPanel>
                         </Border>
 
-                        <!-- Navigation -->
-                        <StackPanel Grid.Row="1" Margin="0,8,0,16">
+                        <StackPanel Grid.Row="1" Margin="0">
                             <Button Command="{Binding GoToProjectsCommand}"
                                     Style="{StaticResource NavButton}">
                                 <DockPanel>
                                     <Path Data="{StaticResource IconProjects}"
                                           Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                          Width="20" Height="20"
+                                          Width="18" Height="18"
                                           Stretch="Uniform"
-                                          DockPanel.Dock="Left"
-                                          Margin="0,0,12,0" />
+                                          DockPanel.Dock="Left" />
                                     <TextBlock Text="Projects"
-                                               FontSize="13"
+                                               FontSize="14"
                                                VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
                                                Visibility="{Binding SidebarTextVisibility}" />
                                 </DockPanel>
                             </Button>
@@ -120,41 +125,82 @@
                                 <DockPanel>
                                     <Path Data="{StaticResource IconLinks}"
                                           Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                          Width="20" Height="20"
+                                          Width="18" Height="18"
                                           Stretch="Uniform"
-                                          DockPanel.Dock="Left"
-                                          Margin="0,0,12,0" />
+                                          DockPanel.Dock="Left"/>
                                     <TextBlock Text="Links"
-                                               FontSize="13"
+                                               FontSize="14"
                                                VerticalAlignment="Center"
-                                               Visibility="{Binding SidebarTextVisibility}" />
-                                </DockPanel>
-                            </Button>
-
-                            <Button Command="{Binding GoToSettingsCommand}"
-                                    Style="{StaticResource NavButton}">
-                                <DockPanel>
-                                    <Path Data="{StaticResource IconSettings}"
-                                          Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
-                                          Width="20" Height="20"
-                                          Stretch="Uniform"
-                                          DockPanel.Dock="Left"
-                                          Margin="0,0,12,0" />
-                                    <TextBlock Text="Settings"
-                                               FontSize="13"
-                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
                                                Visibility="{Binding SidebarTextVisibility}" />
                                 </DockPanel>
                             </Button>
                         </StackPanel>
+
+                        <StackPanel Grid.Row="2" Margin="4,8,4,12">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                      Visibility="{Binding SidebarTextVisibility}">
+                                <Button Command="{Binding ToggleThemeCommand}"
+                                        Style="{StaticResource BtnIcon}"
+                                        ToolTip="Toggle theme"
+                                        Width="28" Height="28" Padding="0">
+                                    <Path Data="{StaticResource IconMoon}"
+                                          Fill="{StaticResource TextMutedBrush}"
+                                          Width="14" Height="14"
+                                          Stretch="Uniform" />
+                                </Button>
+                                <Button Command="{Binding OpenGitHubCommand}"
+                                        Style="{StaticResource BtnIcon}"
+                                        ToolTip="GitHub"
+                                        Width="28" Height="28" Padding="0">
+                                    <Grid>
+                                        <Path Data="{StaticResource IconGitHub}"
+                                              Fill="{StaticResource TextMutedBrush}"
+                                              Width="14" Height="14"
+                                              Stretch="Uniform" />
+                                        <Ellipse Width="8" Height="8" Fill="#EF4444" 
+                                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                 Margin="4,-2,-2,0"
+                                                 Visibility="{Binding HasNewVersion, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </Grid>
+                                </Button>
+                                <Button Command="{Binding GoToSettingsCommand}"
+                                        Style="{StaticResource BtnIcon}"
+                                        ToolTip="Settings"
+                                        Width="28" Height="28" Padding="0">
+                                    <Path Data="{StaticResource IconSettings}"
+                                          Fill="{StaticResource TextMutedBrush}"
+                                          Width="14" Height="14"
+                                          Stretch="Uniform" />
+                                </Button>
+                            </StackPanel>
+
+                            <Button Command="{Binding GoToSettingsCommand}"
+                                    Style="{StaticResource BtnIcon}"
+                                    ToolTip="Settings"
+                                    Visibility="{Binding ShowFullLogo, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                                    HorizontalAlignment="Center"
+                                    Width="28" Height="28" Padding="0">
+                                <Path Data="{StaticResource IconSettings}"
+                                      Fill="{StaticResource TextMutedBrush}"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform" />
+                            </Button>
+
+                            <TextBlock Text="{Binding Version, StringFormat='v{0}'}"
+                                       FontSize="10"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,8,0,0"
+                                       Visibility="{Binding ShowVersion, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 
-                <!-- Content Area -->
                 <Border Grid.Column="1"
                         Background="{StaticResource BgBaseBrush}"
-                        CornerRadius="0,0,12,0"
-                        Padding="24">
+                        CornerRadius="0,0,16,0"
+                        Padding="28">
                     <ContentControl x:Name="NavigationHost" />
                 </Border>
             </Grid>

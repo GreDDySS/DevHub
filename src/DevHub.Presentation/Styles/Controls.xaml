@@ -4,16 +4,17 @@
     <!-- ==================== BUTTON: Primary ==================== -->
     <Style x:Key="BtnPrimary" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextInverseBrush}" />
+        <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Padding" Value="20,10" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
                             CornerRadius="{StaticResource RadiusMd}"
                             Padding="{TemplateBinding Padding}"
                             Effect="{StaticResource ShadowSm}">
@@ -41,13 +42,15 @@
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}" />
-        <Setter Property="Padding" Value="12,6" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{StaticResource RadiusMd}"
@@ -61,7 +64,7 @@
                             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{StaticResource BorderLightBrush}" />
+                            <Setter Property="Background" Value="{StaticResource BgSurfaceBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -121,20 +124,36 @@
         </Setter>
     </Style>
 
+    <!-- ==================== BUTTON: Icon No Hover ==================== -->
+    <Style x:Key="BtnIconNoHover" TargetType="Button" BasedOn="{StaticResource BtnIcon}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource RadiusSm}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ==================== BUTTON: Nav (Sidebar) ==================== -->
     <Style x:Key="NavButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="12,10" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
                             Padding="{TemplateBinding Padding}"
                             CornerRadius="{StaticResource RadiusMd}"
                             Margin="8,2">
@@ -142,7 +161,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource BgSidebarHoverBrush}" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource BgSidebarHoverBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -162,12 +181,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="16" Margin="0,0,0,0">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#3F3F46" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource BgInputBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -180,12 +199,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="16">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#EF4444" />
+                            <Setter TargetName="border" Property="Background" Value="#EF4444" />
                             <Setter Property="Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -207,24 +226,47 @@
     <Style x:Key="InputBox" TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource BgInputBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="12,10" />
         <Setter Property="FontSize" Value="14" />
+        <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{StaticResource RadiusMd}"
-                            Padding="{TemplateBinding Padding}">
-                        <ScrollViewer x:Name="PART_ContentHost" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource BorderLightBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource RadiusMd}">
+                            <Grid Margin="{TemplateBinding Padding}">
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <TextBlock x:Name="placeholder"
+                                   Text="{TemplateBinding Tag}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="14"
+                                   Margin="12,0,0,0"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed" />
+                    </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+                        </Trigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-                            <Setter Property="BorderThickness" Value="2" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Text" Value="" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="placeholder" Property="Visibility" Value="Visible" />
+                        </MultiTrigger>
+                        <Trigger Property="Text" Value="{x:Null}">
+                            <Setter TargetName="placeholder" Property="Visibility" Value="Visible" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

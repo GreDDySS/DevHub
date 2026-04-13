@@ -3,17 +3,17 @@
 
     <!-- ==================== EFFECTS ==================== -->
     <!-- Shadows -->
-    <DropShadowEffect x:Key="ShadowSm" BlurRadius="4" ShadowDepth="1" Opacity="0.2" Direction="270" Color="#000000" />
-    <DropShadowEffect x:Key="ShadowMd" BlurRadius="8" ShadowDepth="2" Opacity="0.3" Direction="270" Color="#000000" />
-    <DropShadowEffect x:Key="ShadowLg" BlurRadius="16" ShadowDepth="4" Opacity="0.4" Direction="270" Color="#000000" />
-    <DropShadowEffect x:Key="ShadowXl" BlurRadius="24" ShadowDepth="6" Opacity="0.5" Direction="270" Color="#000000" />
-    <DropShadowEffect x:Key="ShadowGlow" BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="#8B5CF6" />
+    <DropShadowEffect x:Key="ShadowSm" BlurRadius="6" ShadowDepth="1" Opacity="0.15" Direction="270" Color="#000000" />
+    <DropShadowEffect x:Key="ShadowMd" BlurRadius="10" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#000000" />
+    <DropShadowEffect x:Key="ShadowLg" BlurRadius="16" ShadowDepth="4" Opacity="0.25" Direction="270" Color="#000000" />
+    <DropShadowEffect x:Key="ShadowXl" BlurRadius="24" ShadowDepth="6" Opacity="0.3" Direction="270" Color="#000000" />
+    <DropShadowEffect x:Key="ShadowGlow" BlurRadius="16" ShadowDepth="0" Opacity="0.25" Color="#337A2C" />
 
     <!-- ==================== CORNER RADII ==================== -->
-    <CornerRadius x:Key="RadiusSm">4</CornerRadius>
-    <CornerRadius x:Key="RadiusMd">8</CornerRadius>
-    <CornerRadius x:Key="RadiusLg">12</CornerRadius>
-    <CornerRadius x:Key="RadiusXl">16</CornerRadius>
+    <CornerRadius x:Key="RadiusSm">6</CornerRadius>
+    <CornerRadius x:Key="RadiusMd">12</CornerRadius>
+    <CornerRadius x:Key="RadiusLg">16</CornerRadius>
+    <CornerRadius x:Key="RadiusXl">20</CornerRadius>
     <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
     <!-- ==================== SPACING ==================== -->

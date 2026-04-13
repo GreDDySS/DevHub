@@ -1,5 +1,8 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using DevHub.Presentation.Services;
 using DevHub.Presentation.ViewModels;
 
@@ -33,6 +36,20 @@ public partial class MainWindow : Window
     private void ToggleSidebar_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel vm)
+        {
             vm.ToggleSidebar();
+            
+            var chevron = FindName("ChevronPath") as Path;
+            if (chevron?.RenderTransform is RotateTransform rt)
+            {
+                var animation = new DoubleAnimation
+                {
+                    To = vm.ShowFullLogo ? 0 : 180,
+                    Duration = TimeSpan.FromMilliseconds(200),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                rt.BeginAnimation(RotateTransform.AngleProperty, animation);
+            }
+        }
     }
 }

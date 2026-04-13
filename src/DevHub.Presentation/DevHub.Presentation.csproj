@@ -28,6 +28,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>0.0.7</Version>
   </PropertyGroup>
 
 </Project>

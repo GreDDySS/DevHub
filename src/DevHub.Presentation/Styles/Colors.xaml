@@ -2,21 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ==================== COLOR PALETTE ==================== -->
-    <!-- Primary -->
-    <Color x:Key="PrimaryColor">#8B5CF6</Color>
-    <Color x:Key="PrimaryHoverColor">#A78BFA</Color>
-    <Color x:Key="PrimaryPressedColor">#7C3AED</Color>
+    <Color x:Key="PrimaryColor">#337A2C</Color>
+    <Color x:Key="PrimaryHoverColor">#4A9C3D</Color>
+    <Color x:Key="PrimaryPressedColor">#296621</Color>
 
-    <!-- Accent -->
-    <Color x:Key="AccentColor">#06B6D4</Color>
+    <Color x:Key="AccentColor">#19A337</Color>
 
-    <!-- Semantic -->
     <Color x:Key="SuccessColor">#10B981</Color>
     <Color x:Key="WarningColor">#F59E0B</Color>
     <Color x:Key="ErrorColor">#EF4444</Color>
     <Color x:Key="InfoColor">#3B82F6</Color>
 
-    <!-- Backgrounds — серо-черная палитра -->
     <Color x:Key="BgWindow">#09090B</Color>
     <Color x:Key="BgBase">#18181B</Color>
     <Color x:Key="BgSurface">#27272A</Color>
@@ -36,7 +32,7 @@
     <!-- Borders -->
     <Color x:Key="BorderLight">#3F3F46</Color>
     <Color x:Key="BorderMedium">#52525B</Color>
-    <Color x:Key="BorderFocus">#8B5CF6</Color>
+    <Color x:Key="BorderFocus">#337A2C</Color>
 
     <!-- ==================== BRUSHES ==================== -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
@@ -74,8 +70,8 @@
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#8B5CF6" Offset="0" />
-        <GradientStop Color="#06B6D4" Offset="1" />
+        <GradientStop Color="#337A2C" Offset="0" />
+        <GradientStop Color="#19A337" Offset="1" />
     </LinearGradientBrush>
 
 </ResourceDictionary>

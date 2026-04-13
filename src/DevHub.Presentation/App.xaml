@@ -24,6 +24,7 @@
             <local:NullableStatusConverter x:Key="NullableStatusConverter" />
             <local:LanguageIconConverter x:Key="LanguageIconConverter" />
             <local:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
+            <local:StatusBackgroundConverter x:Key="StatusBgConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

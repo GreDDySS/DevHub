@@ -1,0 +1,54 @@
+<UserControl x:Class="DevHub.Presentation.Controls.ProjectListItemView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:DevHub.Presentation.Converters">
+    <UserControl.Resources>
+        <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
+        <converters:LanguageIconConverter x:Key="LanguageIconConverter" />
+        <converters:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
+        <converters:StatusBackgroundConverter x:Key="StatusBgConverter" />
+    </UserControl.Resources>
+
+    <Border x:Name="ListItemBorder"
+            Background="{StaticResource BgSurfaceBrush}"
+            CornerRadius="10"
+            Padding="14,10"
+            Margin="0,0,0,6"
+            Cursor="Hand">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BgInputBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Command="{Binding ToggleFavoriteCommand}" Style="{StaticResource BtnIcon}" ToolTip="Favorite" Width="28" Height="28" Margin="0,0,6,0">
+                    <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="14" />
+                </Button>
+                <Button Content="Explorer" Command="{Binding OpenInExplorerCommand}" Style="{StaticResource BtnSecondary}" Padding="10,6" FontSize="11" Margin="0,0,4,0" />
+                <Button Content="IDE" Command="{Binding OpenInIdeCommand}" Style="{StaticResource BtnSecondary}" Padding="10,6" FontSize="11" Margin="0,0,4,0" />
+                <Button Content="Console" Command="{Binding OpenConsoleCommand}" Style="{StaticResource BtnSecondary}" Padding="10,6" FontSize="11" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Language, Converter={StaticResource LanguageIconConverter}}" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <Border Background="{Binding EffectiveStatus, Converter={StaticResource StatusBgConverter}}"
+                       CornerRadius="6"
+                       Padding="6,3"
+                       BorderThickness="1"
+                       BorderBrush="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}"
+                       VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusText}"
+                               FontSize="9"
+                               Foreground="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}"
+                               FontWeight="SemiBold" />
+                </Border>
+                <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="280" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

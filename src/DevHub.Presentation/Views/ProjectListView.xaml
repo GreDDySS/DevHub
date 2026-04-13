@@ -1,41 +1,14 @@
 <UserControl x:Class="DevHub.Presentation.Views.ProjectListView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:vm="clr-namespace:DevHub.Presentation.ViewModels"
              xmlns:converters="clr-namespace:DevHub.Presentation.Converters"
-             xmlns:attached="clr-namespace:DevHub.Presentation.Attached">
+             xmlns:attached="clr-namespace:DevHub.Presentation.Attached"
+             xmlns:controls="clr-namespace:DevHub.Presentation.Controls">
     <UserControl.Resources>
-        <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
-        <converters:BoolToHideConverter x:Key="BoolToHideConverter" />
         <converters:ViewModeToIconConverter x:Key="ViewModeToIconConverter" />
         <converters:TilesVisibilityConverter x:Key="TilesVisibilityConverter" />
         <converters:ListVisibilityConverter x:Key="ListVisibilityConverter" />
-        <converters:LanguageIconConverter x:Key="LanguageIconConverter" />
-        <converters:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
-
-        <Style x:Key="ProjectCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource BgCardBrush}" />
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Effect" Value="{StaticResource ShadowSm}" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Margin" Value="6" />
-            <Setter Property="Width" Value="280" />
-        </Style>
-
-        <Style x:Key="TagChip" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource BgInputBrush}" />
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Margin" Value="0,0,4,4" />
-        </Style>
-
-        <Style x:Key="CardAction" TargetType="Button" BasedOn="{StaticResource BtnIcon}">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="FontWeight" Value="Medium" />
-        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -45,41 +18,43 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,20">
+        <DockPanel Grid.Row="0" Margin="0,0,0,24">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Auto-detect" Command="{Binding AutoDetectCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" />
-                <Button Content="+ Add Project" Command="{Binding AddProjectCommand}" Style="{StaticResource BtnPrimary}" />
+                <Button Content="Auto-detect" Command="{Binding AutoDetectCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,10,0" Padding="16,8" />
+                <Button Content="+ Add Project" Command="{Binding AddProjectCommand}" Style="{StaticResource BtnPrimary}" Padding="20,10" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Projects" Style="{StaticResource TextDisplay}" />
+                <TextBlock Text="Projects" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
                 <TextBlock Text="{Binding TotalCount, StringFormat=' ({0})'}" FontSize="28" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
         </DockPanel>
 
-        <!-- Filter Bar -->
-        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16" Effect="{StaticResource ShadowSm}" Margin="0,0,0,12">
+        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" CornerRadius="12" Padding="16,12" Margin="0,0,0,16">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}" Command="{Binding ToggleViewModeCommand}" Style="{StaticResource BtnSecondary}" ToolTip="Toggle view" />
+                    <Button Command="{Binding ToggleViewModeCommand}" Style="{StaticResource BtnSecondary}" ToolTip="Toggle view" Padding="10,6">
+                        <TextBlock Text="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}" FontSize="12" />
+                    </Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <hc:TextBox hc:InfoElement.Placeholder="Search projects..." Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="280" Margin="0,0,12,0" />
-                    <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding StatusFilter}" Width="130" Margin="0,0,12,0" />
-                    <CheckBox Content="Show hidden" IsChecked="{Binding ShowHidden}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="260" Style="{StaticResource InputBox}" Tag="Search projects..." />
+                    <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding StatusFilter}" Width="120" Margin="12,0,0,0" />
+                    <CheckBox Content="Show hidden" IsChecked="{Binding ShowHidden}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" Margin="16,0,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Empty State -->
         <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding Projects.Count, Converter={StaticResource CountToVisibilityConverter}}">
-            <TextBlock Text="📂" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16" />
-            <TextBlock Text="No projects yet" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
-            <TextBlock Text="Add your first project to get started" FontSize="14" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,8,0,24" />
-            <Button Content="+ Add Project" Command="{Binding AddProjectCommand}" Style="{StaticResource BtnPrimary}" HorizontalAlignment="Center" />
+            <Border Background="{StaticResource BgSurfaceBrush}" CornerRadius="16" Padding="48,40" Effect="{StaticResource ShadowMd}">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="📂" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,20" />
+                    <TextBlock Text="No projects yet" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                    <TextBlock Text="Add your first project to get started" FontSize="14" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,28" />
+                    <Button Content="+ Add Project" Command="{Binding AddProjectCommand}" Style="{StaticResource BtnPrimary}" Padding="24,12" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
         </StackPanel>
 
-        <!-- Tiles View -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource TilesVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding Projects}" HorizontalAlignment="Center">
                 <ItemsControl.ItemsPanel>
@@ -89,117 +64,30 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ProjectCardViewModel}">
-                        <Border attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}">
-                            <Border.Style>
-                                <Style TargetType="Border" BasedOn="{StaticResource ProjectCard}">
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Effect" Value="{StaticResource ShadowMd}" />
-                                            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <Grid Margin="16">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <DockPanel Grid.Row="0">
-                                    <TextBlock DockPanel.Dock="Left" Text="{Binding Language, Converter={StaticResource LanguageIconConverter}}" FontSize="20" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                    <Border DockPanel.Dock="Right" Background="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}" CornerRadius="{StaticResource RadiusMd}" Padding="8,3" VerticalAlignment="Center" MinWidth="65" MaxWidth="80">
-                                        <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="SemiBold" TextAlignment="Center" />
-                                    </Border>
-                                </DockPanel>
-
-                                <TextBlock Grid.Row="1" Text="{Binding Description}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Row="2" Text="{Binding FormattedUpdatedAt}" Foreground="{StaticResource TextMutedBrush}" FontSize="11" Margin="0,6,0,0" />
-
-                                <ItemsControl Grid.Row="3" ItemsSource="{Binding Tags}" Margin="0,8,0,0">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Style="{StaticResource TagChip}">
-                                                <TextBlock Text="{Binding}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Button Content="Explorer" Command="{Binding OpenInExplorerCommand}" Style="{StaticResource CardAction}" />
-                                    <Button Content="IDE" Command="{Binding OpenInIdeCommand}" Style="{StaticResource CardAction}" />
-                                    <Button Content="Console" Command="{Binding OpenConsoleCommand}" Style="{StaticResource CardAction}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                    <Button Command="{Binding ToggleFavoriteCommand}" Style="{StaticResource BtnIcon}" ToolTip="Toggle favorite">
-                                        <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding ToggleHiddenCommand}" Style="{StaticResource BtnIcon}" ToolTip="Toggle hidden">
-                                        <TextBlock Text="{Binding IsHidden, Converter={StaticResource BoolToHideConverter}}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <controls:ProjectCardView attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- List View -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding Projects}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ProjectCardViewModel}">
-                        <Border Background="{StaticResource BgSurfaceBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16,12" Margin="0,0,0,4" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1" Cursor="Hand" attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource BgInputBrush}" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Command="{Binding ToggleFavoriteCommand}" Style="{StaticResource BtnIcon}" Margin="0,0,8,0">
-                                        <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="14" />
-                                    </Button>
-                                    <Button Content="Explorer" Command="{Binding OpenInExplorerCommand}" Style="{StaticResource CardAction}" />
-                                    <Button Content="IDE" Command="{Binding OpenInIdeCommand}" Style="{StaticResource CardAction}" />
-                                    <Button Content="Console" Command="{Binding OpenConsoleCommand}" Style="{StaticResource CardAction}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Language, Converter={StaticResource LanguageIconConverter}}" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                                    <Border DockPanel.Dock="Right" Background="{Binding EffectiveStatus, Converter={StaticResource ProjectStatusColorConverter}}" CornerRadius="{StaticResource RadiusMd}" Padding="8,3" Margin="12,0,0,0" VerticalAlignment="Center" MinWidth="65" MaxWidth="80" HorizontalAlignment="Right">
-                                        <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="SemiBold" TextAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Text="{Binding Description}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="300" />
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
+                        <controls:ProjectListItemView attached:MouseBehavior.DoubleClickCommand="{Binding EditCommand}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- Loading Overlay -->
         <Border Grid.Row="2" Background="#CC18181B" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Panel.ZIndex="10">
-            <hc:LoadingLine Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Top" Margin="0,8,0,0" />
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,40,0,0">
+                <ProgressBar IsIndeterminate="True" Width="180" Height="4" Foreground="{StaticResource PrimaryBrush}" Background="{StaticResource BgInputBrush}" />
+                <TextBlock Text="Loading..." Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+            </StackPanel>
         </Border>
 
-        <!-- Error Banner -->
-        <Border Grid.Row="2" Background="#1F18181B" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusMd}" Padding="16" Margin="0,0,0,12" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}" Panel.ZIndex="5">
+        <Border Grid.Row="2" Background="#1FEF4444" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,12" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}" Panel.ZIndex="5" VerticalAlignment="Top">
             <DockPanel>
                 <TextBlock Text="⚠" FontSize="18" DockPanel.Dock="Left" Margin="0,0,12,0" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />

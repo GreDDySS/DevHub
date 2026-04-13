@@ -1,4 +1,4 @@
-namespace DevHub.Presentation.Views;
+namespace DevHub.Presentation.Controls;
 
 public partial class ProjectCardView : System.Windows.Controls.UserControl
 {
