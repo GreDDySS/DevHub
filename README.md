@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/.NET-10-blueviolet" alt=".NET 10" />
   <img src="https://img.shields.io/badge/WPF-x64-blue" alt="WPF" />
   <img src="https://img.shields.io/badge/architecture-Clean%20Architecture-brightgreen" alt="Clean Architecture" />
-  <img src="https://img.shields.io/badge/tests-58%20passed-green" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-67%20passed-green" alt="Tests" />
 </p>
 
 ---
