@@ -12,12 +12,14 @@ namespace DevHub.Presentation.ViewModels;
 public partial class MainViewModel : BaseWindowViewModel
 {
     private readonly IWindowService _windowService;
+    private readonly Services.ThemeService _themeService;
     private bool _sidebarExpanded = true;
     private bool _hasNewVersion;
 
-    public MainViewModel(IWindowService windowService)
+    public MainViewModel(IWindowService windowService, Services.ThemeService themeService)
     {
         _windowService = windowService;
+        _themeService = themeService;
         Title = "DevHub";
         Width = 1200;
         Height = 800;
@@ -34,11 +36,12 @@ public partial class MainViewModel : BaseWindowViewModel
     public bool ShowVersion => _sidebarExpanded;
     public bool HasNewVersion { get => _hasNewVersion; }
     public bool ShowUpdateBadge => _sidebarExpanded && _hasNewVersion;
+    public bool IsDarkTheme => _themeService.IsDarkTheme;
 
     [RelayCommand] private void GoToProjects() => _windowService.NavigateTo("projects");
     [RelayCommand] private void GoToLinks() => _windowService.NavigateTo("links");
     [RelayCommand] private void GoToSettings() => _windowService.NavigateTo("settings");
-    [RelayCommand] private void ToggleTheme() { } // TODO: implement theme toggle
+    [RelayCommand] private void ToggleTheme() => _themeService.ToggleTheme();
     [RelayCommand] private void OpenGitHub() => Process.Start(new ProcessStartInfo { FileName = "https://github.com/GreDDySS/DevHub", UseShellExecute = true });
 
     public void ToggleSidebar()

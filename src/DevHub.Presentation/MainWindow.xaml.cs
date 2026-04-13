@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -10,12 +11,15 @@ namespace DevHub.Presentation;
 
 public partial class MainWindow : Window
 {
+    private ThemeService? _themeService;
+
     public MainWindow() => InitializeComponent();
 
-    public MainWindow(MainViewModel viewModel, WindowService windowService) : this()
+    public MainWindow(MainViewModel viewModel, WindowService windowService, ThemeService themeService) : this()
     {
         DataContext = viewModel;
         windowService.SetNavigationHost(NavigationHost);
+        _themeService = themeService;
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -52,4 +56,13 @@ public partial class MainWindow : Window
             }
         }
     }
-}
+
+    private void ToggleTheme_Click(object sender, RoutedEventArgs e)
+    {
+        if (_themeService != null)
+        {
+            _themeService.ToggleTheme();
+        }
+    }
+
+    }

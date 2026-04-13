@@ -19,11 +19,13 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     private const int MinDomainGroupSize = 5;
 
     private readonly ILinkRepository _repository;
+    private readonly IClipboardService _clipboardService;
     private readonly DispatcherTimer _debounceTimer;
 
-    public LinkListViewModel(ILinkRepository repository)
+    public LinkListViewModel(ILinkRepository repository, IClipboardService clipboardService)
     {
         _repository = repository;
+        _clipboardService = clipboardService;
         _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
         _debounceTimer.Tick += DebounceTimer_Tick;
     }
@@ -56,6 +58,25 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     [RelayCommand]
     private void ToggleViewMode()
         => ViewMode = ViewMode == ViewMode.List ? ViewMode.Folders : ViewMode.List;
+
+    [RelayCommand]
+    private async Task CaptureLinkAsync()
+    {
+        var text = await _clipboardService.GetTextAsync();
+        if (!string.IsNullOrWhiteSpace(text) && Uri.TryCreate(text, UriKind.Absolute, out _))
+        {
+            var link = new Link
+            {
+                Id = Guid.NewGuid(),
+                Url = text,
+                Title = text,
+                CapturedAt = DateTime.Now,
+                Type = LinkType.Other
+            };
+            await _repository.AddAsync(link);
+            await LoadLinksAsync();
+        }
+    }
 
     [RelayCommand]
     private async Task LoadLinksAsync()

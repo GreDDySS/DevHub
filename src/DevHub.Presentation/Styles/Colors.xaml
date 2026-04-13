@@ -34,6 +34,24 @@
     <Color x:Key="BorderMedium">#52525B</Color>
     <Color x:Key="BorderFocus">#337A2C</Color>
 
+    <!-- ==================== LIGHT THEME ==================== -->
+    <Color x:Key="LightBgWindow">#FFFFFF</Color>
+    <Color x:Key="LightBgBase">#F8FAFC</Color>
+    <Color x:Key="LightBgSurface">#F1F5F9</Color>
+    <Color x:Key="LightBgSidebar">#F1F5F9</Color>
+    <Color x:Key="LightBgSidebarHover">#E2E8F0</Color>
+    <Color x:Key="LightBgCard">#FFFFFF</Color>
+    <Color x:Key="LightBgInput">#F1F5F9</Color>
+    <Color x:Key="LightBgInputFocused">#E2E8F0</Color>
+
+    <Color x:Key="LightTextPrimary">#1E293B</Color>
+    <Color x:Key="LightTextSecondary">#475569</Color>
+    <Color x:Key="LightTextMuted">#94A3B8</Color>
+    <Color x:Key="LightTextInverse">#FFFFFF</Color>
+
+    <Color x:Key="LightBorderLight">#E2E8F0</Color>
+    <Color x:Key="LightBorderMedium">#CBD5E1</Color>
+
     <!-- ==================== BRUSHES ==================== -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
     <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
@@ -59,19 +77,28 @@
     <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
     <SolidColorBrush x:Key="TextInverseBrush" Color="{StaticResource TextInverse}" />
 
-    <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLight}" />
+<SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLight}" />
     <SolidColorBrush x:Key="BorderMediumBrush" Color="{StaticResource BorderMedium}" />
     <SolidColorBrush x:Key="BorderFocusBrush" Color="{StaticResource BorderFocus}" />
 
-    <!-- ==================== GRADIENTS ==================== -->
-    <LinearGradientBrush x:Key="SidebarGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#0F0F11" Offset="0" />
-        <GradientStop Color="#18181B" Offset="1" />
-    </LinearGradientBrush>
+    <!-- Light Theme Brushes -->
+    <SolidColorBrush x:Key="LightBgWindowBrush" Color="{StaticResource LightBgWindow}" />
+    <SolidColorBrush x:Key="LightBgBaseBrush" Color="{StaticResource LightBgBase}" />
+    <SolidColorBrush x:Key="LightBgSurfaceBrush" Color="{StaticResource LightBgSurface}" />
+    <SolidColorBrush x:Key="LightBgSidebarBrush" Color="{StaticResource LightBgSidebar}" />
+    <SolidColorBrush x:Key="LightBgSidebarHoverBrush" Color="{StaticResource LightBgSidebarHover}" />
+    <SolidColorBrush x:Key="LightBgSidebarActiveBrush" Color="{StaticResource LightPrimaryColor}" />
+    <SolidColorBrush x:Key="LightBgCardBrush" Color="{StaticResource LightBgCard}" />
+    <SolidColorBrush x:Key="LightBgInputBrush" Color="{StaticResource LightBgInput}" />
+    <SolidColorBrush x:Key="LightBgInputFocusedBrush" Color="{StaticResource LightBgInputFocused}" />
+    <SolidColorBrush x:Key="LightBgCardHoverBrush" Color="{StaticResource LightBgSurface}" />
 
-    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#337A2C" Offset="0" />
-        <GradientStop Color="#19A337" Offset="1" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="LightTextPrimaryBrush" Color="{StaticResource LightTextPrimary}" />
+    <SolidColorBrush x:Key="LightTextSecondaryBrush" Color="{StaticResource LightTextSecondary}" />
+    <SolidColorBrush x:Key="LightTextMutedBrush" Color="{StaticResource LightTextMuted}" />
+    <SolidColorBrush x:Key="LightTextInverseBrush" Color="{StaticResource LightTextInverse}" />
 
+    <SolidColorBrush x:Key="LightBorderLightBrush" Color="{StaticResource LightBorderLight}" />
+    <SolidColorBrush x:Key="LightBorderMediumBrush" Color="{StaticResource LightBorderMedium}" />
+    <SolidColorBrush x:Key="LightBorderFocusBrush" Color="{StaticResource PrimaryColor}" />
 </ResourceDictionary>

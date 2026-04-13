@@ -87,6 +87,8 @@ public partial class App : System.Windows.Application
             services.AddSingleton(registry);
             services.AddSingleton<WindowService>();
             services.AddSingleton<IWindowService>(sp => sp.GetRequiredService<WindowService>());
+            services.AddSingleton<Services.ThemeService>();
+            services.AddSingleton<Services.IThemeService>(sp => sp.GetRequiredService<Services.ThemeService>());
 
             // ViewModels — registered through ViewFactoryService
             var factory = new ViewFactoryService(registry);
@@ -131,7 +133,9 @@ public partial class App : System.Windows.Application
             };
 
             Log.Debug("Creating MainWindow...");
-            var mainWindow = new MainWindow(mainViewModel, windowService);
+            var themeService = Services.GetRequiredService<ThemeService>();
+            await themeService.InitializeAsync();
+            var mainWindow = new MainWindow(mainViewModel, windowService, themeService);
             MainWindow = mainWindow;
 
             mainWindow.Loaded += (_, _) =>

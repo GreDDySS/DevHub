@@ -9,4 +9,5 @@ public record AppSettings
     public int DefaultIdeIndex { get; set; }
     public bool AutostartEnabled { get; set; }
     public CloseAction CloseAction { get; set; } = CloseAction.Ask;
+    public bool IsDarkTheme { get; set; } = true;
 }

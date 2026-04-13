@@ -24,6 +24,18 @@ public class WindowService : IWindowService
         _navigationHost = host;
     }
 
+    public void RefreshCurrentView()
+    {
+        if (_navigationHost?.Content is FrameworkElement fe && fe.DataContext is BaseUserControlViewModel vm)
+        {
+            var key = _registry.GetByViewModel(vm.GetType())?.NavigationKey;
+            if (key != null)
+            {
+                NavigateTo(key);
+            }
+        }
+    }
+
     public void NavigateTo(string key)
     {
         var registration = _registry.GetByKey(key);

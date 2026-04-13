@@ -13,18 +13,18 @@
 
         <Style x:Key="LinkCard" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource BgCardBrush}" />
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+            <Setter Property="CornerRadius" Value="10" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="16" />
+            <Setter Property="Padding" Value="14" />
             <Setter Property="Margin" Value="0,0,0,6" />
             <Setter Property="Effect" Value="{StaticResource ShadowSm}" />
         </Style>
 
         <Style x:Key="LinkTypeBadge" TargetType="Border">
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="MinWidth" Value="60" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="6,3" />
+            <Setter Property="MinWidth" Value="55" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -39,26 +39,28 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,20">
+        <DockPanel Grid.Row="0" Margin="0,0,0,24">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Capture from clipboard" Command="{Binding CaptureLinkCommand}" Style="{StaticResource BtnPrimary}" ToolTip="Ctrl+Shift+Y" />
+                <Button Content="Capture from clipboard" Command="{Binding CaptureLinkCommand}" Style="{StaticResource BtnPrimary}" ToolTip="Ctrl+Shift+Y" Padding="18,10" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Links" Style="{StaticResource TextDisplay}" />
+                <TextBlock Text="Links" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
                 <TextBlock Text="{Binding TotalCount, StringFormat=' ({0})'}" FontSize="28" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
         </DockPanel>
 
         <!-- Filter Bar -->
-        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16" Effect="{StaticResource ShadowSm}" Margin="0,0,0,12">
+        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" CornerRadius="12" Padding="16,12" Margin="0,0,0,16">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Reset" Command="{Binding ResetFiltersCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" />
-                    <Button Content="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}" Command="{Binding ToggleViewModeCommand}" Style="{StaticResource BtnSecondary}" ToolTip="Toggle view" />
+                    <Button Content="Reset" Command="{Binding ResetFiltersCommand}" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0" Padding="12,8" />
+                    <Button Command="{Binding ToggleViewModeCommand}" Style="{StaticResource BtnSecondary}" ToolTip="Toggle view" Padding="10,8">
+                        <TextBlock Text="{Binding ViewMode, Converter={StaticResource ViewModeToIconConverter}}" FontSize="12" />
+                    </Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="280" Margin="0,0,12,0" Style="{StaticResource InputBox}" />
-                    <ComboBox SelectedIndex="{Binding SelectedTypeIndex}" Width="140" Margin="0,0,12,0" Foreground="{StaticResource TextPrimaryBrush}">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="260" Style="{StaticResource InputBox}" Tag="Search links..." />
+                    <ComboBox SelectedIndex="{Binding SelectedTypeIndex}" Width="120" Margin="12,0,0,0">
                         <ComboBoxItem Content="All types" IsSelected="True" />
                         <ComboBoxItem Content="YouTube" />
                         <ComboBoxItem Content="Article" />
@@ -71,17 +73,24 @@
         </Border>
 
         <!-- Hint -->
-        <TextBlock Grid.Row="2" Text="💡 Copy a URL to clipboard and press Ctrl+Shift+Y to capture" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,0,0,16" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,16">
+            <TextBlock Text="💡" FontSize="14" Margin="0,0,6,0" />
+            <TextBlock Text="Copy a URL to clipboard and press Ctrl+Shift+Y to capture" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+        </StackPanel>
 
         <!-- Empty State -->
         <StackPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding Links.Count, Converter={StaticResource CountToVisibilityConverter}}">
-            <TextBlock Text="🔗" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16" />
-            <TextBlock Text="No links yet" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
-            <TextBlock Text="Copy a URL and press Ctrl+Shift+Y to capture it" FontSize="14" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+            <Border Background="{StaticResource BgSurfaceBrush}" CornerRadius="16" Padding="48,40" Effect="{StaticResource ShadowMd}">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="🔗" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,20" />
+                    <TextBlock Text="No links yet" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                    <TextBlock Text="Copy a URL and press Ctrl+Shift+Y to capture it" FontSize="14" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,28" />
+                </StackPanel>
+            </Border>
         </StackPanel>
 
         <!-- List View -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource ListVisibilityConverter}}" Style="{StaticResource ModernScrollViewer}">
             <ItemsControl ItemsSource="{Binding Links}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type domain:Link}">
@@ -90,7 +99,7 @@
                                 <Style TargetType="Border" BasedOn="{StaticResource LinkCard}">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="BorderBrush" Value="{StaticResource BorderMediumBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
                                             <Setter Property="Effect" Value="{StaticResource ShadowMd}" />
                                         </Trigger>
                                     </Style.Triggers>
@@ -101,12 +110,12 @@
                                     <Border Style="{StaticResource LinkTypeBadge}" Background="{Binding Type, Converter={StaticResource LinkTypeToColorConverter}}">
                                         <TextBlock Text="{Binding Type}" FontSize="10" Foreground="White" FontWeight="SemiBold" TextAlignment="Center" />
                                     </Border>
-                                    <Button Content="Copy" Command="{Binding DataContext.CopyUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource BtnSecondary}" Margin="8,0,0,0" Padding="8,4" />
-                                    <Button Content="Delete" Command="{Binding DataContext.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Id}" Style="{StaticResource BtnDanger}" Margin="6,0,0,0" Padding="8,4" />
+                                    <Button Content="Copy" Command="{Binding DataContext.CopyUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource BtnSecondary}" Margin="8,0,0,0" Padding="10,6" FontSize="11" />
+                                    <Button Content="Delete" Command="{Binding DataContext.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Id}" Style="{StaticResource BtnSecondary}" Margin="6,0,0,0" Padding="10,6" FontSize="11" />
                                 </StackPanel>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
-                                    <TextBlock Text="{Binding Url}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
+                                    <TextBlock Text="{Binding Url}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
                                     <TextBlock Text="{Binding CapturedAt, StringFormat='Captured: {0:dd.MM.yyyy HH:mm}'}" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0" />
                                 </StackPanel>
                             </DockPanel>
@@ -117,24 +126,26 @@
         </ScrollViewer>
 
         <!-- Folders View -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource FoldersVisibilityConverter}}">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Visibility="{Binding ViewMode, Converter={StaticResource FoldersVisibilityConverter}}" Style="{StaticResource ModernScrollViewer}">
             <ItemsControl ItemsSource="{Binding Folders}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:LinkFolderViewModel}">
-                        <Border Background="{StaticResource BgCardBrush}" CornerRadius="{StaticResource RadiusMd}" Padding="16" Margin="0,0,0,12" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Effect="{StaticResource ShadowSm}">
+                        <Border Background="{StaticResource BgCardBrush}" CornerRadius="10" Padding="14" Margin="0,0,0,10" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" Effect="{StaticResource ShadowSm}">
                             <DockPanel>
-                                <Border DockPanel.Dock="Right" Background="{StaticResource BgInputBrush}" CornerRadius="{StaticResource RadiusFull}" Padding="10,5" VerticalAlignment="Top" Margin="12,0,0,0">
+                                <Border DockPanel.Dock="Right" Background="{StaticResource BgInputBrush}" CornerRadius="20" Padding="10,4" VerticalAlignment="Top" Margin="12,0,0,0">
                                     <TextBlock Text="{Binding Count}" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="12" TextAlignment="Center" />
                                 </Border>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
-                                    <ScrollViewer MaxHeight="250" VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
+                                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
                                         <ItemsControl ItemsSource="{Binding Links}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type domain:Link}">
                                                     <DockPanel Margin="0,0,0,4">
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Type}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" Margin="8,0,0,0" />
-                                                        <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" TextTrimming="CharacterEllipsis" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
+                                                        <Border Background="{Binding Type, Converter={StaticResource LinkTypeToColorConverter}}" CornerRadius="4" Padding="6,2" DockPanel.Dock="Right">
+                                                            <TextBlock Text="{Binding Type}" FontSize="9" Foreground="White" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{StaticResource PrimaryBrush}" Cursor="Hand" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" attached:MouseBehavior.LeftButtonUpCommand="{Binding DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" attached:MouseBehavior.LeftButtonUpCommandParameter="{Binding Url}" />
                                                     </DockPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -150,9 +161,9 @@
 
         <!-- Loading Overlay -->
         <Border Grid.Row="3" Background="#CC18181B" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Panel.ZIndex="10">
-            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,0">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="4" Foreground="{StaticResource PrimaryBrush}" Background="{StaticResource BgInputBrush}" />
-                <TextBlock Text="Loading..." Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,40,0,0">
+                <ProgressBar IsIndeterminate="True" Width="180" Height="4" Foreground="{StaticResource PrimaryBrush}" Background="{StaticResource BgInputBrush}" />
+                <TextBlock Text="Loading..." Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,12,0,0" />
             </StackPanel>
         </Border>
     </Grid>
