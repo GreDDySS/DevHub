@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      is_release: ${{ steps.version.outputs.is_release }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Determine version type
+        id: version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v', ''
+          $parts = $version.Split('.')
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          $patch = [int]$parts[2]
+
+          $existingReleases = gh release list --json tagName --limit 100 2>$null | ConvertFrom-Json
+          $sameMinor = $existingReleases | Where-Object { $_.tagName -match "^v$major\.$minor\." }
+
+          if ($sameMinor) {
+            Write-Host "Release for v$major.$minor.* already exists — patch release ($tag)"
+            echo "is_release=false" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "New major/minor version — creating release ($tag)"
+            echo "is_release=true" >> $env:GITHUB_OUTPUT
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --verbosity normal
+
+      - name: Publish
+        if: steps.version.outputs.is_release == 'true'
+        run: >
+          dotnet publish src/DevHub.Presentation/DevHub.Presentation.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Upload artifact
+        if: steps.version.outputs.is_release == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DevHub-${{ github.ref_name }}-win-x64
+          path: publish/
+
+  release:
+    needs: build
+    if: needs.build.outputs.is_release == 'true'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: DevHub-${{ github.ref_name }}-win-x64
+          path: artifact/
+
+      - name: Zip artifact
+        run: Compress-Archive -Path artifact/* -DestinationPath DevHub-${{ github.ref_name }}-win-x64.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: DevHub-${{ github.ref_name }}-win-x64.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
