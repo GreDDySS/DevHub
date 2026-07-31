@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -19,9 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DevHub.Application\DevHub.Application.csproj" />
+    <ProjectReference Include="..\..\src\DevHub.Infrastructure\DevHub.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\DevHub.Domain\DevHub.Domain.csproj" />
-    <ProjectReference Include="..\DevHub.Domain.Tests\DevHub.Domain.Tests.csproj" />
   </ItemGroup>
 
 </Project>
