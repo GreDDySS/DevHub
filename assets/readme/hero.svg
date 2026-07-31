@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">DevHub — Personal development center for developers</title>
+  <desc id="hero-desc">A dark-themed hero showing the DevHub name, subtitle, and a miniature project card with status badges and language indicators.</desc>
+
+  <defs>
+    <clipPath id="card-clip">
+      <rect width="460" height="260" rx="14"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="360" rx="16" fill="#09090B"/>
+
+  <!-- Left title block -->
+  <g transform="translate(64 56)">
+
+    <!-- Category label -->
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          font-size="15" font-weight="500" fill="#19A337" letter-spacing="2.5">WINDOWS DESKTOP TOOL</text>
+
+    <!-- Project name -->
+    <text x="0" y="62" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          font-size="56" font-weight="700" fill="#FAFAFA">DevHub</text>
+
+    <!-- Subtitle -->
+    <text x="0" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          font-size="21" font-weight="400" fill="#A1A1AA">Personal development center</text>
+    <text x="0" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          font-size="21" font-weight="400" fill="#A1A1AA">for developers</text>
+
+    <!-- Green accent bar -->
+    <rect x="0" y="156" width="48" height="4" rx="2" fill="#19A337"/>
+
+    <!-- Tech badges -->
+    <g transform="translate(0 180)">
+      <!-- .NET 10 badge -->
+      <rect x="0" y="0" width="90" height="30" rx="6" fill="#27272A"/>
+      <text x="45" y="20" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+            font-size="13" font-weight="600" fill="#A78BFA" text-anchor="middle">.NET 10</text>
+
+      <!-- WPF badge -->
+      <rect x="102" y="0" width="78" height="30" rx="6" fill="#27272A"/>
+      <text x="141" y="20" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+            font-size="13" font-weight="600" fill="#60A5FA" text-anchor="middle">WPF</text>
+
+      <!-- Clean Architecture badge -->
+      <rect x="192" y="0" width="168" height="30" rx="6" fill="#27272A"/>
+      <text x="276" y="20" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+            font-size="13" font-weight="600" fill="#34D399" text-anchor="middle">Clean Architecture</text>
+
+      <!-- 188 tests badge -->
+      <rect x="372" y="0" width="108" height="30" rx="6" fill="#27272A"/>
+      <text x="426" y="20" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+            font-size="13" font-weight="600" fill="#FBBF24" text-anchor="middle">188 tests</text>
+    </g>
+  </g>
+
+  <!-- Right proof: miniature project card -->
+  <g transform="translate(660 50)">
+    <g clip-path="url(#card-clip)">
+
+      <!-- Card background -->
+      <rect width="460" height="260" rx="14" fill="#18181B" stroke="#3F3F46" stroke-width="1"/>
+
+      <!-- Green top accent -->
+      <rect width="460" height="4" fill="#19A337"/>
+
+      <!-- Card header: folder icon + project name -->
+      <g transform="translate(24 32)">
+        <!-- Folder icon (simplified) -->
+        <path d="M0,2 L16,2 L20,8 L0,8 Z" fill="#19A337" opacity="0.8"/>
+        <rect x="0" y="6" width="26" height="18" rx="3" fill="#19A337" opacity="0.6"/>
+
+        <text x="36" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="20" font-weight="600" fill="#FAFAFA">Portfolio Website</text>
+      </g>
+
+      <!-- Path -->
+      <text x="24" y="68" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+            font-size="13" fill="#71717A">C:\Users\dev\projects\portfolio</text>
+
+      <!-- Divider -->
+      <line x1="24" y1="86" x2="436" y2="86" stroke="#3F3F46" stroke-width="1"/>
+
+      <!-- Language + Status row -->
+      <g transform="translate(24 104)">
+        <!-- Language indicator: C# -->
+        <rect x="0" y="0" width="10" height="10" rx="2" fill="#68D391"/>
+        <text x="18" y="10" font-family="'SF Mono', 'Cascadia Code', 'Consolas', monospace"
+              font-size="14" fill="#A1A1AA">C#</text>
+
+        <!-- Status badge: Active -->
+        <circle cx="280" cy="5" r="5" fill="#227C2C"/>
+        <text x="292" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="14" font-weight="500" fill="#227C2C">Active</text>
+      </g>
+
+      <!-- Tags -->
+      <g transform="translate(24 140)">
+        <rect x="0" y="0" width="72" height="26" rx="6" fill="#27272A" stroke="#3F3F46" stroke-width="1"/>
+        <text x="36" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="12" fill="#A1A1AA" text-anchor="middle">frontend</text>
+
+        <rect x="82" y="0" width="80" height="26" rx="6" fill="#27272A" stroke="#3F3F46" stroke-width="1"/>
+        <text x="122" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="12" fill="#A1A1AA" text-anchor="middle">react</text>
+
+        <rect x="172" y="0" width="62" height="26" rx="6" fill="#27272A" stroke="#3F3F46" stroke-width="1"/>
+        <text x="203" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="12" fill="#A1A1AA" text-anchor="middle">web</text>
+      </g>
+
+      <!-- Divider -->
+      <line x1="24" y1="184" x2="436" y2="184" stroke="#3F3F46" stroke-width="1"/>
+
+      <!-- Status row: all four statuses -->
+      <g transform="translate(24 204)">
+        <!-- Active -->
+        <circle cx="6" cy="6" r="5" fill="#227C2C"/>
+        <text x="18" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="13" fill="#A1A1AA">Active</text>
+
+        <!-- Completed -->
+        <circle cx="106" cy="6" r="5" fill="#1982D8"/>
+        <text x="118" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="13" fill="#A1A1AA">Completed</text>
+
+        <!-- Paused -->
+        <circle cx="236" cy="6" r="5" fill="#B47800"/>
+        <text x="248" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="13" fill="#A1A1AA">Paused</text>
+
+        <!-- Archived -->
+        <circle cx="336" cy="6" r="5" fill="#646464"/>
+        <text x="348" y="10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              font-size="13" fill="#A1A1AA">Archived</text>
+      </g>
+
+    </g>
+  </g>
+</svg>

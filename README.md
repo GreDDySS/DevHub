@@ -1,59 +1,23 @@
 <p align="center">
-  <img src="src/DevHub.Presentation/Images/Logo.png" alt="DevHub Logo" width="120" />
+  <img src="./assets/readme/hero.svg" width="100%"
+       alt="DevHub — Personal development center for developers: organize projects, links, and IDEs in one place">
 </p>
 
-<h1 align="center">DevHub</h1>
+## What it does
+
+DevHub is a Windows desktop utility that helps developers stay organized:
+
+- **Manage projects** — catalog with quick launch in any IDE, filter by status, search with debounce
+- **Capture links** — global hotkey **Ctrl+Shift+Y** grabs URLs from clipboard with auto-detection
+- **Auto-detect IDEs** — finds VS Code, Visual Studio, Rider, and 7 more editors on your machine
+- **Scan for projects** — discovers codebases on disk by language detection
+
+Lives in the system tray, always one click away.
 
 <p align="center">
-  Personal development center — organize your projects, links, and IDEs in one place.
+  <img src="./assets/readme/features.svg" width="100%"
+       alt="Six feature cards: Projects, Links, IDEs, Auto-Detect, Theme, Tray">
 </p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/.NET-10-blueviolet" alt=".NET 10" />
-  <img src="https://img.shields.io/badge/WPF-x64-blue" alt="WPF" />
-  <img src="https://img.shields.io/badge/architecture-Clean%20Architecture-brightgreen" alt="Clean Architecture" />
-  <img src="https://img.shields.io/badge/tests-67%20passed-green" alt="Tests" />
-</p>
-
----
-
-## About
-
-DevHub is a Windows desktop utility for developers that helps you:
-
-- **Manage projects** — catalog your projects with quick launch in any IDE
-- **Save links** — capture URLs from clipboard with a single hotkey
-- **Discover IDEs** — auto-detect installed code editors
-- **Stay focused** — live in system tray, always one click away
-
-## Features
-
-### Project Management
-- Catalog with name, path, language, description, and notes
-- Favorites pinned to the top
-- Filter by status (Active, Completed, Paused, Archived)
-- Search by name and path
-- Launch in configured IDE or open in Explorer
-
-### Link Capture
-- Global hotkey **Ctrl+Shift+Y** captures URL from clipboard
-- Auto-detects link type (YouTube, GitHub, Documentation, Article)
-- Attach links to projects
-- Search and filter by type
-
-### IDE Auto-Detection
-- Automatically finds VS Code, Visual Studio, Rider, IntelliJ IDEA, WebStorm, PyCharm, and more
-- Set preferred IDE per project
-
-### System Tray
-- Minimize to tray on close (configurable)
-- Autostart with Windows (optional)
-- Balloon notifications on link capture
-
-## Requirements
-
-- Windows 10/11 (x64)
-- .NET 10 Runtime
 
 ## Build & Run
 
@@ -64,14 +28,52 @@ dotnet build
 dotnet run --project src/DevHub.Presentation
 ```
 
+Requires Windows 10/11 (x64) and .NET 10 Runtime.
+
+<p align="center">
+  <img src="./assets/readme/architecture.svg" width="100%"
+       alt="Clean Architecture layers: Domain, Application, Infrastructure, Presentation">
+</p>
+
+## Project Structure
+
+```
+DevHub/
+├── src/
+│   ├── DevHub.Domain/           — Models, enums, interfaces, domain events
+│   ├── DevHub.Application/      — Use cases, DTOs, application interfaces
+│   ├── DevHub.Infrastructure/   — JSON storage, IDE scanner, process launcher
+│   └── DevHub.Presentation/     — WPF UI: Views, ViewModels, Services
+├── tests/
+│   ├── DevHub.Domain.Tests/
+│   ├── DevHub.Application.Tests/
+│   ├── DevHub.Infrastructure.Tests/
+│   ├── DevHub.Integration.Tests/
+│   └── DevHub.Presentation.Tests/
+└── docs/                        — Refactoring plans, code reviews
+```
+
+## Tech Stack
+
+| Package | Purpose |
+|---------|---------|
+| CommunityToolkit.Mvvm | MVVM framework with source generators |
+| Microsoft.Extensions.DependencyInjection | Dependency injection |
+| Serilog | Structured logging |
+| xunit | Unit and integration testing |
+| Microsoft.Extensions.Http | HTTP client for API calls |
+
 ## Data Storage
 
 All data is stored in `%AppData%/DevHub/`:
-- `projects.json` — project catalog
-- `links.json` — captured links
-- `settings.json` — app settings
-- `logs/` — log files (retained 30 days)
 
+| File | Contents |
+|------|----------|
+| `projects.json` | Project catalog |
+| `links.json` | Captured links |
+| `settings.json` | IDE config, close action, autostart, theme |
+| `logs/` | Log files (retained 7 days, 10 MB limit) |
+| `backup/` | Data backups |
 
 ## Keyboard Shortcuts
 
