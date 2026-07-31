@@ -82,5 +82,4 @@ All data is stored in `%AppData%/DevHub/`:
 | Ctrl+Shift+Y | Capture URL from clipboard |
 
 ## License
-
-MIT
+- MIT
