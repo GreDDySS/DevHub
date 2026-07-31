@@ -71,7 +71,7 @@ public partial class AddProjectViewModel : BaseWindowViewModel
         catch { /* IDE loading is non-critical */ }
     }
 
-    public void SetEditMode(Guid projectId, string name, string path, string? description,
+    public async Task SetEditModeAsync(Guid projectId, string name, string path, string? description,
         ProgrammingLanguage language, string? notes, string? preferredIde, List<string> tags)
     {
         _editingProjectId = projectId;
@@ -81,25 +81,11 @@ public partial class AddProjectViewModel : BaseWindowViewModel
         Language = language;
         Notes = notes;
 
-        LoadIdesSync();
+        await LoadIdesAsync();
         SelectedIde = AvailableIdes.FirstOrDefault(i => i.Path == preferredIde);
         Tags = new ObservableCollection<string>(tags);
         Title = "Edit Project";
         Height = 580;
-    }
-
-    private void LoadIdesSync()
-    {
-        try
-        {
-            if (_cachedIdes.Count == 0)
-            {
-                var settings = Task.Run(() => _settingsStore.LoadAsync()).GetAwaiter().GetResult();
-                _cachedIdes.AddRange(settings.Ides);
-            }
-            AvailableIdes = new ObservableCollection<IdeEntry>(_cachedIdes);
-        }
-        catch { /* IDE loading is non-critical */ }
     }
 
     [RelayCommand]

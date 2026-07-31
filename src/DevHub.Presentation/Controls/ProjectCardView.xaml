@@ -3,19 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:DevHub.Presentation.ViewModels"
              xmlns:converters="clr-namespace:DevHub.Presentation.Converters">
-    <UserControl.Resources>
-        <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
-        <converters:BoolToHideConverter x:Key="BoolToHideConverter" />
-        <converters:LanguageIconConverter x:Key="LanguageIconConverter" />
-        <converters:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
-    </UserControl.Resources>
 
     <Border x:Name="CardBorder"
             Background="{StaticResource BgCardBrush}"
             CornerRadius="{StaticResource RadiusLg}"
             BorderBrush="{StaticResource BorderLightBrush}"
             BorderThickness="1"
-            Effect="{StaticResource ShadowSm}"
             Cursor="Hand"
             Margin="6"
             Width="280">
@@ -23,7 +16,6 @@
             <Style TargetType="Border">
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Effect" Value="{StaticResource ShadowMd}" />
                         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
                     </Trigger>
                 </Style.Triggers>
@@ -85,7 +77,9 @@
 
             <ItemsControl Grid.Row="3"
                         ItemsSource="{Binding Tags}"
-                        Margin="0,8,0,0">
+                        Margin="0,8,0,0"
+                        VirtualizingStackPanel.IsVirtualizing="True"
+                        VirtualizingStackPanel.VirtualizationMode="Recycling">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />

@@ -133,12 +133,25 @@ public partial class ProjectCardViewModel : BaseUserControlViewModel
     private void ToggleHidden() => OnHiddenToggled?.Invoke(Id, !IsHidden);
 
     [RelayCommand]
-    private void Edit()
+    private async Task EditAsync()
     {
         _windowService.ShowDialog(typeof(AddProjectViewModel), vm =>
         {
             if (vm is AddProjectViewModel editVm)
-                editVm.SetEditMode(Id, Name, Path, Description, Language, Notes, PreferredIde, Tags);
+            {
+                editVm.SetEditModeAsync(Id, Name, Path, Description, Language, Notes, PreferredIde, Tags)
+                    .ContinueWith(t =>
+                    {
+                        if (t.Exception is not null)
+                        {
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                editVm.ErrorMessage = "Failed to load project data.";
+                                editVm.HasError = true;
+                            });
+                        }
+                    }, TaskContinuationOptions.OnlyOnFaulted);
+            }
         });
         OnEditCompleted?.Invoke();
     }

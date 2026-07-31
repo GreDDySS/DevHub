@@ -61,13 +61,14 @@ public class IdeScanner : IIdeScanner
         ])
     ];
 
-    public List<IdeEntry> Scan()
+    public async Task<List<IdeEntry>> ScanAsync(CancellationToken ct = default)
     {
         var results = new List<IdeEntry>();
 
         foreach (var (name, paths) in KnownIdes)
         {
-            var found = paths.FirstOrDefault(File.Exists);
+            ct.ThrowIfCancellationRequested();
+            var found = await Task.Run(() => paths.FirstOrDefault(File.Exists), ct);
             if (found is not null)
                 results.Add(new IdeEntry(name, found));
         }

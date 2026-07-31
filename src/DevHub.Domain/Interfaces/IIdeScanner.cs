@@ -4,5 +4,5 @@ namespace DevHub.Domain.Interfaces;
 
 public interface IIdeScanner
 {
-    List<IdeEntry> Scan();
+    Task<List<IdeEntry>> ScanAsync(CancellationToken ct = default);
 }

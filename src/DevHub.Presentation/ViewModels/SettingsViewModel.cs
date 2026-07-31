@@ -125,9 +125,9 @@ public partial class SettingsViewModel : BaseUserControlViewModel
     }
 
     [RelayCommand]
-    private void AutoDetect()
+    private async Task AutoDetectAsync()
     {
-        var detected = _ideScanner.Scan();
+        var detected = await _ideScanner.ScanAsync();
         var existing = Ides.Select(i => i.Path).ToHashSet();
         foreach (var ide in detected)
         {

@@ -37,7 +37,10 @@ public class GetAllProjectsUseCase(IProjectRepository repository) : IGetAllProje
                 (p.Description?.Contains(filter.SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
 
         if (filter.Tags?.Count > 0)
-            query = query.Where(p => p.Tags.Any(t => filter.Tags.Contains(t)));
+        {
+            var tagSet = new HashSet<string>(filter.Tags);
+            query = query.Where(p => p.Tags.Any(t => tagSet.Contains(t)));
+        }
 
         return query.ToList();
     }

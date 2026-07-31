@@ -7,15 +7,15 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent"
+        Background="{StaticResource BgCardBrush}"
         Icon="pack://application:,,,/Images/AppIcon.ico">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" GlassFrameThickness="0" ResizeBorderThickness="0" CornerRadius="0" />
+    </WindowChrome.WindowChrome>
     <Border Background="{StaticResource BgCardBrush}"
-            CornerRadius="{StaticResource RadiusXl}"
-            Effect="{StaticResource ShadowXl}"
             BorderBrush="{StaticResource BorderLightBrush}"
             BorderThickness="1"
-            Margin="8">
+            Margin="0">
         <Grid Margin="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -23,16 +23,13 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Question -->
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <TextBlock Text="Close DevHub?" Style="{StaticResource TextH2}" Margin="0,0,0,4" />
                 <TextBlock Text="What would you like to do?" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
             </StackPanel>
 
-            <!-- Remember -->
             <CheckBox Grid.Row="1" x:Name="RememberChoice" Content="Remember my choice" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,20" />
 
-            <!-- Buttons -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Minimize to tray" Width="140" Margin="0,0,8,0" Click="Minimize_Click" Style="{StaticResource BtnSecondary}" IsCancel="True" />
                 <Button Content="Exit" Width="100" Click="Exit_Click" Style="{StaticResource BtnDanger}" IsDefault="True" />

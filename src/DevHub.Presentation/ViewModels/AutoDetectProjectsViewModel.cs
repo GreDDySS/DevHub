@@ -33,22 +33,22 @@ public partial class AutoDetectProjectsViewModel : BaseWindowViewModel
     [ObservableProperty] private bool _isDone;
 
     [RelayCommand]
-    private void BrowseFolder()
+    private async Task BrowseFolderAsync()
     {
         var path = _windowService.OpenFolderDialog();
         if (path is not null)
         {
             RootPath = path;
-            Scan();
+            await ScanAsync();
         }
     }
 
     [RelayCommand]
-    private void Scan()
+    private async Task ScanAsync()
     {
         if (string.IsNullOrWhiteSpace(RootPath)) return;
 
-        var projects = _detectUseCase.Execute(RootPath);
+        var projects = await _detectUseCase.ExecuteAsync(RootPath);
         DetectedProjects = new ObservableCollection<Project>(projects);
         HasDetected = projects.Count > 0;
     }

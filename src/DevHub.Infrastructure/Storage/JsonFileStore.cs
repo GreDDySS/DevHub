@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using DevHub.Infrastructure.Configuration;
 
@@ -8,6 +9,8 @@ public abstract class JsonFileStore<T> where T : class
     private readonly string _filePath;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private List<T>? _cache;
+    private DateTime _lastCacheTime = DateTime.MinValue;
 
     protected JsonFileStore(string filePath)
     {
@@ -23,24 +26,49 @@ public abstract class JsonFileStore<T> where T : class
     {
         AppPaths.EnsureDirectoriesExist();
 
+        // Return cached data if file hasn't changed
+        if (_cache is not null && File.Exists(_filePath))
+        {
+            var lastWrite = File.GetLastWriteTimeUtc(_filePath);
+            if (lastWrite <= _lastCacheTime)
+                return [.. _cache];
+        }
+
         if (!File.Exists(_filePath))
-            return [];
+        {
+            _cache = [];
+            return _cache;
+        }
 
         await _lock.WaitAsync(ct);
         try
         {
             ct.ThrowIfCancellationRequested();
 
+            // Double-check after acquiring lock
+            if (_cache is not null)
+            {
+                var lastWrite = File.GetLastWriteTimeUtc(_filePath);
+                if (lastWrite <= _lastCacheTime)
+                    return [.. _cache];
+            }
+
             var json = await File.ReadAllTextAsync(_filePath, ct);
             if (string.IsNullOrWhiteSpace(json))
-                return [];
+            {
+                _cache = [];
+                return _cache;
+            }
 
             var wrapper = JsonSerializer.Deserialize<JsonDataWrapper<T>>(json, _jsonOptions);
-            return wrapper?.Items ?? [];
+            _cache = wrapper?.Items ?? [];
+            _lastCacheTime = DateTime.UtcNow;
+            return [.. _cache];
         }
         catch (JsonException)
         {
-            return [];
+            _cache = [];
+            return _cache;
         }
         finally
         {
@@ -69,12 +97,22 @@ public abstract class JsonFileStore<T> where T : class
             // Atomic write: write to temp file first, then replace
             var tempPath = _filePath + ".tmp";
             await File.WriteAllTextAsync(tempPath, json, ct);
-            File.Replace(tempPath, _filePath, null);
+            await Task.Run(() => File.Replace(tempPath, _filePath, null), ct);
+
+            // Update cache — replace reference, don't copy
+            _cache = items;
+            _lastCacheTime = DateTime.UtcNow;
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    public void InvalidateCache()
+    {
+        _cache = null;
+        _lastCacheTime = DateTime.MinValue;
     }
 }
 

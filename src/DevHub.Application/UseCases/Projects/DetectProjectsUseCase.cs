@@ -41,26 +41,38 @@ public class DetectProjectsUseCase : IDetectProjectsUseCase
         ".dockerignore", ".eslintrc", ".prettierrc", ".npmrc"
     };
 
-    public List<Project> Execute(string rootPath)
+    public async Task<List<Project>> ExecuteAsync(string rootPath, CancellationToken ct = default)
     {
         if (!Directory.Exists(rootPath))
             return [];
 
-        var projects = new List<Project>();
+        var dirs = Directory.EnumerateDirectories(rootPath)
+            .Where(d => !ExcludedFolders.Contains(Path.GetFileName(d)))
+            .ToList();
 
-        foreach (var dir in Directory.GetDirectories(rootPath))
+        var results = new List<(string Dir, ProgrammingLanguage? Lang)>();
+        using var throttle = new SemaphoreSlim(Environment.ProcessorCount);
+
+        var tasks = dirs.Select(async dir =>
         {
-            if (ExcludedFolders.Contains(Path.GetFileName(dir)))
-                continue;
-
-            var language = DetectLanguage(dir);
-            if (language.HasValue)
+            await throttle.WaitAsync(ct);
+            try
             {
-                projects.Add(Project.Create(Path.GetFileName(dir), dir, language.Value));
+                var lang = await Task.Run(() => ScanDirectory(dir, 0), ct);
+                lock (results) { results.Add((dir, lang)); }
             }
-        }
+            finally
+            {
+                throttle.Release();
+            }
+        });
 
-        return projects;
+        await Task.WhenAll(tasks);
+
+        return results
+            .Where(r => r.Lang.HasValue)
+            .Select(r => Project.Create(Path.GetFileName(r.Dir), r.Dir, r.Lang!.Value))
+            .ToList();
     }
 
     private ProgrammingLanguage? DetectLanguage(string directory)
@@ -73,7 +85,7 @@ public class DetectProjectsUseCase : IDetectProjectsUseCase
 
         try
         {
-            foreach (var file in Directory.GetFiles(directory))
+            foreach (var file in Directory.EnumerateFiles(directory))
             {
                 var ext = Path.GetExtension(file);
                 if (string.IsNullOrEmpty(ext) || IgnoredExtensions.Contains(ext))
@@ -83,7 +95,7 @@ public class DetectProjectsUseCase : IDetectProjectsUseCase
                     return lang;
             }
 
-            foreach (var subDir in Directory.GetDirectories(directory))
+            foreach (var subDir in Directory.EnumerateDirectories(directory))
             {
                 var folderName = Path.GetFileName(subDir);
                 if (ExcludedFolders.Contains(folderName))

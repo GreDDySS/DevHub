@@ -2,12 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:DevHub.Presentation.Converters">
-    <UserControl.Resources>
-        <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
-        <converters:LanguageIconConverter x:Key="LanguageIconConverter" />
-        <converters:ProjectStatusColorConverter x:Key="ProjectStatusColorConverter" />
-        <converters:StatusBackgroundConverter x:Key="StatusBgConverter" />
-    </UserControl.Resources>
 
     <Border x:Name="ListItemBorder"
             Background="{StaticResource BgSurfaceBrush}"

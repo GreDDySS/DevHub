@@ -4,5 +4,5 @@ namespace DevHub.Application.Interfaces;
 
 public interface IDetectProjectsUseCase
 {
-    List<Project> Execute(string rootPath);
+    Task<List<Project>> ExecuteAsync(string rootPath, CancellationToken ct = default);
 }

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
     <PackageReference Include="Serilog" Version="4.3.1" />
@@ -17,7 +16,6 @@
 
   <ItemGroup>
     <Resource Include="Images\AppIcon.ico" />
-    <Resource Include="Images\Logo.png" />
   </ItemGroup>
 
   <PropertyGroup>

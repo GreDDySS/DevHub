@@ -129,11 +129,11 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
             var statusValue = StatusFilter.Value;
             Projects.Clear();
-            foreach (var card in cards)
-            {
-                if (statusValue is null || card.EffectiveStatus == statusValue)
-                    Projects.Add(card);
-            }
+            var filtered = statusValue is null
+                ? cards
+                : cards.Where(c => c.EffectiveStatus == statusValue).ToList();
+            foreach (var card in filtered)
+                Projects.Add(card);
 
             UpdateCounts();
         });
@@ -170,6 +170,8 @@ public partial class ProjectListViewModel : BaseUserControlViewModel
 
     protected override void OnDispose()
     {
+        _debounceTimer.Stop();
+        _debounceTimer.Tick -= DebounceTimer_Tick;
         foreach (var card in Projects)
             card.Dispose();
         Projects.Clear();

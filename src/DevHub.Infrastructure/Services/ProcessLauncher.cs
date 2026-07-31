@@ -19,7 +19,7 @@ public class ProcessLauncher : IProcessLauncher
         if (string.IsNullOrWhiteSpace(targetPath) || !Directory.Exists(targetPath))
             throw new DirectoryNotFoundException($"Directory not found: {path}");
 
-        Process.Start(new ProcessStartInfo
+        using var process = Process.Start(new ProcessStartInfo
         {
             FileName = targetPath,
             UseShellExecute = true
@@ -44,7 +44,7 @@ public class ProcessLauncher : IProcessLauncher
         };
         psi.ArgumentList.Add(projectPath);
 
-        Process.Start(psi);
+        using var process = Process.Start(psi);
     }
 
     public void OpenConsole(string path)
@@ -66,7 +66,7 @@ public class ProcessLauncher : IProcessLauncher
             psi.ArgumentList.Add("-d");
             psi.ArgumentList.Add(targetPath);
 
-            Process.Start(psi);
+            using var process = Process.Start(psi);
         }
         catch
         {
@@ -78,7 +78,7 @@ public class ProcessLauncher : IProcessLauncher
             psi.ArgumentList.Add("/K");
             psi.ArgumentList.Add($"cd /d \"{targetPath}\"");
 
-            Process.Start(psi);
+            using var process = Process.Start(psi);
         }
     }
 
@@ -121,5 +121,14 @@ public class ProcessLauncher : IProcessLauncher
     }
 
     private static bool IsExcluded(string filePath)
-        => ExcludedFolders.Any(e => filePath.Contains($"\\{e}\\") || filePath.Contains($"/{e}/"));
+    {
+        var dir = Path.GetDirectoryName(filePath);
+        while (!string.IsNullOrEmpty(dir))
+        {
+            if (ExcludedFolders.Contains(Path.GetFileName(dir)))
+                return true;
+            dir = Path.GetDirectoryName(dir);
+        }
+        return false;
+    }
 }

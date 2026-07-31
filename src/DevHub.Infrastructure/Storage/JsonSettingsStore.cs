@@ -18,20 +18,20 @@ public class JsonSettingsStore(IIdeScanner ideScanner) : IAppSettingsStore
         AppPaths.EnsureDirectoriesExist();
 
         if (!File.Exists(AppPaths.SettingsFile))
-            return DetectDefaults();
+            return await DetectDefaultsAsync(ct);
 
         try
         {
             var json = await File.ReadAllTextAsync(AppPaths.SettingsFile, ct);
             if (string.IsNullOrWhiteSpace(json))
-                return DetectDefaults();
+                return await DetectDefaultsAsync(ct);
 
             var settings = JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions);
-            return settings ?? DetectDefaults();
+            return settings ?? await DetectDefaultsAsync(ct);
         }
         catch
         {
-            return DetectDefaults();
+            return await DetectDefaultsAsync(ct);
         }
     }
 
@@ -43,12 +43,12 @@ public class JsonSettingsStore(IIdeScanner ideScanner) : IAppSettingsStore
         // Atomic write
         var tempPath = AppPaths.SettingsFile + ".tmp";
         await File.WriteAllTextAsync(tempPath, json, ct);
-        File.Replace(tempPath, AppPaths.SettingsFile, null);
+        await Task.Run(() => File.Replace(tempPath, AppPaths.SettingsFile, null), ct);
     }
 
-    private AppSettings DetectDefaults()
+    private async Task<AppSettings> DetectDefaultsAsync(CancellationToken ct = default)
     {
-        var ides = ideScanner.Scan();
+        var ides = await ideScanner.ScanAsync(ct);
 
         return new AppSettings
         {

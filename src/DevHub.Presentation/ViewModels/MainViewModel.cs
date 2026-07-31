@@ -42,7 +42,7 @@ public partial class MainViewModel : BaseWindowViewModel
     [RelayCommand] private void GoToLinks() => _windowService.NavigateTo("links");
     [RelayCommand] private void GoToSettings() => _windowService.NavigateTo("settings");
     [RelayCommand] private void ToggleTheme() => _themeService.ToggleTheme();
-    [RelayCommand] private void OpenGitHub() => Process.Start(new ProcessStartInfo { FileName = "https://github.com/GreDDySS/DevHub", UseShellExecute = true });
+    [RelayCommand] private void OpenGitHub() { using var process = Process.Start(new ProcessStartInfo { FileName = "https://github.com/GreDDySS/DevHub", UseShellExecute = true }); }
 
     public void ToggleSidebar()
     {

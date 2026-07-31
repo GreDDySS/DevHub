@@ -85,19 +85,21 @@ public partial class LinkListViewModel : BaseUserControlViewModel
         {
             var allLinks = await _repository.GetAllAsync();
 
+            // Single query chain with one materialization at the end
+            var query = allLinks.AsEnumerable();
+
             if (!string.IsNullOrWhiteSpace(SearchQuery))
-                allLinks = allLinks.Where(l =>
+                query = query.Where(l =>
                     (l.Url?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (l.Title?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToList();
+                    (l.Title?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
 
             if (SelectedTypeIndex >= 0)
             {
                 var filterType = (LinkType)SelectedTypeIndex;
-                allLinks = allLinks.Where(l => l.Type == filterType).ToList();
+                query = query.Where(l => l.Type == filterType);
             }
 
-            var sorted = allLinks.OrderByDescending(l => l.CapturedAt).ToList();
+            var sorted = query.OrderByDescending(l => l.CapturedAt).ToList();
 
             Links.Clear();
             foreach (var link in sorted)
@@ -112,6 +114,8 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     {
         Folders.Clear();
         var groups = links.GroupBy(l => l.Type).OrderBy(g => g.Key);
+
+        LinkFolderViewModel? otherFolder = null;
 
         foreach (var group in groups)
         {
@@ -130,12 +134,7 @@ public partial class LinkListViewModel : BaseUserControlViewModel
                         Folders.Add(new LinkFolderViewModel(dg.Key, dg.ToList()));
                     else
                     {
-                        var otherFolder = Folders.FirstOrDefault(f => f.Name == "Other");
-                        if (otherFolder == null)
-                        {
-                            otherFolder = new LinkFolderViewModel("Other", []);
-                            Folders.Add(otherFolder);
-                        }
+                        otherFolder ??= new LinkFolderViewModel("Other", []);
                         foreach (var link in dg)
                             otherFolder.Links.Add(link);
                     }
@@ -146,6 +145,9 @@ public partial class LinkListViewModel : BaseUserControlViewModel
                 Folders.Add(new LinkFolderViewModel(group.Key.ToString(), folderLinks));
             }
         }
+
+        if (otherFolder is not null && otherFolder.Links.Count > 0)
+            Folders.Add(otherFolder);
 
         foreach (var folder in Folders)
             folder.UpdateCount();
@@ -199,4 +201,10 @@ public partial class LinkListViewModel : BaseUserControlViewModel
     }
 
     partial void OnSelectedTypeIndexChanged(int value) => _ = SafeLoadLinksAsync();
+
+    protected override void OnDispose()
+    {
+        _debounceTimer.Stop();
+        _debounceTimer.Tick -= DebounceTimer_Tick;
+    }
 }

@@ -16,16 +16,19 @@ public interface IThemeService
 public class ThemeService : IThemeService
 {
     private readonly IAppSettingsStore _settingsStore;
+    private readonly WindowService _windowService;
     private bool _isDarkTheme = true;
     private ResourceDictionary? _darkThemeDict;
     private ResourceDictionary? _lightThemeDict;
+    private ResourceDictionary? _cachedWindowDict;
 
     public bool IsDarkTheme => _isDarkTheme;
     public event EventHandler? ThemeChanged;
 
-    public ThemeService(IAppSettingsStore settingsStore)
+    public ThemeService(IAppSettingsStore settingsStore, WindowService windowService)
     {
         _settingsStore = settingsStore;
+        _windowService = windowService;
         LoadThemeDictionaries();
     }
 
@@ -133,24 +136,23 @@ public void ToggleTheme()
                     if (existingInWindow != null)
                         window.Resources.MergedDictionaries.Remove(existingInWindow);
                     
-                    var newDict = new ResourceDictionary();
+                    // Reuse cached dictionary instead of creating a new one each time
+                    _cachedWindowDict ??= new ResourceDictionary();
+                    _cachedWindowDict.Clear();
                     foreach (System.Collections.DictionaryEntry entry in themeDict)
                     {
-                        newDict[entry.Key] = entry.Value;
+                        _cachedWindowDict[entry.Key] = entry.Value;
                     }
-                    window.Resources.MergedDictionaries.Add(newDict);
+                    window.Resources.MergedDictionaries.Add(_cachedWindowDict);
                 }
                 
                 window.InvalidateVisual();
                 window.UpdateLayout();
             }
             
-            if (window?.DataContext is ViewModels.MainViewModel mainVm)
+            if (window?.DataContext is ViewModels.MainViewModel)
             {
-                var windowService = mainVm.GetType()
-                    .GetField("_windowService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                    ?.GetValue(mainVm) as WindowService;
-                windowService?.RefreshCurrentView();
+                _windowService.RefreshCurrentView();
             }
         });
     }

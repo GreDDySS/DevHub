@@ -11,6 +11,7 @@ public class WindowService : IWindowService
 {
     private readonly ViewRegistry _registry;
     private readonly ViewModelResolver _resolver;
+    private readonly Dictionary<Type, FrameworkElement> _viewCache = new();
     private ContentControl? _navigationHost;
 
     public WindowService(ViewRegistry registry, IServiceProvider serviceProvider)
@@ -47,6 +48,10 @@ public class WindowService : IWindowService
 
         var view = ResolveView(registration);
         _navigationHost!.Content = view;
+
+        // Re-trigger navigation for singleton VMs when view is reused
+        if (registration.IsSingleton && view.DataContext is BaseUserControlViewModel vm)
+            _ = vm.OnNavigatedToAsync();
     }
 
     public void NavigateTo<TViewModel>() where TViewModel : ViewModelBase
@@ -72,7 +77,7 @@ public class WindowService : IWindowService
             throw new InvalidOperationException($"View for {viewModelType.Name} not registered");
 
         var viewModel = _resolver.Resolve(registration);
-        return ShowDialogInternal(viewModel);
+        return ShowDialogInternal(viewModel, registration);
     }
 
     public bool? ShowDialog(Type viewModelType, Action<object> configure)
@@ -83,11 +88,15 @@ public class WindowService : IWindowService
 
         var viewModel = _resolver.Resolve(registration);
         configure(viewModel);
-        return ShowDialogInternal(viewModel);
+        return ShowDialogInternal(viewModel, registration);
     }
 
     public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
-        => ShowDialogInternal(viewModel);
+    {
+        var registration = _registry.GetByViewModel(viewModel.GetType())
+            ?? throw new InvalidOperationException($"View for {viewModel.GetType().Name} not registered");
+        return ShowDialogInternal(viewModel, registration);
+    }
 
     public void Show(Type viewModelType)
     {
@@ -157,9 +166,18 @@ public class WindowService : IWindowService
         }
     }
 
-    private bool? ShowDialogInternal(ViewModelBase viewModel)
+    private bool? ShowDialogInternal(ViewModelBase viewModel, ViewRegistration registration)
     {
-        var window = CreateWindow(viewModel);
+        var window = (Window)Activator.CreateInstance(registration.ViewType)!;
+        window.DataContext = viewModel;
+
+        if (viewModel is BaseWindowViewModel vm)
+        {
+            window.Loaded += (_, _) => vm.OnWindowLoaded();
+            window.Closing += (_, e) => vm.OnWindowClosing(e);
+            window.Closed += (_, _) => vm.OnWindowClosed();
+        }
+
         window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         window.Owner = System.Windows.Application.Current.MainWindow;
         return window.ShowDialog();
@@ -192,11 +210,19 @@ public class WindowService : IWindowService
     private FrameworkElement ResolveView(ViewRegistration registration)
     {
         var viewModel = _resolver.Resolve(registration);
+
+        // Reuse cached view if available
+        if (_viewCache.TryGetValue(registration.ViewModelType, out var cachedView))
+        {
+            if (cachedView.DataContext != viewModel)
+                cachedView.DataContext = viewModel;
+            return cachedView;
+        }
+
         var view = (FrameworkElement)Activator.CreateInstance(registration.ViewType)!;
         view.DataContext = viewModel;
 
-        if (viewModel is BaseUserControlViewModel vm)
-            _ = vm.OnNavigatedToAsync();
+        _viewCache[registration.ViewModelType] = view;
 
         return view;
     }

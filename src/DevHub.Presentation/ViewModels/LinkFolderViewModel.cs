@@ -22,7 +22,7 @@ public partial class LinkFolderViewModel : ObservableObject
     {
         Name = name;
         _links = new ObservableCollection<Link>(links);
-        Count = links.Count;
+        _count = links.Count;
     }
 
     public void UpdateCount()
