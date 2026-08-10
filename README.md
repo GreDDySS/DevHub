@@ -1,79 +1,64 @@
-<p align="center">
-  <img src="./assets/readme/hero.svg" width="100%"
-       alt="DevHub — Personal development center for developers: organize projects, links, and IDEs in one place">
-</p>
-
-## What it does
-
-DevHub is a Windows desktop utility that helps developers stay organized:
-
-- **Manage projects** — catalog with quick launch in any IDE, filter by status, search with debounce
-- **Capture links** — global hotkey **Ctrl+Shift+Y** grabs URLs from clipboard with auto-detection
-- **Auto-detect IDEs** — finds VS Code, Visual Studio, Rider, and 7 more editors on your machine
-- **Scan for projects** — discovers codebases on disk by language detection
-
-Lives in the system tray, always one click away.
+<h1 align="center">DevHub</h1>
 
 <p align="center">
-  <img src="./assets/readme/features.svg" width="100%"
-       alt="Six feature cards: Projects, Links, IDEs, Auto-Detect, Theme, Tray">
+  <strong>Developer productivity hub — organize projects, capture links, launch IDEs from one place.</strong>
 </p>
 
-## Build & Run
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/version-0.1.0-green" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-orange" alt="License">
+</p>
+
+---
+
+## What is DevHub?
+
+DevHub is a desktop app for developers who juggle multiple projects and links. It keeps everything in one place so you don't lose track.
+
+**Core features:**
+
+- **Project catalog** — add your projects, mark favorites, filter by status, search instantly
+- **Link capture** — press **Ctrl+Shift+Y** anywhere to save a URL from clipboard with auto-detected type (YouTube, GitHub, docs, article)
+- **IDE launcher** — auto-detects installed IDEs (VS Code, Rider, IntelliJ, and more) and opens projects directly
+- **Project scanner** — finds codebases on your disk by detecting project files (package.json, Cargo.toml, go.mod, etc.)
+- **System tray** — lives in the tray, always one click away
+- **Dark/Light theme** — toggle in settings
+
+## Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh) (JavaScript runtime & package manager)
+- [Rust](https://rustup.rs) (for Tauri backend)
+- Platform-specific dependencies: see [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)
+
+### Install & Run
 
 ```bash
 git clone https://github.com/GreDDySS/DevHub.git
 cd DevHub
-dotnet build
-dotnet run --project src/DevHub.Presentation
+bun install
+bun run tauri dev
 ```
 
-Requires Windows 10/11 (x64) and .NET 10 Runtime.
+### Build
 
-<p align="center">
-  <img src="./assets/readme/architecture.svg" width="100%"
-       alt="Clean Architecture layers: Domain, Application, Infrastructure, Presentation">
-</p>
-
-## Project Structure
-
+```bash
+bun run tauri build
 ```
-DevHub/
-├── src/
-│   ├── DevHub.Domain/           — Models, enums, interfaces, domain events
-│   ├── DevHub.Application/      — Use cases, DTOs, application interfaces
-│   ├── DevHub.Infrastructure/   — JSON storage, IDE scanner, process launcher
-│   └── DevHub.Presentation/     — WPF UI: Views, ViewModels, Services
-├── tests/
-│   ├── DevHub.Domain.Tests/
-│   ├── DevHub.Application.Tests/
-│   ├── DevHub.Infrastructure.Tests/
-│   ├── DevHub.Integration.Tests/
-│   └── DevHub.Presentation.Tests/
-└── docs/                        — Refactoring plans, code reviews
-```
+
+Output will be in `src-tauri/target/release/bundle/`.
 
 ## Tech Stack
 
-| Package | Purpose |
-|---------|---------|
-| CommunityToolkit.Mvvm | MVVM framework with source generators |
-| Microsoft.Extensions.DependencyInjection | Dependency injection |
-| Serilog | Structured logging |
-| xunit | Unit and integration testing |
-| Microsoft.Extensions.Http | HTTP client for API calls |
-
-## Data Storage
-
-All data is stored in `%AppData%/DevHub/`:
-
-| File | Contents |
-|------|----------|
-| `projects.json` | Project catalog |
-| `links.json` | Captured links |
-| `settings.json` | IDE config, close action, autostart, theme |
-| `logs/` | Log files (retained 7 days, 10 MB limit) |
-| `backup/` | Data backups |
+| Layer | Technology |
+|-------|------------|
+| Backend | Rust + [Tauri 2](https://v2.tauri.app) |
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Tailwind CSS 4 |
+| State | Zustand |
+| Testing | Vitest (frontend) + cargo test (backend) |
 
 ## Keyboard Shortcuts
 
@@ -81,5 +66,31 @@ All data is stored in `%AppData%/DevHub/`:
 |----------|--------|
 | Ctrl+Shift+Y | Capture URL from clipboard |
 
+## Data Storage
+
+All data is stored locally:
+
+| File | Contents |
+|------|----------|
+| `projects.json` | Your project catalog |
+| `links.json` | Captured links |
+| `settings.json` | IDE config, close behavior, autostart, theme |
+
+Location: `%LOCALAPPDATA%/DevHub/` (Windows), `~/.local/share/DevHub/` (Linux), `~/Library/Application Support/DevHub/` (macOS).
+
+## Running Tests
+
+```bash
+# Frontend tests
+bun run test
+
+# Backend tests
+cd src-tauri && cargo test
+
+# Watch mode
+bun run test:watch
+```
+
 ## License
-- MIT
+
+[MIT](LICENSE)
