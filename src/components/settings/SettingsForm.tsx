@@ -1,15 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Save, Plus, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useSettingsStore } from "@/stores/settingsStore";
-import type { CloseAction } from "@/lib/types";
+import { invoke } from "@tauri-apps/api/core";
+import type { CloseAction, IdeEntry } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function SettingsForm() {
   const { settings, isLoading, fetchSettings, saveSettings } =
     useSettingsStore();
+
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -53,6 +56,22 @@ export function SettingsForm() {
 
   const handleAutostartToggle = () => {
     saveSettings({ ...settings, autostart_enabled: !settings.autostart_enabled });
+  };
+
+  const handleScanIdes = async () => {
+    setScanning(true);
+    try {
+      const scanned = await invoke<IdeEntry[]>("scan_ides");
+      const existingPaths = new Set(settings.ides.map((ide) => ide.path));
+      const newIdes = scanned.filter((ide) => !existingPaths.has(ide.path));
+      if (newIdes.length > 0) {
+        saveSettings({ ...settings, ides: [...settings.ides, ...newIdes] });
+      }
+    } catch (e) {
+      console.error("Failed to scan IDEs:", e);
+    } finally {
+      setScanning(false);
+    }
   };
 
   return (
@@ -99,10 +118,16 @@ export function SettingsForm() {
                 </Button>
               </div>
             ))}
-            <Button variant="outline" onClick={handleAddIde}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add IDE
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleAddIde}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add IDE
+              </Button>
+              <Button variant="outline" onClick={handleScanIdes} disabled={scanning}>
+                <RefreshCw className={cn("h-4 w-4 mr-2", scanning && "animate-spin")} />
+                {scanning ? "Scanning..." : "Scan for IDEs"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
