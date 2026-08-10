@@ -157,125 +157,251 @@ pub fn save_settings(settings: AppSettings) -> Result<(), String> {
 pub fn scan_ides() -> Vec<IdeEntry> {
     let mut ides = Vec::new();
     
-    // Windows IDE paths
     #[cfg(target_os = "windows")]
     {
-        let program_files = std::env::var("ProgramFiles").unwrap_or_default();
-        let _program_files_x86 = std::env::var("ProgramFiles(x86)").unwrap_or_default();
-        let local_app_data = std::env::var("LOCALAPPDATA").unwrap_or_default();
-        
-        let ide_paths = vec![
-            ("Visual Studio Code", format!("{}\\Microsoft VS Code\\Code.exe", local_app_data)),
-            ("Visual Studio 2022", format!("{}\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe", program_files)),
-            ("JetBrains Rider", format!("{}\\JetBrains\\apps\\Rider\\*\\bin\\rider64.exe", local_app_data)),
-            ("JetBrains IntelliJ IDEA", format!("{}\\JetBrains\\apps\\IDEA\\*\\bin\\idea64.exe", local_app_data)),
-            ("JetBrains WebStorm", format!("{}\\JetBrains\\apps\\WebStorm\\*\\bin\\webstorm64.exe", local_app_data)),
-            ("JetBrains PyCharm", format!("{}\\JetBrains\\apps\\PyCharm\\*\\bin\\pycharm64.exe", local_app_data)),
-            ("JetBrains CLion", format!("{}\\JetBrains\\apps\\CLion\\*\\bin\\clion64.exe", local_app_data)),
-            ("JetBrains GoLand", format!("{}\\JetBrains\\apps\\GoLand\\*\\bin\\goland64.exe", local_app_data)),
-            ("Notepad++", format!("{}\\Notepad++\\notepad++.exe", program_files)),
-            ("Sublime Text", format!("{}\\Sublime Text\\sublime_text.exe", program_files)),
+        use winreg::enums::*;
+        use winreg::RegKey;
+
+        // Known IDE patterns: display name contains -> friendly name
+        let known_ides: Vec<(&str, &str)> = vec![
+            ("Visual Studio Code", "Visual Studio Code"),
+            ("Visual Studio", "Visual Studio"),
+            ("Rider", "JetBrains Rider"),
+            ("IntelliJ", "JetBrains IntelliJ IDEA"),
+            ("WebStorm", "JetBrains WebStorm"),
+            ("PyCharm", "JetBrains PyCharm"),
+            ("CLion", "JetBrains CLion"),
+            ("GoLand", "JetBrains GoLand"),
+            ("RustRover", "JetBrains RustRover"),
+            ("Notepad++", "Notepad++"),
+            ("Sublime Text", "Sublime Text"),
         ];
-        
-        for (name, path) in ide_paths {
-            // Handle wildcard paths
-            if path.contains('*') {
-                if let Some(parent) = std::path::Path::new(&path).parent() {
-                    if let Ok(entries) = std::fs::read_dir(parent) {
-                        for entry in entries.flatten() {
-                            let entry_path = entry.path();
-                            if entry_path.is_dir() {
-                                let full_path = entry_path.join(
-                                    std::path::Path::new(&path)
-                                        .file_name()
-                                        .unwrap_or_default()
-                                );
-                                if full_path.exists() {
-                                    ides.push(IdeEntry {
-                                        name: name.to_string(),
-                                        path: full_path.to_string_lossy().to_string(),
-                                    });
+
+        let hives = [HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER];
+        let subkeys = [
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+            r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
+        ];
+
+        for hive in &hives {
+            for subkey_path in &subkeys {
+                let key = RegKey::predef(*hive).open_subkey(subkey_path);
+                if let Ok(key) = key {
+                    for entry_name in key.enum_keys().filter_map(|k| k.ok()) {
+                        if let Ok(subkey) = key.open_subkey(&entry_name) {
+                            let display_name: String = subkey.get_value("DisplayName").unwrap_or_default();
+                            let install_location: String = subkey.get_value("InstallLocation").unwrap_or_default();
+
+                            if display_name.is_empty() || install_location.is_empty() {
+                                continue;
+                            }
+
+                            let display_lower = display_name.to_lowercase();
+
+                            for (pattern, friendly_name) in &known_ides {
+                                if display_lower.contains(&pattern.to_lowercase()) {
+                                    let install_path = std::path::Path::new(&install_location);
+                                    if install_path.exists() {
+                                        // Search bin/ and root for exe
+                                        let search_dirs = [
+                                            install_path.join("bin"),
+                                            install_path.to_path_buf(),
+                                        ];
+                                        for dir in &search_dirs {
+                                            if let Ok(entries) = std::fs::read_dir(dir) {
+                                                for entry in entries.flatten() {
+                                                    let p = entry.path();
+                                                    if p.extension().map_or(false, |e| e == "exe") {
+                                                        let name = p.file_stem().unwrap_or_default().to_string_lossy();
+                                                        // Match known exe names
+                                                        let is_match = match *friendly_name {
+                                                            "Visual Studio Code" => name == "Code",
+                                                            "Visual Studio" => name == "devenv",
+                                                            "JetBrains Rider" => name == "rider64",
+                                                            "JetBrains IntelliJ IDEA" => name == "idea64",
+                                                            "JetBrains WebStorm" => name == "webstorm64",
+                                                            "JetBrains PyCharm" => name == "pycharm64",
+                                                            "JetBrains CLion" => name == "clion64",
+                                                            "JetBrains GoLand" => name == "goland64",
+                                                            "JetBrains RustRover" => name == "rustrover64",
+                                                            "Notepad++" => name == "notepad++",
+                                                            "Sublime Text" => name == "sublime_text",
+                                                            _ => false,
+                                                        };
+                                                        if is_match {
+                                                            ides.push(IdeEntry {
+                                                                name: friendly_name.to_string(),
+                                                                path: p.to_string_lossy().to_string(),
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
                                 }
                             }
                         }
                     }
                 }
-            } else if std::path::Path::new(&path).exists() {
-                ides.push(IdeEntry {
-                    name: name.to_string(),
-                    path,
-                });
             }
         }
     }
     
-    // Linux IDE paths
     #[cfg(target_os = "linux")]
     {
-        let home = dirs::home_dir().unwrap_or_default();
-        let ide_paths = vec![
-            ("Visual Studio Code", "/usr/bin/code".to_string()),
-            ("JetBrains Rider", format!("{}/.local/share/JetBrains/Toolbox/apps/Rider/*/bin/rider.sh", home.display())),
-            ("JetBrains IntelliJ IDEA", format!("{}/.local/share/JetBrains/Toolbox/apps/IDEA/*/bin/idea.sh", home.display())),
-            ("JetBrains WebStorm", format!("{}/.local/share/JetBrains/Toolbox/apps/WebStorm/*/bin/webstorm.sh", home.display())),
-            ("JetBrains PyCharm", format!("{}/.local/share/JetBrains/Toolbox/apps/PyCharm/*/bin/pycharm.sh", home.display())),
-            ("Sublime Text", "/usr/bin/subl".to_string()),
-            ("Vim", "/usr/bin/vim".to_string()),
-            ("NeoVim", "/usr/bin/nvim".to_string()),
+        // Known IDE desktop file patterns
+        let known_ides: Vec<(&str, &str)> = vec![
+            ("code", "Visual Studio Code"),
+            ("rider", "JetBrains Rider"),
+            ("idea", "JetBrains IntelliJ IDEA"),
+            ("webstorm", "JetBrains WebStorm"),
+            ("pycharm", "JetBrains PyCharm"),
+            ("clion", "JetBrains CLion"),
+            ("goland", "JetBrains GoLand"),
+            ("rustrover", "JetBrains RustRover"),
+        ("sublime_text", "Sublime Text"),
+        ("subl", "Sublime Text"),
         ];
-        
-        for (name, path) in ide_paths {
-            if path.contains('*') {
-                if let Some(parent) = std::path::Path::new(&path).parent() {
-                    if let Ok(entries) = std::fs::read_dir(parent) {
-                        for entry in entries.flatten() {
-                            let entry_path = entry.path();
-                            if entry_path.is_dir() {
-                                let full_path = entry_path.join(
-                                    std::path::Path::new(&path)
-                                        .file_name()
-                                        .unwrap_or_default()
-                                );
-                                if full_path.exists() {
-                                    ides.push(IdeEntry {
-                                        name: name.to_string(),
-                                        path: full_path.to_string_lossy().to_string(),
-                                    });
+
+        // Scan .desktop files in standard locations
+        let desktop_dirs = vec![
+            "/usr/share/applications",
+            "/usr/local/share/applications",
+            "/var/lib/flatpak/exports/share/applications",
+            "/var/lib/snapd/desktop/applications",
+        ];
+
+        // Also check user-local desktop files
+        if let Some(home) = dirs::home_dir() {
+            let local_dir = home.join(".local/share/applications");
+            if local_dir.exists() {
+                // We'll process this below
+            }
+        }
+
+        let mut all_desktop_dirs: Vec<std::path::PathBuf> = desktop_dirs
+            .iter()
+            .map(|p| std::path::PathBuf::from(p))
+            .collect();
+        if let Some(home) = dirs::home_dir() {
+            all_desktop_dirs.push(home.join(".local/share/applications"));
+        }
+
+        for dir in &all_desktop_dirs {
+            if !dir.exists() {
+                continue;
+            }
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.extension().map_or(false, |e| e == "desktop") {
+                        if let Ok(content) = std::fs::read_to_string(&path) {
+                            let mut name_value = String::new();
+                            let mut exec_value = String::new();
+                            for line in content.lines() {
+                                if let Some(v) = line.strip_prefix("Name=") {
+                                    name_value = v.to_string();
+                                }
+                                if let Some(v) = line.strip_prefix("Exec=") {
+                                    // Exec can have %f, %u, etc. - take only the first part
+                                    exec_value = v.split_whitespace().next().unwrap_or("").to_string();
+                                }
+                            }
+
+                            if name_value.is_empty() || exec_value.is_empty() {
+                                continue;
+                            }
+
+                            let name_lower = name_value.to_lowercase();
+                            let exec_lower = exec_value.to_lowercase();
+
+                            for (pattern, friendly_name) in &known_ides {
+                                if name_lower.contains(&pattern.to_lowercase())
+                                    || exec_lower.contains(&pattern.to_lowercase())
+                                {
+                                    // Resolve full path
+                                    let exe_path = if exec_value.starts_with('/') {
+                                        exec_value.clone()
+                                    } else {
+                                        // Try which to find it
+                                        std::process::Command::new("which")
+                                            .arg(&exec_value)
+                                            .output()
+                                            .ok()
+                                            .and_then(|o| {
+                                                if o.status.success() {
+                                                    String::from_utf8(o.stdout).ok().map(|s| s.trim().to_string())
+                                                } else {
+                                                    None
+                                                }
+                                            })
+                                            .unwrap_or_default()
+                                    };
+
+                                    if !exe_path.is_empty() && std::path::Path::new(&exe_path).exists() {
+                                        ides.push(IdeEntry {
+                                            name: friendly_name.to_string(),
+                                            path: exe_path,
+                                        });
+                                    }
+                                    break;
                                 }
                             }
                         }
                     }
                 }
-            } else if std::path::Path::new(&path).exists() {
-                ides.push(IdeEntry {
-                    name: name.to_string(),
-                    path,
-                });
             }
         }
     }
     
-    // macOS IDE paths
     #[cfg(target_os = "macos")]
     {
-        let home = dirs::home_dir().unwrap_or_default();
-        let ide_paths = vec![
-            ("Visual Studio Code", "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code".to_string()),
-            ("JetBrains Rider", "/Applications/Rider.app/Contents/MacOS/rider".to_string()),
-            ("JetBrains IntelliJ IDEA", "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea".to_string()),
-            ("JetBrains WebStorm", "/Applications/WebStorm.app/Contents/MacOS/webstorm".to_string()),
-            ("JetBrains PyCharm", "/Applications/PyCharm.app/Contents/MacOS/pycharm".to_string()),
-            ("Sublime Text", "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl".to_string()),
-            ("Vim", "/usr/bin/vim".to_string()),
-            ("NeoVim", "/opt/homebrew/bin/nvim".to_string()),
+        // Known IDE app names
+        let known_ides: Vec<(&str, &str, &str)> = vec![
+            ("Visual Studio Code.app", "Visual Studio Code", "Contents/Resources/app/bin/code"),
+            ("Rider.app", "JetBrains Rider", "Contents/MacOS/rider"),
+            ("IntelliJ IDEA.app", "JetBrains IntelliJ IDEA", "Contents/MacOS/idea"),
+            ("WebStorm.app", "JetBrains WebStorm", "Contents/MacOS/webstorm"),
+            ("PyCharm.app", "JetBrains PyCharm", "Contents/MacOS/pycharm"),
+            ("PyCharm CE.app", "JetBrains PyCharm Community", "Contents/MacOS/pycharm"),
+            ("CLion.app", "JetBrains CLion", "Contents/MacOS/clion"),
+            ("GoLand.app", "JetBrains GoLand", "Contents/MacOS/goland"),
+            ("RustRover.app", "JetBrains RustRover", "Contents/MacOS/rustrover"),
+            ("Sublime Text.app", "Sublime Text", "Contents/SharedSupport/bin/subl"),
         ];
-        
-        for (name, path) in ide_paths {
-            if std::path::Path::new(&path).exists() {
-                ides.push(IdeEntry {
-                    name: name.to_string(),
-                    path,
-                });
+
+        // Scan /Applications and ~/Applications
+        let mut app_dirs = vec![std::path::PathBuf::from("/Applications")];
+        if let Some(home) = dirs::home_dir() {
+            app_dirs.push(home.join("Applications"));
+        }
+
+        for dir in &app_dirs {
+            if !dir.exists() {
+                continue;
+            }
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.extension().map_or(false, |e| e == "app") {
+                        let app_name = path.file_name().unwrap_or_default().to_string_lossy();
+                        
+                        for (app_pattern, friendly_name, exe_suffix) in &known_ides {
+                            if app_name == *app_pattern {
+                                let exe_path = path.join(exe_suffix);
+                                if exe_path.exists() {
+                                    ides.push(IdeEntry {
+                                        name: friendly_name.to_string(),
+                                        path: exe_path.to_string_lossy().to_string(),
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -462,5 +588,245 @@ impl Default for UpdateProjectRequest {
             is_hidden: None,
             auto_status_enabled: None,
         }
+    }
+}
+
+/// Matches a display name against known IDE patterns, returns friendly name if matched
+#[allow(dead_code)]
+pub fn match_ide_pattern(display_name: &str) -> Option<&'static str> {
+    let lower = display_name.to_lowercase();
+    let patterns: Vec<(&str, &str)> = vec![
+        ("visual studio code", "Visual Studio Code"),
+        ("visual studio", "Visual Studio"),
+        ("rider", "JetBrains Rider"),
+        ("intellij", "JetBrains IntelliJ IDEA"),
+        ("webstorm", "JetBrains WebStorm"),
+        ("pycharm community", "JetBrains PyCharm Community"),
+        ("pycharm", "JetBrains PyCharm"),
+        ("clion", "JetBrains CLion"),
+        ("goland", "JetBrains GoLand"),
+        ("rustrover", "JetBrains RustRover"),
+        ("notepad++", "Notepad++"),
+        ("sublime text", "Sublime Text"),
+    ];
+
+    for (pattern, friendly_name) in &patterns {
+        if lower.contains(pattern) {
+            return Some(friendly_name);
+        }
+    }
+    None
+}
+
+/// Matches an exe file stem against expected executable names for a given IDE
+#[allow(dead_code)]
+pub fn match_exe_name(friendly_name: &str, exe_stem: &str) -> bool {
+    match friendly_name {
+        "Visual Studio Code" => exe_stem == "Code",
+        "Visual Studio" => exe_stem == "devenv",
+        "JetBrains Rider" => exe_stem == "rider64",
+        "JetBrains IntelliJ IDEA" => exe_stem == "idea64",
+        "JetBrains WebStorm" => exe_stem == "webstorm64",
+        "JetBrains PyCharm" | "JetBrains PyCharm Community" => exe_stem == "pycharm64",
+        "JetBrains CLion" => exe_stem == "clion64",
+        "JetBrains GoLand" => exe_stem == "goland64",
+        "JetBrains RustRover" => exe_stem == "rustrover64",
+        "Notepad++" => exe_stem == "notepad++",
+        "Sublime Text" => exe_stem == "sublime_text",
+        _ => false,
+    }
+}
+
+/// Parses a .desktop file content and returns (Name, Exec) values
+#[allow(dead_code)]
+pub fn parse_desktop_file(content: &str) -> (String, String) {
+    let mut name = String::new();
+    let mut exec = String::new();
+
+    for line in content.lines() {
+        if let Some(v) = line.strip_prefix("Name=") {
+            name = v.to_string();
+        }
+        if let Some(v) = line.strip_prefix("Exec=") {
+            exec = v.split_whitespace().next().unwrap_or("").to_string();
+        }
+    }
+
+    (name, exec)
+}
+
+/// Matches a Linux desktop file name/exec against known IDE patterns
+#[allow(dead_code)]
+pub fn match_linux_ide(name: &str, exec: &str) -> Option<&'static str> {
+    let name_lower = name.to_lowercase();
+    let exec_lower = exec.to_lowercase();
+
+    let patterns: Vec<(&str, &str)> = vec![
+        ("code", "Visual Studio Code"),
+        ("rider", "JetBrains Rider"),
+        ("idea", "JetBrains IntelliJ IDEA"),
+        ("webstorm", "JetBrains WebStorm"),
+        ("pycharm", "JetBrains PyCharm"),
+        ("clion", "JetBrains CLion"),
+        ("goland", "JetBrains GoLand"),
+        ("rustrover", "JetBrains RustRover"),
+        ("sublime_text", "Sublime Text"),
+        ("subl", "Sublime Text"),
+    ];
+
+    for (pattern, friendly_name) in &patterns {
+        if name_lower.contains(pattern) || exec_lower.contains(pattern) {
+            return Some(friendly_name);
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+mod ide_tests {
+    use super::*;
+
+    #[test]
+    fn test_match_ide_pattern_vscode() {
+        assert_eq!(match_ide_pattern("Visual Studio Code"), Some("Visual Studio Code"));
+        assert_eq!(match_ide_pattern("Microsoft Visual Studio Code"), Some("Visual Studio Code"));
+    }
+
+    #[test]
+    fn test_match_ide_pattern_visual_studio() {
+        assert_eq!(match_ide_pattern("Visual Studio 2022 Community"), Some("Visual Studio"));
+        assert_eq!(match_ide_pattern("Microsoft Visual Studio Enterprise"), Some("Visual Studio"));
+    }
+
+    #[test]
+    fn test_match_ide_pattern_jetbrains() {
+        assert_eq!(match_ide_pattern("JetBrains Rider 2026.1"), Some("JetBrains Rider"));
+        assert_eq!(match_ide_pattern("JetBrains IntelliJ IDEA 2025.1"), Some("JetBrains IntelliJ IDEA"));
+        assert_eq!(match_ide_pattern("JetBrains WebStorm 2025.1"), Some("JetBrains WebStorm"));
+        assert_eq!(match_ide_pattern("JetBrains PyCharm 2025.1"), Some("JetBrains PyCharm"));
+        assert_eq!(match_ide_pattern("JetBrains PyCharm Community Edition"), Some("JetBrains PyCharm Community"));
+        assert_eq!(match_ide_pattern("JetBrains CLion 2025.1"), Some("JetBrains CLion"));
+        assert_eq!(match_ide_pattern("JetBrains GoLand 2025.1"), Some("JetBrains GoLand"));
+        assert_eq!(match_ide_pattern("JetBrains RustRover 2026.1"), Some("JetBrains RustRover"));
+    }
+
+    #[test]
+    fn test_match_ide_pattern_other() {
+        assert_eq!(match_ide_pattern("Notepad++"), Some("Notepad++"));
+        assert_eq!(match_ide_pattern("Sublime Text Build 4180"), Some("Sublime Text"));
+    }
+
+    #[test]
+    fn test_match_ide_pattern_no_match() {
+        assert_eq!(match_ide_pattern("Google Chrome"), None);
+        assert_eq!(match_ide_pattern("Mozilla Firefox"), None);
+        assert_eq!(match_ide_pattern(""), None);
+    }
+
+    #[test]
+    fn test_match_ide_pattern_case_insensitive() {
+        assert_eq!(match_ide_pattern("VISUAL STUDIO CODE"), Some("Visual Studio Code"));
+        assert_eq!(match_ide_pattern("notepad++"), Some("Notepad++"));
+    }
+
+    #[test]
+    fn test_match_exe_name_vscode() {
+        assert!(match_exe_name("Visual Studio Code", "Code"));
+        assert!(!match_exe_name("Visual Studio Code", "code"));
+        assert!(!match_exe_name("Visual Studio Code", "devenv"));
+    }
+
+    #[test]
+    fn test_match_exe_name_visual_studio() {
+        assert!(match_exe_name("Visual Studio", "devenv"));
+        assert!(!match_exe_name("Visual Studio", "Code"));
+    }
+
+    #[test]
+    fn test_match_exe_name_jetbrains() {
+        assert!(match_exe_name("JetBrains Rider", "rider64"));
+        assert!(match_exe_name("JetBrains IntelliJ IDEA", "idea64"));
+        assert!(match_exe_name("JetBrains WebStorm", "webstorm64"));
+        assert!(match_exe_name("JetBrains PyCharm", "pycharm64"));
+        assert!(match_exe_name("JetBrains PyCharm Community", "pycharm64"));
+        assert!(match_exe_name("JetBrains CLion", "clion64"));
+        assert!(match_exe_name("JetBrains GoLand", "goland64"));
+        assert!(match_exe_name("JetBrains RustRover", "rustrover64"));
+    }
+
+    #[test]
+    fn test_match_exe_name_notepad() {
+        assert!(match_exe_name("Notepad++", "notepad++"));
+        assert!(!match_exe_name("Notepad++", "notepad"));
+    }
+
+    #[test]
+    fn test_match_exe_name_sublime() {
+        assert!(match_exe_name("Sublime Text", "sublime_text"));
+        assert!(!match_exe_name("Sublime Text", "sublime"));
+    }
+
+    #[test]
+    fn test_match_exe_name_unknown() {
+        assert!(!match_exe_name("Unknown IDE", "something"));
+    }
+
+    #[test]
+    fn test_parse_desktop_file_basic() {
+        let content = "[Desktop Entry]
+Name=Visual Studio Code
+Exec=/usr/bin/code --unity-launch %F
+Type=Application";
+        let (name, exec) = parse_desktop_file(content);
+        assert_eq!(name, "Visual Studio Code");
+        assert_eq!(exec, "/usr/bin/code");
+    }
+
+    #[test]
+    fn test_parse_desktop_file_with_args() {
+        let content = "[Desktop Entry]
+Name=JetBrains Rider
+Exec=rider %f
+Type=Application";
+        let (name, exec) = parse_desktop_file(content);
+        assert_eq!(name, "JetBrains Rider");
+        assert_eq!(exec, "rider");
+    }
+
+    #[test]
+    fn test_parse_desktop_file_empty() {
+        let (name, exec) = parse_desktop_file("");
+        assert_eq!(name, "");
+        assert_eq!(exec, "");
+    }
+
+    #[test]
+    fn test_parse_desktop_file_no_exec() {
+        let content = "[Desktop Entry]
+Name=My App
+Type=Application";
+        let (name, exec) = parse_desktop_file(content);
+        assert_eq!(name, "My App");
+        assert_eq!(exec, "");
+    }
+
+    #[test]
+    fn test_match_linux_ide() {
+        assert_eq!(match_linux_ide("Visual Studio Code", "/usr/bin/code"), Some("Visual Studio Code"));
+        assert_eq!(match_linux_ide("code-oss", "/usr/bin/code-oss"), Some("Visual Studio Code"));
+        assert_eq!(match_linux_ide("JetBrains Rider", "/opt/rider/bin/rider"), Some("JetBrains Rider"));
+        assert_eq!(match_linux_ide("Sublime Text", "/usr/bin/subl"), Some("Sublime Text"));
+    }
+
+    #[test]
+    fn test_match_linux_ide_no_match() {
+        assert_eq!(match_linux_ide("Firefox", "/usr/bin/firefox"), None);
+        assert_eq!(match_linux_ide("LibreOffice", "/usr/bin/libreoffice"), None);
+    }
+
+    #[test]
+    fn test_scan_ides_runs() {
+        // Just verify it doesn't panic
+        let _ides = scan_ides();
     }
 }

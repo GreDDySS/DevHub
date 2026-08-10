@@ -817,6 +817,7 @@ dependencies = [
  "tauri-plugin-store",
  "thiserror 2.0.20",
  "uuid",
+ "winreg 0.55.0",
 ]
 
 [[package]]
