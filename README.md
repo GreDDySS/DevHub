@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue" alt="Platform">
-  <img src="https://img.shields.io/badge/version-0.1.0-green" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.3.0-green" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-orange" alt="License">
 </p>
 
