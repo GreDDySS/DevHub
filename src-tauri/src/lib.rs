@@ -1,3 +1,8 @@
+// Known issue: On Windows, WebView2 logs a harmless error on shutdown:
+// [ERROR:ui\gfx\win\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412
+// This is a Chromium internal issue — the class is still in use when the app exits.
+// No fix available; affects most Tauri/WebView2 apps on Windows. Safe to ignore.
+
 mod models;
 mod storage;
 mod commands;
