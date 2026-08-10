@@ -47,7 +47,6 @@ export function Shell() {
           activeView={activeView}
           onNavigate={setActiveView}
           isExpanded={isSidebarExpanded}
-          onToggleExpand={() => setIsSidebarExpanded(!isSidebarExpanded)}
         />
         <main className="flex-1 overflow-auto p-6">{renderView()}</main>
       </div>

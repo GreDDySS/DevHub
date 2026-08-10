@@ -63,6 +63,10 @@ export function TitleBar({ isSidebarExpanded, onToggleSidebar }: TitleBarProps) 
         )}
       </button>
 
+      <span className="text-sm font-semibold text-foreground ml-1" data-tauri-drag-region>
+        DevHub
+      </span>
+
       <div className="flex-1" data-tauri-drag-region />
 
       <div className="flex items-center h-full">
