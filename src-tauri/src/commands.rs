@@ -481,12 +481,16 @@ pub fn detect_projects(root_path: String) -> Result<Vec<Project>, String> {
         (".py", ProgrammingLanguage::Python),
         (".rs", ProgrammingLanguage::Rust),
         (".js", ProgrammingLanguage::JavaScript),
+        (".jsx", ProgrammingLanguage::JavaScript),
         (".ts", ProgrammingLanguage::TypeScript),
+        (".tsx", ProgrammingLanguage::TypeScript),
         (".go", ProgrammingLanguage::Go),
         (".java", ProgrammingLanguage::Java),
+        (".kt", ProgrammingLanguage::Java),
         (".cpp", ProgrammingLanguage::Cpp),
         (".c", ProgrammingLanguage::Cpp),
         (".h", ProgrammingLanguage::Cpp),
+        (".hpp", ProgrammingLanguage::Cpp),
     ].iter().cloned().collect();
     
     fn scan_dir(
@@ -520,7 +524,12 @@ pub fn detect_projects(root_path: String) -> Result<Vec<Project>, String> {
                         || entry_path.join("pom.xml").exists()
                         || entry_path.join("build.gradle").exists()
                         || entry_path.join("CMakeLists.txt").exists()
-                        || entry_path.join("sln").exists();
+                        || entry_path.join("requirements.txt").exists()
+                        || entry_path.join("setup.py").exists()
+                        || entry_path.join("pyproject.toml").exists()
+                        || entry_path.join("Gemfile").exists()
+                        || entry_path.join("composer.json").exists()
+                        || has_sln_file(&entry_path);
                     
                     if has_indicator {
                         let language = detect_language(&entry_path, extension_map);
@@ -547,20 +556,66 @@ pub fn detect_projects(root_path: String) -> Result<Vec<Project>, String> {
         }
     }
     
-    fn detect_language(
-        path: &std::path::Path,
-        extension_map: &std::collections::HashMap<&str, ProgrammingLanguage>,
-    ) -> ProgrammingLanguage {
+    fn has_sln_file(path: &std::path::Path) -> bool {
         if let Ok(entries) = std::fs::read_dir(path) {
             for entry in entries.flatten() {
                 if let Some(ext) = entry.path().extension() {
-                    if let Some(lang) = extension_map.get(ext.to_string_lossy().as_ref()) {
-                        return lang.clone();
+                    if ext == "sln" {
+                        return true;
                     }
                 }
             }
         }
-        ProgrammingLanguage::Other
+        false
+    }
+
+    fn detect_language(
+        path: &std::path::Path,
+        extension_map: &std::collections::HashMap<&str, ProgrammingLanguage>,
+    ) -> ProgrammingLanguage {
+        let excluded = ["node_modules", ".git", "target", "dist", "build", "__pycache__", "venv", ".venv"];
+
+        fn scan_recursive(
+            dir: &std::path::Path,
+            depth: usize,
+            max_depth: usize,
+            excluded: &[&str],
+            extension_map: &std::collections::HashMap<&str, ProgrammingLanguage>,
+        ) -> Option<ProgrammingLanguage> {
+            if depth > max_depth {
+                return None;
+            }
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                let mut dirs = Vec::new();
+
+                for entry in entries.flatten() {
+                    let entry_path = entry.path();
+                    let is_dir = entry_path.is_dir();
+
+                    if is_dir {
+                        let dir_name = entry_path.file_name().unwrap_or_default().to_string_lossy();
+                        if !excluded.contains(&dir_name.as_ref()) {
+                            dirs.push(entry_path);
+                        }
+                    } else {
+                        let ext_str = entry_path.extension().map(|e| format!(".{}", e.to_string_lossy())).unwrap_or_default();
+                        if let Some(lang) = extension_map.get(ext_str.as_str()) {
+                            return Some(lang.clone());
+                        }
+                    }
+                }
+
+                for dir_path in dirs {
+                    if let Some(lang) = scan_recursive(&dir_path, depth + 1, max_depth, excluded, extension_map) {
+                        return Some(lang);
+                    }
+                }
+            }
+            None
+        }
+
+        scan_recursive(path, 0, 3, &excluded, extension_map)
+            .unwrap_or(ProgrammingLanguage::Other)
     }
     
     let root = std::path::Path::new(&root_path);
@@ -579,14 +634,12 @@ impl Default for UpdateProjectRequest {
             name: None,
             path: None,
             description: None,
-            notes: None,
             language: None,
             status: None,
             tags: None,
             preferred_ide: None,
             is_favorite: None,
             is_hidden: None,
-            auto_status_enabled: None,
         }
     }
 }

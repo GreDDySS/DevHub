@@ -64,15 +64,12 @@ pub struct Project {
     pub name: String,
     pub path: String,
     pub description: String,
-    pub notes: String,
     pub language: ProgrammingLanguage,
     pub status: ProjectStatus,
     pub tags: Vec<String>,
     pub preferred_ide: Option<String>,
     pub is_favorite: bool,
     pub is_hidden: bool,
-    pub last_accessed_at: Option<DateTime<Utc>>,
-    pub auto_status_enabled: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -95,15 +92,12 @@ impl Project {
             name: name.trim().to_string(),
             path: path.trim().to_string(),
             description: String::new(),
-            notes: String::new(),
             language: ProgrammingLanguage::Other,
             status: ProjectStatus::Active,
             tags: Vec::new(),
             preferred_ide: None,
             is_favorite: false,
             is_hidden: false,
-            last_accessed_at: None,
-            auto_status_enabled: true,
             created_at: now,
             updated_at: now,
         })
@@ -213,14 +207,12 @@ pub struct UpdateProjectRequest {
     pub name: Option<String>,
     pub path: Option<String>,
     pub description: Option<String>,
-    pub notes: Option<String>,
     pub language: Option<ProgrammingLanguage>,
     pub status: Option<ProjectStatus>,
     pub tags: Option<Vec<String>>,
     pub preferred_ide: Option<Option<String>>,
     pub is_favorite: Option<bool>,
     pub is_hidden: Option<bool>,
-    pub auto_status_enabled: Option<bool>,
 }
 
 #[cfg(test)]
@@ -239,7 +231,6 @@ mod tests {
         assert_eq!(p.language, ProgrammingLanguage::Other);
         assert!(!p.is_favorite);
         assert!(!p.is_hidden);
-        assert!(p.auto_status_enabled);
     }
 
     #[test]

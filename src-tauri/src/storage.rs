@@ -103,9 +103,6 @@ pub fn update_project(id: &str, update: crate::models::UpdateProjectRequest) -> 
     if let Some(description) = update.description {
         project.description = description;
     }
-    if let Some(notes) = update.notes {
-        project.notes = notes;
-    }
     if let Some(language) = update.language {
         project.language = language;
     }
@@ -123,9 +120,6 @@ pub fn update_project(id: &str, update: crate::models::UpdateProjectRequest) -> 
     }
     if let Some(is_hidden) = update.is_hidden {
         project.is_hidden = is_hidden;
-    }
-    if let Some(auto_status_enabled) = update.auto_status_enabled {
-        project.auto_status_enabled = auto_status_enabled;
     }
     
     project.updated_at = chrono::Utc::now();
