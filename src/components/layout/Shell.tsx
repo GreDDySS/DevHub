@@ -5,22 +5,16 @@ import { CloseDialog } from "./CloseDialog";
 import { ProjectList } from "@/components/projects/ProjectList";
 import { LinkList } from "@/components/links/LinkList";
 import { SettingsForm } from "@/components/settings/SettingsForm";
-import { useProjectStore } from "@/stores/projectStore";
-import { useLinkStore } from "@/stores/linkStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 
 export function Shell() {
   const [activeView, setActiveView] = useState("projects");
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
-  const fetchProjects = useProjectStore((s) => s.fetchProjects);
-  const fetchLinks = useLinkStore((s) => s.fetchLinks);
   const fetchSettings = useSettingsStore((s) => s.fetchSettings);
 
   useEffect(() => {
     fetchSettings();
-    fetchProjects();
-    fetchLinks();
   }, []);
 
   const renderView = () => {

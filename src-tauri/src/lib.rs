@@ -132,6 +132,11 @@ pub fn run() {
                 });
             }
 
+            // Show window after setup is complete
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
