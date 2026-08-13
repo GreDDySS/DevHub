@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Search, Plus, Grid, List, FolderSearch, Eye, EyeOff } from "lucide-react";
+import { Search, Plus, Grid, List, FolderSearch, Eye, EyeOff, Scan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProjectCard } from "./ProjectCard";
+import { ProjectDetail } from "./ProjectDetail";
 import { AddProjectDialog } from "./AddProjectDialog";
+import { ScanProjectsDialog } from "./ScanProjectsDialog";
 import { useProjectStore } from "@/stores/projectStore";
 import type { ProjectStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -29,19 +31,30 @@ export function ProjectList() {
 
   const [searchQuery, setSearchQuery] = useState(filter.search_query || "");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showScanDialog, setShowScanDialog] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilter({ search_query: searchQuery || undefined, show_hidden: showHidden });
-      fetchProjects();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery, showHidden]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const searchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didMount = React.useRef(false);
 
   useEffect(() => {
     fetchProjects();
-  }, [filter]);
+  }, []);
+
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setFilter({ search_query: searchQuery || undefined, show_hidden: showHidden });
+      fetchProjects();
+    }, 300);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [searchQuery, showHidden]);
 
   return (
     <div className="flex flex-col h-full">
@@ -71,6 +84,10 @@ export function ProjectList() {
               <Eye className="h-4 w-4" />
             )}
           </Button>
+          <Button size="sm" onClick={() => setShowScanDialog(true)}>
+            <Scan className="h-4 w-4 mr-2" />
+            Scan
+          </Button>
           <Button size="sm" onClick={() => setShowAddDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Project
@@ -94,7 +111,7 @@ export function ProjectList() {
               key={sf.label}
               variant={filter.status === sf.value ? "default" : "ghost"}
               size="sm"
-              onClick={() => setFilter({ status: sf.value })}
+              onClick={() => { setFilter({ status: sf.value }); fetchProjects(); }}
             >
               {sf.label}
             </Button>
@@ -122,12 +139,17 @@ export function ProjectList() {
         <div
           className={
             viewMode === "tiles"
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-              : "flex flex-col gap-2"
+              ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
+              : "flex flex-col gap-1.5"
           }
         >
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} viewMode={viewMode} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              viewMode={viewMode}
+              onSelect={() => setSelectedProjectId(project.id)}
+            />
           ))}
         </div>
       )}
@@ -135,6 +157,20 @@ export function ProjectList() {
       {showAddDialog && (
         <AddProjectDialog onClose={() => setShowAddDialog(false)} />
       )}
+      {showScanDialog && (
+        <ScanProjectsDialog onClose={() => setShowScanDialog(false)} />
+      )}
+      {selectedProjectId && (() => {
+        const project = projects.find((p) => p.id === selectedProjectId);
+        if (!project) return null;
+        return (
+          <ProjectDetail
+            key={project.id}
+            project={project}
+            onClose={() => setSelectedProjectId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
