@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   LANGUAGE_ICONS,
+  LANGUAGE_COLORS,
   STATUS_COLORS,
   LINK_TYPE_COLORS,
 } from "@/lib/types";
@@ -24,6 +25,20 @@ describe("LANGUAGE_ICONS", () => {
 
   it("has correct C# icon", () => {
     expect(LANGUAGE_ICONS.CSharp).toBe("C#");
+  });
+});
+
+describe("LANGUAGE_COLORS", () => {
+  it("has colors for all languages", () => {
+    const languages: ProgrammingLanguage[] = [
+      "CSharp", "Python", "Rust", "JavaScript", "TypeScript",
+      "Go", "Java", "Cpp", "Other",
+    ];
+    for (const lang of languages) {
+      expect(LANGUAGE_COLORS[lang]).toBeDefined();
+      expect(LANGUAGE_COLORS[lang]).toContain("bg-");
+      expect(LANGUAGE_COLORS[lang]).toContain("text-");
+    }
   });
 });
 

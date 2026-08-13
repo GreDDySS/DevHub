@@ -25,15 +25,12 @@ export interface Project {
   name: string;
   path: string;
   description: string;
-  notes: string;
   language: ProgrammingLanguage;
   status: ProjectStatus;
   tags: string[];
   preferred_ide: string | null;
   is_favorite: boolean;
   is_hidden: boolean;
-  last_accessed_at: string | null;
-  auto_status_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -82,14 +79,12 @@ export interface UpdateProjectRequest {
   name?: string;
   path?: string;
   description?: string;
-  notes?: string;
   language?: ProgrammingLanguage;
   status?: ProjectStatus;
   tags?: string[];
   preferred_ide?: string | null;
   is_favorite?: boolean;
   is_hidden?: boolean;
-  auto_status_enabled?: boolean;
 }
 
 export const LANGUAGE_ICONS: Record<ProgrammingLanguage, string> = {
@@ -102,6 +97,18 @@ export const LANGUAGE_ICONS: Record<ProgrammingLanguage, string> = {
   Java: "Jv",
   Cpp: "C+",
   Other: "??",
+};
+
+export const LANGUAGE_COLORS: Record<ProgrammingLanguage, string> = {
+  CSharp: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
+  Python: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  Rust: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+  JavaScript: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400",
+  TypeScript: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  Go: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400",
+  Java: "bg-red-500/15 text-red-600 dark:text-red-400",
+  Cpp: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  Other: "bg-gray-500/15 text-gray-600 dark:text-gray-400",
 };
 
 export const STATUS_COLORS: Record<ProjectStatus, string> = {
