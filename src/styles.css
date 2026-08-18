@@ -72,13 +72,18 @@ body {
   user-select: none;
 }
 
+#root {
+  overflow-x: hidden;
+  height: 100%;
+}
+
 * {
   border-color: var(--color-border);
 }
 
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {
