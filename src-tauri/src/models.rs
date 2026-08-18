@@ -190,6 +190,8 @@ impl Default for AppSettings {
 pub struct ProjectFilter {
     pub search_query: Option<String>,
     pub status: Option<ProjectStatus>,
+    pub languages: Option<Vec<ProgrammingLanguage>>,
+    pub sort_by: Option<String>,
     pub tags: Option<Vec<String>>,
     pub show_hidden: Option<bool>,
 }

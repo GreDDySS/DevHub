@@ -159,6 +159,7 @@ pub fn run() {
             commands::open_in_browser,
             commands::copy_to_clipboard,
             commands::detect_projects,
+            commands::refresh_projects,
             commands::force_exit,
         ])
         .run(tauri::generate_context!())

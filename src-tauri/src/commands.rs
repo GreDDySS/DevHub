@@ -7,6 +7,12 @@ pub fn force_exit(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+pub fn refresh_projects() -> Result<Vec<Project>, String> {
+    storage::remove_missing_projects();
+    Ok(storage::get_projects())
+}
+
+#[tauri::command]
 pub fn get_projects(filter: Option<ProjectFilter>) -> Vec<Project> {
     let mut projects = storage::get_projects();
     
@@ -24,18 +30,38 @@ pub fn get_projects(filter: Option<ProjectFilter>) -> Vec<Project> {
             projects.retain(|p| p.status == status);
         }
         
+        if let Some(languages) = filter.languages {
+            if !languages.is_empty() {
+                projects.retain(|p| languages.contains(&p.language));
+            }
+        }
+        
         if let Some(show_hidden) = filter.show_hidden {
             if !show_hidden {
                 projects.retain(|p| !p.is_hidden);
             }
         }
+        
+        match filter.sort_by.as_deref() {
+            Some("name_asc") => {
+                projects.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+            }
+            Some("name_desc") => {
+                projects.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
+            }
+            _ => {
+                projects.sort_by(|a, b| {
+                    b.is_favorite.cmp(&a.is_favorite)
+                        .then_with(|| b.updated_at.cmp(&a.updated_at))
+                });
+            }
+        }
+    } else {
+        projects.sort_by(|a, b| {
+            b.is_favorite.cmp(&a.is_favorite)
+                .then_with(|| b.updated_at.cmp(&a.updated_at))
+        });
     }
-    
-    // Sort: favorites first, then by updated_at
-    projects.sort_by(|a, b| {
-        b.is_favorite.cmp(&a.is_favorite)
-            .then_with(|| b.updated_at.cmp(&a.updated_at))
-    });
     
     projects
 }

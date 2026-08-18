@@ -143,6 +143,18 @@ pub fn delete_project(id: &str) -> Result<(), String> {
     save_projects()
 }
 
+pub fn remove_missing_projects() -> usize {
+    let mut projects = PROJECTS.lock().unwrap();
+    let initial_len = projects.len();
+    projects.retain(|p| std::path::Path::new(&p.path).exists());
+    let removed = initial_len - projects.len();
+    drop(projects);
+    if removed > 0 {
+        let _ = save_projects();
+    }
+    removed
+}
+
 pub fn get_links() -> Vec<Link> {
     LINKS.lock().unwrap().clone()
 }
