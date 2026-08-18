@@ -17,6 +17,7 @@ interface ProjectState {
   setFilter: (filter: Partial<ProjectFilter>) => void;
   setViewMode: (mode: "tiles" | "list") => void;
   fetchProjects: () => Promise<void>;
+  refreshProjects: () => Promise<void>;
   addProject: (request: CreateProjectRequest) => Promise<Project | null>;
   updateProject: (
     id: string,
@@ -32,7 +33,7 @@ interface ProjectState {
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   projects: [],
-  filter: { show_hidden: false },
+  filter: { show_hidden: false, sort_by: "name_asc" },
   isLoading: false,
   error: null,
   viewMode: "tiles",
@@ -45,6 +46,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   fetchProjects: async () => {
     set({ isLoading: true, error: null });
     try {
+      const filter = get().filter;
+      const projects = await invoke<Project[]>("get_projects", { filter });
+      set({ projects, isLoading: false });
+    } catch (error) {
+      set({ error: String(error), isLoading: false });
+    }
+  },
+
+  refreshProjects: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await invoke("refresh_projects");
       const filter = get().filter;
       const projects = await invoke<Project[]>("get_projects", { filter });
       set({ projects, isLoading: false });

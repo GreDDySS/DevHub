@@ -64,6 +64,8 @@ export interface AppSettings {
 export interface ProjectFilter {
   search_query?: string;
   status?: ProjectStatus | null;
+  languages?: ProgrammingLanguage[];
+  sort_by?: string;
   tags?: string[];
   show_hidden?: boolean;
 }
