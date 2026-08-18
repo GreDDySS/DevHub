@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="devhub-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#193A9B"/>
+      <stop offset="48%" stop-color="#4168D8"/>
+      <stop offset="100%" stop-color="#A46BE8"/>
+    </linearGradient>
+    <linearGradient id="devhub-side" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#102B78"/>
+      <stop offset="100%" stop-color="#3454B5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main D shape -->
+  <path
+    fill="url(#devhub-gradient)"
+    d="M230 165
+       H545
+       C735 165 850 270 850 512
+       C850 754 735 859 545 859
+       H230
+       V690
+       H535
+       C625 690 675 638 675 512
+       C675 386 625 334 535 334
+       H230
+       Z"/>
+
+  <!-- Folded left section -->
+  <path
+    fill="url(#devhub-side)"
+    d="M230 165
+       L395 330
+       V690
+       L230 859
+       Z"/>
+
+  <!-- Inner cutout -->
+  <path
+    fill="#000000"
+    fill-opacity="0"
+    d="M395 330 H535
+       C625 330 675 386 675 512
+       C675 638 625 694 535 694
+       H395 Z"/>
+</svg>
