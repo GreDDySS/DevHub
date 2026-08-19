@@ -7,9 +7,7 @@ pub const CURRENT_SETTINGS_VERSION: u32 = 1;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ProjectStatus {
     Active,
-    Completed,
-    Paused,
-    Archived,
+    Inactive,
 }
 
 impl Default for ProjectStatus {
@@ -176,6 +174,18 @@ pub struct AppSettings {
     pub autostart_enabled: bool,
     pub close_action: CloseAction,
     pub is_dark_theme: bool,
+    #[serde(default = "default_inactive_days")]
+    pub inactive_days: u32,
+    #[serde(default = "default_true")]
+    pub statuses_enabled: bool,
+}
+
+fn default_inactive_days() -> u32 {
+    30
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for AppSettings {
@@ -187,7 +197,18 @@ impl Default for AppSettings {
             autostart_enabled: false,
             close_action: CloseAction::MinimizeToTray,
             is_dark_theme: false,
+            inactive_days: 30,
+            statuses_enabled: true,
         }
+    }
+}
+
+pub fn calculate_status(updated_at: DateTime<Utc>, inactive_days: u32) -> ProjectStatus {
+    let elapsed = Utc::now() - updated_at;
+    if elapsed.num_days() >= inactive_days as i64 {
+        ProjectStatus::Inactive
+    } else {
+        ProjectStatus::Active
     }
 }
 
@@ -370,5 +391,23 @@ mod tests {
         assert!(req.description.is_none());
         assert!(req.is_favorite.is_none());
         assert!(req.is_hidden.is_none());
+    }
+
+    #[test]
+    fn test_calculate_status_active() {
+        let recent = Utc::now() - chrono::Duration::days(10);
+        assert_eq!(calculate_status(recent, 30), ProjectStatus::Active);
+    }
+
+    #[test]
+    fn test_calculate_status_inactive() {
+        let old = Utc::now() - chrono::Duration::days(60);
+        assert_eq!(calculate_status(old, 30), ProjectStatus::Inactive);
+    }
+
+    #[test]
+    fn test_calculate_status_boundary() {
+        let exactly = Utc::now() - chrono::Duration::days(30);
+        assert_eq!(calculate_status(exactly, 30), ProjectStatus::Inactive);
     }
 }

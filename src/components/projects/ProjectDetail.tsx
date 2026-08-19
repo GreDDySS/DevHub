@@ -94,9 +94,11 @@ export function ProjectDetail({ project, onClose }: ProjectDetailProps) {
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            <Badge className={cn("text-xs", STATUS_COLORS[project.status])}>
-              {project.status}
-            </Badge>
+            {settings?.statuses_enabled && (
+              <Badge className={cn("text-xs", STATUS_COLORS[project.status])}>
+                {project.status}
+              </Badge>
+            )}
             <Button
               variant="ghost"
               size="icon"

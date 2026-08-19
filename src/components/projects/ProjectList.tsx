@@ -23,6 +23,7 @@ import { ProjectDetail } from "./ProjectDetail";
 import { AddProjectDialog } from "./AddProjectDialog";
 import { ScanProjectsDialog } from "./ScanProjectsDialog";
 import { useProjectStore } from "@/stores/projectStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { LANGUAGE_ICONS } from "@/lib/types";
 import type { ProjectStatus, ProgrammingLanguage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -30,9 +31,7 @@ import { cn } from "@/lib/utils";
 const statusOptions = [
   { label: "All", value: "all" },
   { label: "Active", value: "Active" },
-  { label: "Completed", value: "Completed" },
-  { label: "Paused", value: "Paused" },
-  { label: "Archived", value: "Archived" },
+  { label: "Inactive", value: "Inactive" },
 ];
 
 const languageOptions: { label: string; value: ProgrammingLanguage }[] = [
@@ -58,6 +57,8 @@ export function ProjectList() {
     fetchProjects,
     refreshProjects,
   } = useProjectStore();
+
+  const { settings } = useSettingsStore();
 
   const [searchQuery, setSearchQuery] = useState(filter.search_query || "");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -219,12 +220,14 @@ export function ProjectList() {
 
         <div className="w-px h-5 bg-border mx-0.5" />
 
-        <Combobox
-          options={statusOptions}
-          value={filter.status ?? "all"}
-          onChange={handleStatusChange}
-          placeholder="Status"
-        />
+        {settings?.statuses_enabled && (
+          <Combobox
+            options={statusOptions}
+            value={filter.status ?? "all"}
+            onChange={handleStatusChange}
+            placeholder="Status"
+          />
+        )}
 
         <MultiCombobox
           options={languageOptions.map((l) => ({

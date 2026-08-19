@@ -1,4 +1,4 @@
-export type ProjectStatus = "Active" | "Completed" | "Paused" | "Archived";
+export type ProjectStatus = "Active" | "Inactive";
 
 export type ProgrammingLanguage =
   | "CSharp"
@@ -60,6 +60,8 @@ export interface AppSettings {
   autostart_enabled: boolean;
   close_action: CloseAction;
   is_dark_theme: boolean;
+  inactive_days: number;
+  statuses_enabled: boolean;
 }
 
 export interface ProjectFilter {
@@ -116,9 +118,7 @@ export const LANGUAGE_COLORS: Record<ProgrammingLanguage, string> = {
 
 export const STATUS_COLORS: Record<ProjectStatus, string> = {
   Active: "bg-green-500/10 text-green-600 dark:text-green-400",
-  Completed: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  Paused: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  Archived: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
+  Inactive: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
 };
 
 export const LINK_TYPE_COLORS: Record<LinkType, string> = {

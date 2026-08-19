@@ -15,6 +15,7 @@ const mockSettings = {
   autostart_enabled: false,
   close_action: "MinimizeToTray" as const,
   is_dark_theme: false,
+  inactive_days: 30,
 };
 
 describe("settingsStore", () => {
@@ -27,6 +28,7 @@ describe("settingsStore", () => {
         autostart_enabled: false,
         close_action: "MinimizeToTray",
         is_dark_theme: false,
+        inactive_days: 30,
       },
       isLoading: false,
       error: null,

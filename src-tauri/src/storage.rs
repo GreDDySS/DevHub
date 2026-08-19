@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use chrono::Utc;
 
 use crate::models::{Project, Link, AppSettings, CURRENT_SETTINGS_VERSION};
 
@@ -57,7 +58,29 @@ pub fn init_storage() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn get_projects() -> Vec<Project> {
-    PROJECTS.lock().unwrap().clone()
+    let settings = SETTINGS.lock().unwrap().clone();
+    let inactive_days = settings.inactive_days;
+    let statuses_enabled = settings.statuses_enabled;
+    PROJECTS
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|p| {
+            let mut project = p.clone();
+            if statuses_enabled {
+                let last_modified = std::fs::metadata(&p.path)
+                    .and_then(|m| m.modified())
+                    .ok()
+                    .and_then(|t| {
+                        let datetime: chrono::DateTime<Utc> = t.into();
+                        Some(datetime)
+                    })
+                    .unwrap_or(p.updated_at);
+                project.status = crate::models::calculate_status(last_modified, inactive_days);
+            }
+            project
+        })
+        .collect()
 }
 
 pub fn add_project(project: Project) -> Result<(), String> {

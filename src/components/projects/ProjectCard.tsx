@@ -93,6 +93,7 @@ function ProjectContextMenu({
 
 export function ProjectCard({ project, viewMode, onSelect }: ProjectCardProps) {
   const { toggleFavorite, toggleHidden, openInConsole, openInIde } = useProjectStore();
+  const { settings } = useSettingsStore();
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -136,9 +137,11 @@ export function ProjectCard({ project, viewMode, onSelect }: ProjectCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium truncate text-sm">{project.name}</span>
-              <Badge className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[project.status])}>
-                {project.status}
-              </Badge>
+              {settings?.statuses_enabled && (
+                <Badge className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[project.status])}>
+                  {project.status}
+                </Badge>
+              )}
               {project.is_hidden && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
                   Hidden
@@ -261,11 +264,13 @@ export function ProjectCard({ project, viewMode, onSelect }: ProjectCardProps) {
         <div className="mt-auto px-4 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Badge
-                className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[project.status])}
-              >
-                {project.status}
-              </Badge>
+              {settings?.statuses_enabled && (
+                <Badge
+                  className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[project.status])}
+                >
+                  {project.status}
+                </Badge>
+              )}
               {project.tags.slice(0, 2).map((tag) => (
                 <Badge
                   key={tag}

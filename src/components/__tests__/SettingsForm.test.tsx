@@ -82,6 +82,9 @@ describe("SettingsForm", () => {
 
   it("shows disabled autostart by default", async () => {
     render(<SettingsForm />);
-    expect(await screen.findByText("Disabled")).toBeInTheDocument();
+    const autostartText = await screen.findByText("Autostart");
+    const autostartRow = autostartText.closest("div")?.parentElement;
+    const disabledBtn = autostartRow?.querySelector("button");
+    expect(disabledBtn).toHaveTextContent("Disabled");
   });
 });

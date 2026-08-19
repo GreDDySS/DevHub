@@ -44,7 +44,7 @@ describe("LANGUAGE_COLORS", () => {
 
 describe("STATUS_COLORS", () => {
   it("has colors for all statuses", () => {
-    const statuses: ProjectStatus[] = ["Active", "Completed", "Paused", "Archived"];
+    const statuses: ProjectStatus[] = ["Active", "Inactive"];
     for (const status of statuses) {
       expect(STATUS_COLORS[status]).toBeDefined();
       expect(STATUS_COLORS[status]).toContain("bg-");

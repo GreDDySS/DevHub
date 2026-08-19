@@ -19,6 +19,8 @@ const defaultSettings: AppSettings = {
   autostart_enabled: false,
   close_action: "MinimizeToTray",
   is_dark_theme: false,
+  inactive_days: 30,
+  statuses_enabled: true,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({

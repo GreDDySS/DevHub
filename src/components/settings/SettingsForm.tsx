@@ -188,6 +188,49 @@ export function SettingsForm() {
                 {settings.autostart_enabled ? "Enabled" : "Disabled"}
               </Button>
             </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Inactive After (days)</p>
+                <p className="text-sm text-muted-foreground">
+                  Mark project as inactive after this many days without updates
+                </p>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                value={settings.inactive_days}
+                onChange={(e) =>
+                  useSettingsStore.setState({
+                    settings: {
+                      ...settings,
+                      inactive_days: Math.max(1, parseInt(e.target.value) || 30),
+                    },
+                  })
+                }
+                className="w-[80px] text-right"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Project Statuses</p>
+                <p className="text-sm text-muted-foreground">
+                  Show active/inactive status badges on projects
+                </p>
+              </div>
+              <Button
+                variant={settings.statuses_enabled ? "default" : "outline"}
+                onClick={() =>
+                  useSettingsStore.setState({
+                    settings: {
+                      ...settings,
+                      statuses_enabled: !settings.statuses_enabled,
+                    },
+                  })
+                }
+              >
+                {settings.statuses_enabled ? "Enabled" : "Disabled"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
