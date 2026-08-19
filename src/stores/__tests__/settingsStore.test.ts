@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useSettingsStore } from "@/stores/settingsStore";
+import { useSettingsStore, defaultSettings } from "@/stores/settingsStore";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
@@ -33,6 +33,7 @@ describe("settingsStore", () => {
         statuses_enabled: true,
       },
       isLoading: false,
+      isSaving: false,
       error: null,
     });
     vi.clearAllMocks();
@@ -69,6 +70,37 @@ describe("settingsStore", () => {
       mockInvoke.mockRejectedValue("Write failed");
       await useSettingsStore.getState().saveSettings(mockSettings);
       expect(useSettingsStore.getState().error).toBe("Write failed");
+    });
+  });
+
+  describe("updateSettings", () => {
+    it("merges patch into current settings and saves", async () => {
+      mockInvoke.mockResolvedValue(undefined);
+      const current = useSettingsStore.getState().settings;
+      await useSettingsStore.getState().updateSettings({
+        is_dark_theme: true,
+        autostart_enabled: true,
+      });
+      expect(mockInvoke).toHaveBeenCalledWith("save_settings", {
+        settings: expect.objectContaining({
+          is_dark_theme: true,
+          autostart_enabled: true,
+          inactive_days: current.inactive_days,
+        }),
+      });
+      expect(useSettingsStore.getState().settings.is_dark_theme).toBe(true);
+      expect(useSettingsStore.getState().settings.autostart_enabled).toBe(true);
+    });
+  });
+
+  describe("restoreDefaults", () => {
+    it("saves default settings", async () => {
+      mockInvoke.mockResolvedValue(undefined);
+      await useSettingsStore.getState().restoreDefaults();
+      expect(mockInvoke).toHaveBeenCalledWith("save_settings", {
+        settings: defaultSettings,
+      });
+      expect(useSettingsStore.getState().settings).toEqual(defaultSettings);
     });
   });
 
