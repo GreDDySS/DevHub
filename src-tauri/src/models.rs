@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
+pub const CURRENT_SETTINGS_VERSION: u32 = 1;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ProjectStatus {
     Active,
@@ -167,6 +169,8 @@ pub struct IdeEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSettings {
+    #[serde(default)]
+    pub version: u32,
     pub ides: Vec<IdeEntry>,
     pub default_ide_index: usize,
     pub autostart_enabled: bool,
@@ -177,6 +181,7 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
+            version: CURRENT_SETTINGS_VERSION,
             ides: Vec::new(),
             default_ide_index: 0,
             autostart_enabled: false,
