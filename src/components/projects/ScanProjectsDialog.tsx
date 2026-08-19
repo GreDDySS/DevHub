@@ -21,6 +21,7 @@ export function ScanProjectsDialog({ onClose }: ScanProjectsDialogProps) {
   const [selectedDir, setSelectedDir] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [scanProgress, setScanProgress] = useState<{ currentPath: string; projectsFound: number } | null>(null);
 
   const handleSelectDir = async () => {
     try {
@@ -42,16 +43,31 @@ export function ScanProjectsDialog({ onClose }: ScanProjectsDialogProps) {
   const handleScan = async () => {
     if (!selectedDir) return;
     setScanning(true);
+    setScanProgress(null);
     try {
       const { invoke } = await import("@tauri-apps/api/core");
-      const detected = await invoke<Project[]>("detect_projects", {
-        rootPath: selectedDir,
-      });
-      setProjects(detected);
+      const { listen } = await import("@tauri-apps/api/event");
+
+      const unlisten = await listen<{ currentPath: string; projectsFound: number }>(
+        "scan-progress",
+        (event) => {
+          setScanProgress(event.payload);
+        }
+      );
+
+      try {
+        const detected = await invoke<Project[]>("detect_projects", {
+          rootPath: selectedDir,
+        });
+        setProjects(detected);
+      } finally {
+        unlisten();
+      }
     } catch (e) {
       console.error("Failed to scan:", e);
     } finally {
       setScanning(false);
+      setScanProgress(null);
     }
   };
 
@@ -194,6 +210,23 @@ export function ScanProjectsDialog({ onClose }: ScanProjectsDialogProps) {
           {selectedDir && !scanning && projects.length === 0 && (
             <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
               Click "Scan" to find projects in this directory
+            </div>
+          )}
+
+          {/* Scanning progress */}
+          {scanning && scanProgress && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <p>Scanning: {scanProgress.currentPath}</p>
+              <p className="text-xs">Found {scanProgress.projectsFound} project{scanProgress.projectsFound !== 1 ? "s" : ""}</p>
+            </div>
+          )}
+
+          {/* Scanning without progress yet */}
+          {scanning && !scanProgress && (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Scanning...
             </div>
           )}
 

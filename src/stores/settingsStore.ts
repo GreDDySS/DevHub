@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { AppSettings } from "@/lib/types";
 
 interface SettingsState {
-  settings: AppSettings | null;
+  settings: AppSettings;
   isLoading: boolean;
   error: string | null;
 
@@ -13,6 +13,7 @@ interface SettingsState {
 }
 
 const defaultSettings: AppSettings = {
+  version: 1,
   ides: [],
   default_ide_index: 0,
   autostart_enabled: false,
@@ -21,7 +22,7 @@ const defaultSettings: AppSettings = {
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  settings: null,
+  settings: defaultSettings,
   isLoading: false,
   error: null,
 
@@ -58,8 +59,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   toggleTheme: async () => {
     const settings = get().settings;
-    if (!settings) return;
-
     const newSettings = { ...settings, is_dark_theme: !settings.is_dark_theme };
     await get().saveSettings(newSettings);
   },

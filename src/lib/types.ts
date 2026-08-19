@@ -54,6 +54,7 @@ export interface IdeEntry {
 }
 
 export interface AppSettings {
+  version: number;
   ides: IdeEntry[];
   default_ide_index: number;
   autostart_enabled: boolean;

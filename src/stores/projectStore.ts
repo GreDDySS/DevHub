@@ -57,10 +57,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   refreshProjects: async () => {
     set({ isLoading: true, error: null });
     try {
-      await invoke("refresh_projects");
+      const projects = await invoke<Project[]>("refresh_projects");
       const filter = get().filter;
-      const projects = await invoke<Project[]>("get_projects", { filter });
-      set({ projects, isLoading: false });
+      const filtered = await invoke<Project[]>("get_projects", { filter });
+      set({ projects: filtered, isLoading: false });
     } catch (error) {
       set({ error: String(error), isLoading: false });
     }

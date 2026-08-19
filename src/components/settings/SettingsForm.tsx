@@ -32,12 +32,16 @@ export function SettingsForm() {
 
   const handleAddIde = () => {
     const newIdes = [...settings.ides, { name: "", path: "" }];
-    saveSettings({ ...settings, ides: newIdes });
+    useSettingsStore.setState({
+      settings: { ...settings, ides: newIdes },
+    });
   };
 
   const handleRemoveIde = (index: number) => {
     const newIdes = settings.ides.filter((_, i) => i !== index);
-    saveSettings({ ...settings, ides: newIdes });
+    useSettingsStore.setState({
+      settings: { ...settings, ides: newIdes },
+    });
   };
 
   const handleIdeChange = (
@@ -47,15 +51,21 @@ export function SettingsForm() {
   ) => {
     const newIdes = [...settings.ides];
     newIdes[index] = { ...newIdes[index], [field]: value };
-    saveSettings({ ...settings, ides: newIdes });
+    useSettingsStore.setState({
+      settings: { ...settings, ides: newIdes },
+    });
   };
 
   const handleCloseActionChange = (action: CloseAction) => {
-    saveSettings({ ...settings, close_action: action });
+    useSettingsStore.setState({
+      settings: { ...settings, close_action: action },
+    });
   };
 
   const handleAutostartToggle = () => {
-    saveSettings({ ...settings, autostart_enabled: !settings.autostart_enabled });
+    useSettingsStore.setState({
+      settings: { ...settings, autostart_enabled: !settings.autostart_enabled },
+    });
   };
 
   const handleScanIdes = async () => {

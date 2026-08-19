@@ -110,7 +110,7 @@ export function ProjectList() {
   const hasActiveFilters =
     !!filter.status ||
     (filter.languages && filter.languages.length > 0) ||
-    !!filter.sort_by ||
+    (filter.sort_by && filter.sort_by !== "name_asc") ||
     !!filter.search_query;
 
   const clearFilters = () => {

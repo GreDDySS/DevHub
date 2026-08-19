@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Minus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,23 +10,30 @@ export function CloseDialog() {
   const [rememberChoice, setRememberChoice] = useState(false);
   const { settings, saveSettings } = useSettingsStore();
 
+  const unlistenRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
-    const setupListener = async () => {
+    let mounted = true;
+    const setup = async () => {
       try {
         const { getCurrentWindow } = await import("@tauri-apps/api/window");
         const unlisten = await getCurrentWindow().listen("show-close-dialog", () => {
           setRememberChoice(false);
           setIsOpen(true);
         });
-        return () => unlisten();
+        if (mounted) {
+          unlistenRef.current = unlisten;
+        } else {
+          unlisten();
+        }
       } catch (e) {
         console.error("Failed to setup close dialog listener:", e);
       }
     };
-
-    const cleanup = setupListener();
+    setup();
     return () => {
-      cleanup.then((fn) => fn?.());
+      mounted = false;
+      unlistenRef.current?.();
     };
   }, []);
 
