@@ -2,17 +2,7 @@ import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import type { AppSettings } from "@/lib/types";
 
-interface SettingsState {
-  settings: AppSettings;
-  isLoading: boolean;
-  error: string | null;
-
-  fetchSettings: () => Promise<void>;
-  saveSettings: (settings: AppSettings) => Promise<void>;
-  toggleTheme: () => Promise<void>;
-}
-
-const defaultSettings: AppSettings = {
+export const defaultSettings: AppSettings = {
   version: 1,
   ides: [],
   default_ide_index: 0,
@@ -23,9 +13,23 @@ const defaultSettings: AppSettings = {
   statuses_enabled: true,
 };
 
+interface SettingsState {
+  settings: AppSettings;
+  isLoading: boolean;
+  error: string | null;
+  isSaving: boolean;
+
+  fetchSettings: () => Promise<void>;
+  saveSettings: (settings: AppSettings) => Promise<void>;
+  updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
+  restoreDefaults: () => Promise<void>;
+  toggleTheme: () => Promise<void>;
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: defaultSettings,
   isLoading: false,
+  isSaving: false,
   error: null,
 
   fetchSettings: async () => {
@@ -34,34 +38,43 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const settings = await invoke<AppSettings>("get_settings");
       set({ settings, isLoading: false });
 
-      if (settings.is_dark_theme) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      applyTheme(settings.is_dark_theme);
     } catch (error) {
       set({ settings: defaultSettings, isLoading: false, error: String(error) });
     }
   },
 
   saveSettings: async (settings) => {
+    set({ isSaving: true, error: null });
     try {
       await invoke("save_settings", { settings });
-      set({ settings });
-
-      if (settings.is_dark_theme) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      set({ settings, isSaving: false });
+      applyTheme(settings.is_dark_theme);
     } catch (error) {
-      set({ error: String(error) });
+      set({ error: String(error), isSaving: false });
     }
+  },
+
+  updateSettings: async (patch) => {
+    const current = get().settings;
+    const updated = { ...current, ...patch };
+    await get().saveSettings(updated);
+  },
+
+  restoreDefaults: async () => {
+    await get().saveSettings({ ...defaultSettings });
   },
 
   toggleTheme: async () => {
     const settings = get().settings;
-    const newSettings = { ...settings, is_dark_theme: !settings.is_dark_theme };
-    await get().saveSettings(newSettings);
+    await get().updateSettings({ is_dark_theme: !settings.is_dark_theme });
   },
 }));
+
+function applyTheme(isDark: boolean) {
+  if (isDark) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+}
