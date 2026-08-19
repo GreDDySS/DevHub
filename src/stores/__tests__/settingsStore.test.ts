@@ -16,6 +16,7 @@ const mockSettings = {
   close_action: "MinimizeToTray" as const,
   is_dark_theme: false,
   inactive_days: 30,
+  statuses_enabled: true,
 };
 
 describe("settingsStore", () => {
@@ -29,6 +30,7 @@ describe("settingsStore", () => {
         close_action: "MinimizeToTray",
         is_dark_theme: false,
         inactive_days: 30,
+        statuses_enabled: true,
       },
       isLoading: false,
       error: null,

@@ -6,6 +6,7 @@ import {
   Copy,
   Trash2,
   FolderOpen,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,10 +82,20 @@ export function LinkList() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Links</h1>
-        <Button size="sm" onClick={() => setShowCaptureDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Capture Link
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fetchLinks()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button size="sm" onClick={() => setShowCaptureDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Capture Link
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 mb-4">

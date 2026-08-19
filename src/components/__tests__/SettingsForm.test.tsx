@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, waitFor } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { useSettingsStore } from "@/stores/settingsStore";
@@ -11,6 +11,8 @@ vi.mock("@tauri-apps/api/core", () => ({
     autostart_enabled: false,
     close_action: "MinimizeToTray",
     is_dark_theme: false,
+    inactive_days: 30,
+    statuses_enabled: true,
   }),
 }));
 
@@ -24,6 +26,8 @@ describe("SettingsForm", () => {
         autostart_enabled: false,
         close_action: "MinimizeToTray",
         is_dark_theme: false,
+        inactive_days: 30,
+        statuses_enabled: true,
       },
       isLoading: false,
       error: null,
