@@ -195,6 +195,8 @@ pub fn open_in_ide(project_path: String, ide_path: String) -> Result<(), String>
     ide_detection::validate_ide_path(&ide_path)?;
     std::process::Command::new(&ide_path)
         .arg(&project_path)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .spawn()
         .map_err(|e| format!("Failed to open in IDE: {}", e))?;
     Ok(())
