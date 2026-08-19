@@ -36,16 +36,6 @@ impl Default for ProgrammingLanguage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum LinkType {
-    YouTube,
-    Article,
-    Repository,
-    Documentation,
-    Other,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "PascalCase")]
 pub enum CloseAction {
     Exit,
     MinimizeToTray,
@@ -109,8 +99,6 @@ pub struct Link {
     pub id: String,
     pub url: String,
     pub title: String,
-    #[serde(rename = "type")]
-    pub link_type: LinkType,
     pub project_id: Option<String>,
     pub tags: Vec<String>,
     pub notes: String,
@@ -129,14 +117,12 @@ impl Link {
             return Err("URL must start with http:// or https://".to_string());
         }
         
-        let link_type = Self::detect_type(&url);
         let now = Utc::now();
         
         Ok(Self {
             id: Uuid::new_v4().to_string(),
             title: String::new(),
             url,
-            link_type,
             project_id: None,
             tags: Vec::new(),
             notes: String::new(),
@@ -144,18 +130,6 @@ impl Link {
             created_at: now,
             updated_at: now,
         })
-    }
-    
-    fn detect_type(url: &str) -> LinkType {
-        if url.contains("youtube.com") || url.contains("youtu.be") {
-            LinkType::YouTube
-        } else if url.contains("github.com") || url.contains("gitlab.com") || url.contains("bitbucket.org") {
-            LinkType::Repository
-        } else if url.contains("docs.") || url.contains("/docs/") || url.contains("/documentation/") {
-            LinkType::Documentation
-        } else {
-            LinkType::Article
-        }
     }
 }
 
@@ -297,7 +271,6 @@ mod tests {
         
         let l = link.unwrap();
         assert_eq!(l.url, "https://github.com/test/repo");
-        assert_eq!(l.link_type, LinkType::Repository);
     }
 
     #[test]
@@ -311,30 +284,6 @@ mod tests {
         let link = Link::new("github.com/test".to_string());
         assert!(link.is_err());
         assert!(link.unwrap_err().contains("http"));
-    }
-
-    #[test]
-    fn test_link_detect_youtube() {
-        let link = Link::new("https://youtube.com/watch?v=123".to_string()).unwrap();
-        assert_eq!(link.link_type, LinkType::YouTube);
-    }
-
-    #[test]
-    fn test_link_detect_github() {
-        let link = Link::new("https://github.com/user/repo".to_string()).unwrap();
-        assert_eq!(link.link_type, LinkType::Repository);
-    }
-
-    #[test]
-    fn test_link_detect_docs() {
-        let link = Link::new("https://docs.example.com/guide".to_string()).unwrap();
-        assert_eq!(link.link_type, LinkType::Documentation);
-    }
-
-    #[test]
-    fn test_link_detect_article() {
-        let link = Link::new("https://blog.example.com/post".to_string()).unwrap();
-        assert_eq!(link.link_type, LinkType::Article);
     }
 
     #[test]

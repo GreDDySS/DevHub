@@ -10,30 +10,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { CaptureLinkDialog } from "./CaptureLinkDialog";
 import { useLinkStore } from "@/stores/linkStore";
-import type { Link, LinkType } from "@/lib/types";
-import { LINK_TYPE_COLORS } from "@/lib/types";
-import { cn } from "@/lib/utils";
-
-const typeFilters: { label: string; value: LinkType | null }[] = [
-  { label: "All", value: null },
-  { label: "YouTube", value: "YouTube" },
-  { label: "Article", value: "Article" },
-  { label: "Repository", value: "Repository" },
-  { label: "Docs", value: "Documentation" },
-  { label: "Other", value: "Other" },
-];
+import type { Link } from "@/lib/types";
 
 export function LinkList() {
   const {
     links,
     searchQuery,
-    typeFilter,
     isLoading,
     setSearchQuery,
-    setTypeFilter,
     fetchLinks,
     deleteLink,
     copyUrl,
@@ -51,8 +37,7 @@ export function LinkList() {
       !searchQuery ||
       link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       link.url.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !typeFilter || link.type === typeFilter;
-    return matchesSearch && matchesType;
+    return matchesSearch;
   });
 
   const handleCopyUrl = (e: React.MouseEvent, url: string) => {
@@ -108,18 +93,6 @@ export function LinkList() {
             className="pl-9"
           />
         </div>
-        <div className="flex items-center gap-1">
-          {typeFilters.map((tf) => (
-            <Button
-              key={tf.label}
-              variant={typeFilter === tf.value ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setTypeFilter(tf.value)}
-            >
-              {tf.label}
-            </Button>
-          ))}
-        </div>
       </div>
 
       {filteredLinks.length === 0 ? (
@@ -165,12 +138,7 @@ function LinkItem({
   return (
     <div className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium truncate">{link.title || link.url}</h3>
-          <Badge className={cn("text-xs", LINK_TYPE_COLORS[link.type])}>
-            {link.type}
-          </Badge>
-        </div>
+        <h3 className="font-medium truncate">{link.title || link.url}</h3>
         <p className="text-sm text-muted-foreground truncate">{link.url}</p>
       </div>
       <div className="flex items-center gap-1">

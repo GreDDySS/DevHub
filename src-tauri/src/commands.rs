@@ -126,7 +126,7 @@ pub fn get_links() -> Vec<Link> {
 #[tauri::command]
 pub fn capture_link(url: String) -> Result<Link, String> {
     let mut link = Link::new(url)?;
-    link.title = extract_title(&link.url);
+    link.title = link.url.clone();
     storage::add_link(link.clone())?;
     Ok(link)
 }
@@ -137,32 +137,10 @@ pub fn add_link(url: String, title: Option<String>) -> Result<Link, String> {
     if let Some(t) = title {
         link.title = t;
     } else {
-        link.title = extract_title(&link.url);
+        link.title = link.url.clone();
     }
     storage::add_link(link.clone())?;
     Ok(link)
-}
-
-fn extract_title(url: &str) -> String {
-    if url.contains("youtube.com") || url.contains("youtu.be") {
-        "YouTube Video".to_string()
-    } else if url.contains("github.com") {
-        let parts: Vec<&str> = url.split('/').collect();
-        if parts.len() >= 5 {
-            format!("{}/{}", parts[3], parts[4])
-        } else {
-            "GitHub Repository".to_string()
-        }
-    } else if url.contains("docs.") || url.contains("/docs/") {
-        "Documentation".to_string()
-    } else {
-        // Extract domain from URL
-        url.split("://")
-            .nth(1)
-            .and_then(|s| s.split('/').next())
-            .unwrap_or("Link")
-            .to_string()
-    }
 }
 
 #[tauri::command]

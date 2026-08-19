@@ -13,7 +13,6 @@ const mockLinks = [
     id: "1",
     url: "https://github.com/user/repo",
     title: "GitHub Repository",
-    type: "Repository" as const,
     project_id: null,
     tags: [],
     notes: "",
@@ -25,7 +24,6 @@ const mockLinks = [
     id: "2",
     url: "https://example.com/article",
     title: "Example Article",
-    type: "Article" as const,
     project_id: null,
     tags: [],
     notes: "",
@@ -40,7 +38,6 @@ describe("linkStore", () => {
     useLinkStore.setState({
       links: [],
       searchQuery: "",
-      typeFilter: null,
       isLoading: false,
       error: null,
     });
@@ -105,19 +102,6 @@ describe("linkStore", () => {
     it("updates search query", () => {
       useLinkStore.getState().setSearchQuery("rust");
       expect(useLinkStore.getState().searchQuery).toBe("rust");
-    });
-  });
-
-  describe("setTypeFilter", () => {
-    it("sets type filter", () => {
-      useLinkStore.getState().setTypeFilter("Repository");
-      expect(useLinkStore.getState().typeFilter).toBe("Repository");
-    });
-
-    it("clears type filter", () => {
-      useLinkStore.getState().setTypeFilter("Repository");
-      useLinkStore.getState().setTypeFilter(null);
-      expect(useLinkStore.getState().typeFilter).toBeNull();
     });
   });
 });

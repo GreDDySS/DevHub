@@ -1,16 +1,14 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
-import type { Link, LinkType } from "@/lib/types";
+import type { Link } from "@/lib/types";
 
 interface LinkState {
   links: Link[];
   searchQuery: string;
-  typeFilter: LinkType | null;
   isLoading: boolean;
   error: string | null;
 
   setSearchQuery: (query: string) => void;
-  setTypeFilter: (type: LinkType | null) => void;
   fetchLinks: () => Promise<void>;
   captureLink: (url: string) => Promise<Link | null>;
   addLinkFromClipboard: () => Promise<Link | null>;
@@ -22,12 +20,10 @@ interface LinkState {
 export const useLinkStore = create<LinkState>((set, get) => ({
   links: [],
   searchQuery: "",
-  typeFilter: null,
   isLoading: false,
   error: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setTypeFilter: (type) => set({ typeFilter: type }),
 
   fetchLinks: async () => {
     set({ isLoading: true, error: null });

@@ -3,12 +3,10 @@ import {
   LANGUAGE_ICONS,
   LANGUAGE_COLORS,
   STATUS_COLORS,
-  LINK_TYPE_COLORS,
 } from "@/lib/types";
 import type {
   ProgrammingLanguage,
   ProjectStatus,
-  LinkType,
 } from "@/lib/types";
 
 describe("LANGUAGE_ICONS", () => {
@@ -49,16 +47,6 @@ describe("STATUS_COLORS", () => {
       expect(STATUS_COLORS[status]).toBeDefined();
       expect(STATUS_COLORS[status]).toContain("bg-");
       expect(STATUS_COLORS[status]).toContain("text-");
-    }
-  });
-});
-
-describe("LINK_TYPE_COLORS", () => {
-  it("has colors for all link types", () => {
-    const types: LinkType[] = ["YouTube", "Article", "Repository", "Documentation", "Other"];
-    for (const type of types) {
-      expect(LINK_TYPE_COLORS[type]).toBeDefined();
-      expect(LINK_TYPE_COLORS[type]).toContain("bg-");
     }
   });
 });

@@ -11,13 +11,6 @@ export type ProgrammingLanguage =
   | "Cpp"
   | "Other";
 
-export type LinkType =
-  | "YouTube"
-  | "Article"
-  | "Repository"
-  | "Documentation"
-  | "Other";
-
 export type CloseAction = "Exit" | "MinimizeToTray" | "Ask";
 
 export interface Project {
@@ -39,7 +32,6 @@ export interface Link {
   id: string;
   url: string;
   title: string;
-  type: LinkType;
   project_id: string | null;
   tags: string[];
   notes: string;
@@ -119,12 +111,4 @@ export const LANGUAGE_COLORS: Record<ProgrammingLanguage, string> = {
 export const STATUS_COLORS: Record<ProjectStatus, string> = {
   Active: "bg-green-500/10 text-green-600 dark:text-green-400",
   Inactive: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
-};
-
-export const LINK_TYPE_COLORS: Record<LinkType, string> = {
-  YouTube: "bg-red-500/10 text-red-600 dark:text-red-400",
-  Repository: "bg-gray-500/10 text-gray-600 dark:text-gray-400",
-  Article: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  Documentation: "bg-green-500/10 text-green-600 dark:text-green-400",
-  Other: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
