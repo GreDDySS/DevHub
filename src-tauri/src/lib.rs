@@ -85,12 +85,13 @@ pub fn run() {
                 }
             }
 
-            // Setup global shortcut (Ctrl+Shift+Y)
+            // Setup global shortcut (Ctrl+Shift+Y) — save link from clipboard
             #[cfg(desktop)]
             {
                 use tauri_plugin_global_shortcut::{
                     Code, GlobalShortcutExt, Modifiers, Shortcut,
                 };
+                use tauri_plugin_clipboard_manager::ClipboardExt;
 
                 let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyY);
                 let app_handle = app.handle().clone();
@@ -98,9 +99,13 @@ pub fn run() {
                 app.global_shortcut()
                     .on_shortcut(shortcut, move |_app, _shortcut, event| {
                         if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                            if let Some(window) = app_handle.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
+                            if let Ok(text) = app_handle.clipboard().read_text() {
+                                let url = text.to_string();
+                                if url.starts_with("http://") || url.starts_with("https://") {
+                                    if let Ok(link) = crate::models::Link::new(url) {
+                                        let _ = storage::add_link(link);
+                                    }
+                                }
                             }
                         }
                     })?;
