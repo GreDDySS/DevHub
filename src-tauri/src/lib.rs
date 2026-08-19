@@ -167,6 +167,7 @@ pub fn run() {
             commands::detect_projects,
             commands::refresh_projects,
             commands::force_exit,
+            commands::get_data_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

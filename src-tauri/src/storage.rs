@@ -10,7 +10,7 @@ static PROJECTS: Lazy<Mutex<Vec<Project>>> = Lazy::new(|| Mutex::new(Vec::new())
 static LINKS: Lazy<Mutex<Vec<Link>>> = Lazy::new(|| Mutex::new(Vec::new()));
 static SETTINGS: Lazy<Mutex<AppSettings>> = Lazy::new(|| Mutex::new(AppSettings::default()));
 
-fn get_data_dir() -> PathBuf {
+pub fn get_data_dir() -> PathBuf {
     #[cfg(test)]
     {
         if let Ok(dir) = std::env::var("DEVHUB_TEST_DIR") {
@@ -24,6 +24,10 @@ fn get_data_dir() -> PathBuf {
         .join("DevHub");
     fs::create_dir_all(&data_dir).ok();
     data_dir
+}
+
+pub fn get_data_dir_path() -> String {
+    get_data_dir().to_string_lossy().to_string()
 }
 
 pub fn init_storage() -> Result<(), Box<dyn std::error::Error>> {

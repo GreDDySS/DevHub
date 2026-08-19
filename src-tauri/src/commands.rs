@@ -8,6 +8,11 @@ pub fn force_exit(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+pub fn get_data_dir() -> String {
+    storage::get_data_dir_path()
+}
+
+#[tauri::command]
 pub fn refresh_projects() -> Result<Vec<Project>, String> {
     storage::remove_missing_projects()?;
     Ok(storage::get_projects())
