@@ -1,6 +1,7 @@
 use crate::models::*;
 use crate::storage;
 use crate::ide_detection;
+use crate::constants::{GIT_LOG_FIELD_SEPARATOR, GIT_LOG_RECORD_SEPARATOR, STATS_EXCLUDED_DIRS};
 
 #[tauri::command]
 pub fn force_exit(app: tauri::AppHandle) {
@@ -272,9 +273,6 @@ pub fn open_in_browser(url: String) -> Result<(), String> {
     open::that(&url).map_err(|e| format!("Failed to open in browser: {}", e))
 }
 
-const GIT_LOG_SEPARATOR: char = '\u{1f}';
-const GIT_LOG_RECORD: char = '\u{1e}';
-
 fn is_git_repo(project_path: &str) -> bool {
     std::path::Path::new(project_path).join(".git").exists()
 }
@@ -315,8 +313,8 @@ pub fn get_git_activity(
 
     let format = format!(
         "%H{sep}%h{sep}%an{sep}%at{sep}%s{rec}",
-        sep = GIT_LOG_SEPARATOR,
-        rec = GIT_LOG_RECORD
+        sep = GIT_LOG_FIELD_SEPARATOR,
+        rec = GIT_LOG_RECORD_SEPARATOR
     );
     let max_count = format!("--max-count={}", limit);
     let out = match run_git(
@@ -328,10 +326,10 @@ pub fn get_git_activity(
     };
 
     let commits: Vec<GitCommit> = out
-        .split(GIT_LOG_RECORD)
+        .split(GIT_LOG_RECORD_SEPARATOR)
         .filter(|record| !record.trim().is_empty())
         .filter_map(|record| {
-            let fields: Vec<&str> = record.split(GIT_LOG_SEPARATOR).collect();
+            let fields: Vec<&str> = record.split(GIT_LOG_FIELD_SEPARATOR).collect();
             if fields.len() < 5 {
                 return None;
             }
@@ -356,19 +354,6 @@ pub fn get_git_activity(
         commits,
     }))
 }
-
-const STATS_EXCLUDED_DIRS: &[&str] = &[
-    ".git",
-    "node_modules",
-    "target",
-    "dist",
-    "build",
-    "out",
-    ".next",
-    "__pycache__",
-    ".venv",
-    "venv",
-];
 
 fn walk_stats(dir: &std::path::Path, stats: &mut ProjectStats, depth: u32, in_artifact: bool) {
     if depth > 32 {

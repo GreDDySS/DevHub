@@ -1,5 +1,5 @@
 use crate::models::{Project, ProgrammingLanguage};
-use crate::constants::{EXCLUDED_DIRS, EXCLUDED_LANG_DETECT};
+use crate::constants::{EXCLUDED_DIRS, EXCLUDED_LANG_DETECT, PROJECT_MARKERS};
 
 pub struct ScanProgress {
     pub current_path: String,
@@ -87,17 +87,9 @@ fn scan_dir(
                     continue;
                 }
 
-                let has_indicator = entry_path.join("Cargo.toml").exists()
-                    || entry_path.join("package.json").exists()
-                    || entry_path.join("go.mod").exists()
-                    || entry_path.join("pom.xml").exists()
-                    || entry_path.join("build.gradle").exists()
-                    || entry_path.join("CMakeLists.txt").exists()
-                    || entry_path.join("requirements.txt").exists()
-                    || entry_path.join("setup.py").exists()
-                    || entry_path.join("pyproject.toml").exists()
-                    || entry_path.join("Gemfile").exists()
-                    || entry_path.join("composer.json").exists()
+                let has_indicator = PROJECT_MARKERS
+                    .iter()
+                    .any(|marker| entry_path.join(marker).exists())
                     || has_sln_file(&entry_path);
 
                 if has_indicator {

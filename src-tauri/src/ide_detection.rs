@@ -1,3 +1,4 @@
+use crate::constants::ide;
 use crate::models::IdeEntry;
 
 pub fn scan_ides() -> Vec<IdeEntry> {
@@ -8,28 +9,10 @@ pub fn scan_ides() -> Vec<IdeEntry> {
         use winreg::enums::*;
         use winreg::RegKey;
 
-        let known_ides: Vec<(&str, &str)> = vec![
-            ("Visual Studio Code", "Visual Studio Code"),
-            ("Visual Studio", "Visual Studio"),
-            ("Rider", "JetBrains Rider"),
-            ("IntelliJ", "JetBrains IntelliJ IDEA"),
-            ("WebStorm", "JetBrains WebStorm"),
-            ("PyCharm", "JetBrains PyCharm"),
-            ("CLion", "JetBrains CLion"),
-            ("GoLand", "JetBrains GoLand"),
-            ("RustRover", "JetBrains RustRover"),
-            ("Notepad++", "Notepad++"),
-            ("Sublime Text", "Sublime Text"),
-        ];
-
         let hives = [HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER];
-        let subkeys = [
-            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-            r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
-        ];
 
         for hive in &hives {
-            for subkey_path in &subkeys {
+            for subkey_path in ide::REGISTRY_UNINSTALL_SUBKEYS {
                 let key = RegKey::predef(*hive).open_subkey(subkey_path);
                 if let Ok(key) = key {
                     for entry_name in key.enum_keys().filter_map(|k| k.ok()) {
@@ -43,7 +26,7 @@ pub fn scan_ides() -> Vec<IdeEntry> {
 
                             let display_lower = display_name.to_lowercase();
 
-                            for (pattern, friendly_name) in &known_ides {
+                            for (pattern, friendly_name) in ide::WINDOWS_IDE_PATTERNS {
                                 if display_lower.contains(&pattern.to_lowercase()) {
                                     let install_path = std::path::Path::new(&install_location);
                                     if install_path.exists() {
@@ -81,27 +64,12 @@ pub fn scan_ides() -> Vec<IdeEntry> {
 
     #[cfg(target_os = "linux")]
     {
-        let known_ides: Vec<(&str, &str)> = vec![
-            ("code", "Visual Studio Code"),
-            ("rider", "JetBrains Rider"),
-            ("idea", "JetBrains IntelliJ IDEA"),
-            ("webstorm", "JetBrains WebStorm"),
-            ("pycharm", "JetBrains PyCharm"),
-            ("clion", "JetBrains CLion"),
-            ("goland", "JetBrains GoLand"),
-            ("rustrover", "JetBrains RustRover"),
-            ("sublime_text", "Sublime Text"),
-            ("subl", "Sublime Text"),
-        ];
-
-        let mut all_desktop_dirs: Vec<std::path::PathBuf> = vec![
-            std::path::PathBuf::from("/usr/share/applications"),
-            std::path::PathBuf::from("/usr/local/share/applications"),
-            std::path::PathBuf::from("/var/lib/flatpak/exports/share/applications"),
-            std::path::PathBuf::from("/var/lib/snapd/desktop/applications"),
-        ];
+        let mut all_desktop_dirs: Vec<std::path::PathBuf> = ide::LINUX_DESKTOP_DIRS
+            .iter()
+            .map(std::path::PathBuf::from)
+            .collect();
         if let Some(home) = dirs::home_dir() {
-            all_desktop_dirs.push(home.join(".local/share/applications"));
+            all_desktop_dirs.push(home.join(ide::LINUX_USER_DESKTOP_DIR));
         }
 
         for dir in &all_desktop_dirs {
@@ -119,8 +87,7 @@ pub fn scan_ides() -> Vec<IdeEntry> {
                                 continue;
                             }
 
-                            if let Some(friendly_name) = match_linux_ide(&name_value, &exec_value) {
-                                let exe_path = if exec_value.starts_with('/') {
+                            if let Some(friendly_name) = match_linux_ide(&name_value, &exec_value) {                                let exe_path = if exec_value.starts_with('/') {
                                     exec_value.clone()
                                 } else {
                                     std::process::Command::new("which")
@@ -153,22 +120,9 @@ pub fn scan_ides() -> Vec<IdeEntry> {
 
     #[cfg(target_os = "macos")]
     {
-        let known_ides: Vec<(&str, &str, &str)> = vec![
-            ("Visual Studio Code.app", "Visual Studio Code", "Contents/Resources/app/bin/code"),
-            ("Rider.app", "JetBrains Rider", "Contents/MacOS/rider"),
-            ("IntelliJ IDEA.app", "JetBrains IntelliJ IDEA", "Contents/MacOS/idea"),
-            ("WebStorm.app", "JetBrains WebStorm", "Contents/MacOS/webstorm"),
-            ("PyCharm.app", "JetBrains PyCharm", "Contents/MacOS/pycharm"),
-            ("PyCharm CE.app", "JetBrains PyCharm Community", "Contents/MacOS/pycharm"),
-            ("CLion.app", "JetBrains CLion", "Contents/MacOS/clion"),
-            ("GoLand.app", "JetBrains GoLand", "Contents/MacOS/goland"),
-            ("RustRover.app", "JetBrains RustRover", "Contents/MacOS/rustrover"),
-            ("Sublime Text.app", "Sublime Text", "Contents/SharedSupport/bin/subl"),
-        ];
-
-        let mut app_dirs = vec![std::path::PathBuf::from("/Applications")];
+        let mut app_dirs = vec![std::path::PathBuf::from(ide::MACOS_SYSTEM_APPS_DIR)];
         if let Some(home) = dirs::home_dir() {
-            app_dirs.push(home.join("Applications"));
+            app_dirs.push(home.join(ide::MACOS_USER_APPS_DIR));
         }
 
         for dir in &app_dirs {
@@ -181,7 +135,7 @@ pub fn scan_ides() -> Vec<IdeEntry> {
                     if path.extension().map_or(false, |e| e == "app") {
                         let app_name = path.file_name().unwrap_or_default().to_string_lossy();
 
-                        for (app_pattern, friendly_name, exe_suffix) in &known_ides {
+                        for (app_pattern, friendly_name, exe_suffix) in ide::MACOS_IDE_APPS {
                             if app_name == *app_pattern {
                                 let exe_path = path.join(exe_suffix);
                                 if exe_path.exists() {
@@ -205,22 +159,8 @@ pub fn scan_ides() -> Vec<IdeEntry> {
 #[allow(dead_code)]
 pub fn match_ide_pattern(display_name: &str) -> Option<&'static str> {
     let lower = display_name.to_lowercase();
-    let patterns: Vec<(&str, &str)> = vec![
-        ("visual studio code", "Visual Studio Code"),
-        ("visual studio", "Visual Studio"),
-        ("rider", "JetBrains Rider"),
-        ("intellij", "JetBrains IntelliJ IDEA"),
-        ("webstorm", "JetBrains WebStorm"),
-        ("pycharm community", "JetBrains PyCharm Community"),
-        ("pycharm", "JetBrains PyCharm"),
-        ("clion", "JetBrains CLion"),
-        ("goland", "JetBrains GoLand"),
-        ("rustrover", "JetBrains RustRover"),
-        ("notepad++", "Notepad++"),
-        ("sublime text", "Sublime Text"),
-    ];
 
-    for (pattern, friendly_name) in &patterns {
+    for (pattern, friendly_name) in ide::DISPLAY_NAME_PATTERNS {
         if lower.contains(pattern) {
             return Some(friendly_name);
         }
@@ -230,17 +170,17 @@ pub fn match_ide_pattern(display_name: &str) -> Option<&'static str> {
 
 pub fn match_exe_name(friendly_name: &str, exe_stem: &str) -> bool {
     match friendly_name {
-        "Visual Studio Code" => exe_stem == "Code",
-        "Visual Studio" => exe_stem == "devenv",
-        "JetBrains Rider" => exe_stem == "rider64",
-        "JetBrains IntelliJ IDEA" => exe_stem == "idea64",
-        "JetBrains WebStorm" => exe_stem == "webstorm64",
-        "JetBrains PyCharm" | "JetBrains PyCharm Community" => exe_stem == "pycharm64",
-        "JetBrains CLion" => exe_stem == "clion64",
-        "JetBrains GoLand" => exe_stem == "goland64",
-        "JetBrains RustRover" => exe_stem == "rustrover64",
-        "Notepad++" => exe_stem == "notepad++",
-        "Sublime Text" => exe_stem == "sublime_text",
+        ide::VS_CODE => exe_stem == "Code",
+        ide::VISUAL_STUDIO => exe_stem == "devenv",
+        ide::RIDER => exe_stem == "rider64",
+        ide::INTELLIJ_IDEA => exe_stem == "idea64",
+        ide::WEBSTORM => exe_stem == "webstorm64",
+        ide::PYCHARM | ide::PYCHARM_COMMUNITY => exe_stem == "pycharm64",
+        ide::CLION => exe_stem == "clion64",
+        ide::GOLAND => exe_stem == "goland64",
+        ide::RUSTROVER => exe_stem == "rustrover64",
+        ide::NOTEPAD_PLUS_PLUS => exe_stem == "notepad++",
+        ide::SUBLIME_TEXT => exe_stem == "sublime_text",
         _ => false,
     }
 }
@@ -267,20 +207,7 @@ pub fn match_linux_ide(name: &str, exec: &str) -> Option<&'static str> {
     let name_lower = name.to_lowercase();
     let exec_lower = exec.to_lowercase();
 
-    let patterns: Vec<(&str, &str)> = vec![
-        ("code", "Visual Studio Code"),
-        ("rider", "JetBrains Rider"),
-        ("idea", "JetBrains IntelliJ IDEA"),
-        ("webstorm", "JetBrains WebStorm"),
-        ("pycharm", "JetBrains PyCharm"),
-        ("clion", "JetBrains CLion"),
-        ("goland", "JetBrains GoLand"),
-        ("rustrover", "JetBrains RustRover"),
-        ("sublime_text", "Sublime Text"),
-        ("subl", "Sublime Text"),
-    ];
-
-    for (pattern, friendly_name) in &patterns {
+    for (pattern, friendly_name) in ide::LINUX_IDE_PATTERNS {
         if name_lower.contains(pattern) || exec_lower.contains(pattern) {
             return Some(friendly_name);
         }
