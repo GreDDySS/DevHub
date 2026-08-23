@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { GitBranch, RefreshCw } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useGitStore } from "@/stores/gitStore";
@@ -63,9 +64,23 @@ export function GitActivitySection({ projectPath }: GitActivityProps) {
             key={commit.hash}
             className="group flex items-baseline gap-3 rounded-lg px-2 py-1.5 hover:bg-accent/50 transition-colors"
           >
-            <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0 w-14 truncate">
-              {commit.short_hash}
-            </span>
+            {activity.web_url ? (
+              <button
+                className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0 w-14 truncate text-left hover:underline cursor-pointer"
+                title={`Open commit on ${new URL(activity.web_url).hostname}`}
+                onClick={() =>
+                  invoke("open_in_browser", {
+                    url: `${activity.web_url}/commit/${commit.hash}`,
+                  })
+                }
+              >
+                {commit.short_hash}
+              </button>
+            ) : (
+              <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0 w-14 truncate">
+                {commit.short_hash}
+              </span>
+            )}
             <span
               className="text-sm min-w-0 truncate flex-1"
               title={commit.message}

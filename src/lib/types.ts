@@ -54,6 +54,7 @@ export interface GitActivity {
   branch: string;
   total_commits: number;
   commits: GitCommit[];
+  web_url: string | null;
 }
 
 export interface ProjectStats {

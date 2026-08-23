@@ -19,6 +19,31 @@ fn run_git(project_path: &str, args: &[&str]) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
+fn normalize_remote_url(url: &str) -> Option<String> {
+    let url = url.trim();
+    if url.is_empty() {
+        return None;
+    }
+
+    let url = url.strip_suffix(".git").unwrap_or(url);
+
+    if let Some(rest) = url.strip_prefix("git@") {
+        let (host, path) = rest.split_once(':')?;
+        return Some(format!("https://{}/{}", host, path));
+    }
+
+    if let Some(rest) = url.strip_prefix("ssh://") {
+        let rest = rest.strip_prefix("git@").unwrap_or(rest);
+        return Some(format!("https://{}", rest));
+    }
+
+    if url.starts_with("http://") || url.starts_with("https://") {
+        return Some(url.to_string());
+    }
+
+    None
+}
+
 #[tauri::command]
 pub fn get_git_activity(
     project_path: String,
@@ -38,6 +63,10 @@ pub fn get_git_activity(
         .ok()
         .and_then(|s| s.trim().parse::<u64>().ok())
         .unwrap_or(0);
+
+    let web_url = run_git(&project_path, &["config", "--get", "remote.origin.url"])
+        .ok()
+        .and_then(|url| normalize_remote_url(&url));
 
     let format = format!(
         "%H{sep}%h{sep}%an{sep}%at{sep}%s{rec}",
@@ -85,5 +114,10 @@ pub fn get_git_activity(
         branch,
         total_commits,
         commits,
+        web_url,
     }))
 }
+
+#[cfg(test)]
+#[path = "../tests/git_tests.rs"]
+mod tests;

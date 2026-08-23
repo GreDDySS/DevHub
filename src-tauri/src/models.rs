@@ -196,6 +196,7 @@ pub struct GitActivity {
     pub branch: String,
     pub total_commits: u64,
     pub commits: Vec<GitCommit>,
+    pub web_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
