@@ -7,11 +7,9 @@ describe("cn", () => {
     expect(result).toBe("text-blue-500");
   });
 
-  it("handles conditional classes", () => {
-    const result = cn("base", false && "hidden", "extra");
-    expect(result).toContain("base");
-    expect(result).toContain("extra");
-    expect(result).not.toContain("hidden");
+  it("handles falsy classes", () => {
+    const result = cn("base", "", "extra");
+    expect(result).toBe("base extra");
   });
 
   it("returns empty string for no args", () => {

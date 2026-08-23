@@ -190,11 +190,10 @@ function buildLinkItems(links: Link[]): PaletteItem[] {
 }
 
 interface CommandPaletteProps {
-  open: boolean;
   onClose: () => void;
 }
 
-export function CommandPalette({ open, onClose }: CommandPaletteProps) {
+export function CommandPalette({ onClose }: CommandPaletteProps) {
   const { projects, fetchProjects } = useProjectStore();
   const { links, fetchLinks } = useLinkStore();
   const settings = useSettingsStore((s) => s.settings);
@@ -206,14 +205,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      setSelected(0);
-      fetchProjects();
-      fetchLinks();
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [open, fetchProjects, fetchLinks]);
+    fetchProjects();
+    fetchLinks();
+    const t = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, [fetchProjects, fetchLinks]);
 
   const items = useMemo(
     () => [
@@ -245,16 +241,12 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     return results;
   }, [items, query]);
 
-  useEffect(() => {
-    setSelected(0);
-  }, [query]);
+  const selectedIndex = Math.min(selected, Math.max(matched.length - 1, 0));
 
   useEffect(() => {
-    const el = listRef.current?.querySelector(`[data-index="${selected}"]`);
+    const el = listRef.current?.querySelector(`[data-index="${selectedIndex}"]`);
     el?.scrollIntoView({ block: "nearest" });
-  }, [selected]);
-
-  if (!open) return null;
+  }, [selectedIndex]);
 
   const closeAfter = (action: PaletteAction) => {
     onClose();
@@ -269,13 +261,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       onClose();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelected((s) => Math.min(s + 1, matched.length - 1));
+      setSelected(Math.min(selectedIndex + 1, matched.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelected((s) => Math.max(s - 1, 0));
+      setSelected(Math.max(selectedIndex - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const m = matched[selected];
+      const m = matched[selectedIndex];
       if (m) closeAfter(m.item.primary);
     }
   };
@@ -314,7 +306,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                 onClick={() => closeAfter(item.primary)}
                 className={cn(
                   "group flex items-center gap-3 rounded-lg px-2.5 py-2 cursor-pointer transition-colors",
-                  i === selected ? "bg-accent" : "hover:bg-accent/50"
+                  i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"
                 )}
               >
                 {item.icon}

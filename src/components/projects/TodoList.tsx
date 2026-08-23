@@ -50,13 +50,6 @@ export function TodoList({ projectId }: TodoListProps) {
     }
   }, [editingId]);
 
-  useEffect(() => {
-    if (editingId && !todos.some((t) => t.id === editingId)) {
-      setEditingId(null);
-      setEditValue("");
-    }
-  }, [todos, editingId]);
-
   const isRowEditing =
     !!editingId && todos.some((t) => t.id === editingId);
 

@@ -60,7 +60,9 @@ export function Shell() {
         <main className="flex-1 overflow-auto p-6">{renderView()}</main>
       </div>
       <CloseDialog />
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      {paletteOpen && (
+        <CommandPalette onClose={() => setPaletteOpen(false)} />
+      )}
       <Toaster />
     </div>
   );
