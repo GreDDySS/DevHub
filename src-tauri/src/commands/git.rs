@@ -74,7 +74,7 @@ pub fn get_git_activity(
         rec = GIT_LOG_RECORD_SEPARATOR
     );
     let max_count = format!("--max-count={}", limit);
-    let out = match run_git(
+    let out = run_git(
         &project_path,
         &[
             "log",
@@ -82,10 +82,7 @@ pub fn get_git_activity(
             &format!("--pretty=format:{}", format),
             &max_count,
         ],
-    ) {
-        Ok(out) => out,
-        Err(_) => String::new(),
-    };
+    ).unwrap_or_default();
 
     let commits: Vec<GitCommit> = out
         .split(GIT_LOG_RECORD_SEPARATOR)

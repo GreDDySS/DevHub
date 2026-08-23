@@ -84,9 +84,9 @@ pub fn get_projects() -> Vec<Project> {
                 let last_modified = std::fs::metadata(&p.path)
                     .and_then(|m| m.modified())
                     .ok()
-                    .and_then(|t| {
+                    .map(|t| {
                         let datetime: chrono::DateTime<Utc> = t.into();
-                        Some(datetime)
+                        datetime
                     })
                     .unwrap_or(p.updated_at);
                 project.status = crate::models::calculate_status(last_modified, inactive_days);

@@ -38,7 +38,7 @@ pub fn scan_ides() -> Vec<IdeEntry> {
                                             if let Ok(entries) = std::fs::read_dir(dir) {
                                                 for entry in entries.flatten() {
                                                     let p = entry.path();
-                                                    if p.extension().map_or(false, |e| e == "exe") {
+                                                    if p.extension().is_some_and(|e| e == "exe") {
                                                         let name = p
                                                             .file_stem()
                                                             .unwrap_or_default()

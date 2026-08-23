@@ -39,10 +39,10 @@ pub fn get_projects(filter: Option<ProjectFilter>) -> Vec<Project> {
 
         match filter.sort_by.as_deref() {
             Some("name_asc") => {
-                projects.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+                projects.sort_by_key(|a| a.name.to_lowercase());
             }
             Some("name_desc") => {
-                projects.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
+                projects.sort_by_key(|a| std::cmp::Reverse(a.name.to_lowercase()));
             }
             _ => {
                 projects.sort_by(|a, b| {
@@ -149,20 +149,4 @@ pub async fn detect_projects(
 
     let _ = app.emit("scan-complete", ());
     result
-}
-
-impl Default for UpdateProjectRequest {
-    fn default() -> Self {
-        Self {
-            name: None,
-            path: None,
-            description: None,
-            language: None,
-            status: None,
-            tags: None,
-            preferred_ide: None,
-            is_favorite: None,
-            is_hidden: None,
-        }
-    }
 }

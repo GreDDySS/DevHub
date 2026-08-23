@@ -5,18 +5,16 @@ use uuid::Uuid;
 pub const CURRENT_SETTINGS_VERSION: u32 = 1;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum ProjectStatus {
+    #[default]
     Active,
     Inactive,
 }
 
-impl Default for ProjectStatus {
-    fn default() -> Self {
-        Self::Active
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum ProgrammingLanguage {
     CSharp,
     Python,
@@ -26,27 +24,20 @@ pub enum ProgrammingLanguage {
     Go,
     Java,
     Cpp,
+    #[default]
     Other,
 }
 
-impl Default for ProgrammingLanguage {
-    fn default() -> Self {
-        Self::Other
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum CloseAction {
     Exit,
+    #[default]
     MinimizeToTray,
     Ask,
 }
 
-impl Default for CloseAction {
-    fn default() -> Self {
-        Self::MinimizeToTray
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
@@ -134,17 +125,14 @@ impl Link {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum TodoPriority {
     Low,
+    #[default]
     Normal,
     High,
 }
 
-impl Default for TodoPriority {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Todo {
@@ -282,7 +270,7 @@ pub struct CreateProjectRequest {
     pub language: Option<ProgrammingLanguage>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UpdateProjectRequest {
     pub name: Option<String>,
     pub path: Option<String>,
