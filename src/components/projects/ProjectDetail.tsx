@@ -9,18 +9,25 @@ import {
   Code2,
   FolderOpen,
   ArrowLeft,
+  File,
+  HardDrive,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { useStatsStore } from "@/stores/statsStore";
+import { TodoList } from "@/components/projects/TodoList";
+import { ProjectLinks } from "@/components/projects/ProjectLinks";
+import { GitActivitySection } from "@/components/projects/GitActivity";
 import type { Project } from "@/lib/types";
 import {
   LANGUAGE_ICONS,
   LANGUAGE_COLORS,
   STATUS_COLORS,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes, formatRelativeTime } from "@/lib/utils";
 
 interface ProjectDetailProps {
   project: Project;
@@ -31,8 +38,13 @@ export function ProjectDetail({ project, onClose }: ProjectDetailProps) {
   const { openInExplorer, openInConsole, openInIde, toggleFavorite } =
     useProjectStore();
   const { settings } = useSettingsStore();
+  const { stats, fetchStats } = useStatsStore();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  useEffect(() => {
+    fetchStats(project.path);
+  }, [project.path, fetchStats]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -140,19 +152,60 @@ export function ProjectDetail({ project, onClose }: ProjectDetailProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
-          <p className="text-sm text-muted-foreground">
-            Project details coming soon...
-          </p>
+          <div className="max-w-5xl mx-auto flex flex-col gap-10">
+            <div className="grid grid-cols-2 divide-x divide-border">
+              <div className="min-w-0 pr-6">
+                <TodoList projectId={project.id} />
+              </div>
+              <div className="min-w-0 pl-6">
+                <ProjectLinks projectId={project.id} />
+              </div>
+            </div>
+            <GitActivitySection projectPath={project.path} />
+          </div>
         </div>
 
         {/* Footer actions */}
         <div className="flex items-center justify-between px-6 py-3 border-t border-border shrink-0">
-          <div className="flex items-center gap-1.5">
-            {project.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+          <div className="flex items-center gap-3 min-w-0">
+            {stats && (
+              <div
+                className="hidden md:flex items-center gap-2.5 text-xs text-muted-foreground shrink-0"
+                title="Source size · full disk size · last file change"
+              >
+                <span className="flex items-center gap-1">
+                  <File className="h-3 w-3" />
+                  {stats.file_count.toLocaleString()}
+                </span>
+                <span className="text-border">|</span>
+                <span className="flex items-center gap-1">
+                  <HardDrive className="h-3 w-3" />
+                  {formatBytes(stats.source_size)}
+                  {stats.total_size !== stats.source_size && (
+                    <span className="text-muted-foreground/60">
+                      {" "}
+                      / {formatBytes(stats.total_size)}
+                    </span>
+                  )}
+                </span>
+                {stats.last_modified > 0 && (
+                  <>
+                    <span className="text-border">|</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatRelativeTime(stats.last_modified)}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+              {project.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
           </div>
           <div className="flex items-center gap-1">
             {ides.length > 0 && (
