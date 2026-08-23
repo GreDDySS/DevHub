@@ -24,6 +24,7 @@ import { AddProjectDialog } from "./AddProjectDialog";
 import { ScanProjectsDialog } from "./ScanProjectsDialog";
 import { useProjectStore } from "@/stores/projectStore";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { useUiStore } from "@/stores/uiStore";
 import { LANGUAGE_ICONS } from "@/lib/types";
 import type { ProjectStatus, ProgrammingLanguage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -59,14 +60,12 @@ export function ProjectList() {
   } = useProjectStore();
 
   const { settings } = useSettingsStore();
+  const { detailProjectId, closeProjectDetail, openProjectDetail } = useUiStore();
 
   const [searchQuery, setSearchQuery] = useState(filter.search_query || "");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showScanDialog, setShowScanDialog] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
   const searchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -285,7 +284,7 @@ export function ProjectList() {
               key={project.id}
               project={project}
               viewMode={viewMode}
-              onSelect={() => setSelectedProjectId(project.id)}
+              onSelect={() => openProjectDetail(project.id)}
             />
           ))}
         </div>
@@ -297,15 +296,15 @@ export function ProjectList() {
       {showScanDialog && (
         <ScanProjectsDialog onClose={() => setShowScanDialog(false)} />
       )}
-      {selectedProjectId &&
+      {detailProjectId &&
         (() => {
-          const project = projects.find((p) => p.id === selectedProjectId);
+          const project = projects.find((p) => p.id === detailProjectId);
           if (!project) return null;
           return (
             <ProjectDetail
               key={project.id}
               project={project}
-              onClose={() => setSelectedProjectId(null)}
+              onClose={closeProjectDetail}
             />
           );
         })()}
