@@ -1,4 +1,5 @@
 use super::*;
+use crate::models::ProjectStats;
 
 #[test]
 fn test_walk_stats_separates_source_and_artifacts() {
