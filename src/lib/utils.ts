@@ -28,6 +28,16 @@ export function truncate(str: string, length: number): string {
   return str.slice(0, length) + "...";
 }
 
+export function isMac(): boolean {
+  return /Mac|iPhone|iPad/i.test(
+    typeof navigator !== "undefined" ? navigator.userAgent : ""
+  );
+}
+
+export function getPaletteHotkeyLabel(): string {
+  return isMac() ? "⌘ K" : "Ctrl + K";
+}
+
 export function formatRelativeTime(timestamp: number | string): string {
   const date =
     typeof timestamp === "number"

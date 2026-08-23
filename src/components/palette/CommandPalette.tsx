@@ -16,7 +16,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useUiStore } from "@/stores/uiStore";
 import type { Project, Link } from "@/lib/types";
 import { LANGUAGE_ICONS } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, getPaletteHotkeyLabel } from "@/lib/utils";
 import { fuzzyMatch, type FuzzyResult } from "@/lib/fuzzy";
 
 interface PaletteAction {
@@ -352,6 +352,10 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         </div>
 
         <div className="flex items-center gap-4 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+          <span>
+            <kbd className="px-1 py-0.5 bg-muted rounded">{getPaletteHotkeyLabel()}</kbd>{" "}
+            toggle
+          </span>
           <span>↑↓ navigate</span>
           <span>↵ select</span>
           <span>esc close</span>

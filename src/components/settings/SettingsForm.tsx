@@ -33,6 +33,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import type { CloseAction, IdeEntry } from "@/lib/types";
+import { getPaletteHotkeyLabel } from "@/lib/utils";
 
 function isWindows(): boolean {
   return navigator.userAgent.includes("Win");
@@ -474,6 +475,14 @@ export function SettingsForm() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <kbd className="px-2 py-1 text-xs bg-muted rounded">
+                  {getPaletteHotkeyLabel()}
+                </kbd>
+                <span className="text-sm text-muted-foreground">
+                  Open command palette
+                </span>
+              </div>
               <div className="flex items-center justify-between">
                 <kbd className="px-2 py-1 text-xs bg-muted rounded">
                   Ctrl + Shift + Y
