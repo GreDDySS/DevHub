@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { GitBranch } from "lucide-react";
+import { GitBranch, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useGitStore } from "@/stores/gitStore";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, cn } from "@/lib/utils";
 
 interface GitActivityProps {
   projectPath: string;
@@ -18,7 +19,7 @@ export function GitActivitySection({ projectPath }: GitActivityProps) {
     return () => clearGitActivity();
   }, [projectPath, fetchGitActivity, clearGitActivity]);
 
-  if (isLoading) {
+  if (isLoading && !activity) {
     return (
       <div className="flex items-center gap-2 py-4 text-xs text-muted-foreground">
         <GitBranch className="h-4 w-4 animate-pulse" />
@@ -44,6 +45,16 @@ export function GitActivitySection({ projectPath }: GitActivityProps) {
             {activity.total_commits} commits
           </span>
         )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 ml-auto opacity-40 hover:opacity-100 transition-opacity"
+          onClick={() => fetchGitActivity(projectPath)}
+          disabled={isLoading}
+          title="Refresh git activity"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
+        </Button>
       </div>
 
       <div className="flex flex-col">
