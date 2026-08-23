@@ -3,12 +3,12 @@
 // This is a Chromium internal issue — the class is still in use when the app exits.
 // No fix available; affects most Tauri/WebView2 apps on Windows. Safe to ignore.
 
-mod models;
-mod storage;
 mod commands;
-mod scanner;
 mod constants;
 mod ide_detection;
+mod models;
+mod scanner;
+mod storage;
 
 use tauri::Manager;
 
@@ -31,7 +31,7 @@ pub fn run() {
 
             #[cfg(desktop)]
             {
-                use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState, TrayIconEvent};
+                use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
                 let _tray = TrayIconBuilder::new()
                     .tooltip("DevHub")
@@ -50,19 +50,17 @@ pub fn run() {
                             }
                         }
                     })
-                    .on_menu_event(|app, event| {
-                        match event.id.as_ref() {
-                            "show" => {
-                                if let Some(window) = app.get_webview_window("main") {
-                                    let _ = window.show();
-                                    let _ = window.set_focus();
-                                }
+                    .on_menu_event(|app, event| match event.id.as_ref() {
+                        "show" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
                             }
-                            "quit" => {
-                                app.exit(0);
-                            }
-                            _ => {}
                         }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
                     })
                     .build(app)?;
 
@@ -70,10 +68,8 @@ pub fn run() {
                 {
                     use tauri::menu::{MenuBuilder, MenuItemBuilder};
 
-                    let show = MenuItemBuilder::with_id("show", "Show DevHub")
-                        .build(app)?;
-                    let quit = MenuItemBuilder::with_id("quit", "Exit")
-                        .build(app)?;
+                    let show = MenuItemBuilder::with_id("show", "Show DevHub").build(app)?;
+                    let quit = MenuItemBuilder::with_id("quit", "Exit").build(app)?;
 
                     let menu = MenuBuilder::new(app)
                         .item(&show)
@@ -88,12 +84,11 @@ pub fn run() {
             // Setup global shortcut (Ctrl+Shift+Y) — save link from clipboard
             #[cfg(desktop)]
             {
-                use tauri_plugin_global_shortcut::{
-                    Code, GlobalShortcutExt, Modifiers, Shortcut,
-                };
                 use tauri_plugin_clipboard_manager::ClipboardExt;
+                use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
-                let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyY);
+                let shortcut =
+                    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyY);
                 let app_handle = app.handle().clone();
 
                 app.global_shortcut()

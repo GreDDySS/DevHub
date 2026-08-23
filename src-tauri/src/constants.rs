@@ -1,25 +1,57 @@
 /// Directories to skip during recursive directory traversal.
 pub const EXCLUDED_DIRS: &[&str] = &[
-    "node_modules", ".git", "bin", "obj", ".vs", ".vscode",
-    "target", "dist", "build", ".next", "__pycache__",
+    "node_modules",
+    ".git",
+    "bin",
+    "obj",
+    ".vs",
+    ".vscode",
+    "target",
+    "dist",
+    "build",
+    ".next",
+    "__pycache__",
 ];
 
 /// Directories to skip during language detection (includes runtime dirs).
 pub const EXCLUDED_LANG_DETECT: &[&str] = &[
-    "node_modules", ".git", "target", "dist", "build", "__pycache__", "venv", ".venv",
+    "node_modules",
+    ".git",
+    "target",
+    "dist",
+    "build",
+    "__pycache__",
+    "venv",
+    ".venv",
 ];
 
 /// Directories excluded from project stats (artifacts counted into disk size only).
 pub const STATS_EXCLUDED_DIRS: &[&str] = &[
-    ".git", "node_modules", "target", "dist", "build", "out",
-    ".next", "__pycache__", ".venv", "venv",
+    ".git",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    "out",
+    ".next",
+    "__pycache__",
+    ".venv",
+    "venv",
 ];
 
 /// Files whose presence marks a directory as a project root during scanning.
 pub const PROJECT_MARKERS: &[&str] = &[
-    "Cargo.toml", "package.json", "go.mod", "pom.xml", "build.gradle",
-    "CMakeLists.txt", "requirements.txt", "setup.py", "pyproject.toml",
-    "Gemfile", "composer.json",
+    "Cargo.toml",
+    "package.json",
+    "go.mod",
+    "pom.xml",
+    "build.gradle",
+    "CMakeLists.txt",
+    "requirements.txt",
+    "setup.py",
+    "pyproject.toml",
+    "Gemfile",
+    "composer.json",
 ];
 
 /// Field/record separators for parsing `git log --pretty=format:` output.
@@ -108,16 +140,28 @@ pub mod ide {
     /// (.app bundle name, friendly name, executable path inside the bundle).
     #[allow(dead_code)]
     pub const MACOS_IDE_APPS: &[(&str, &str, &str)] = &[
-        ("Visual Studio Code.app", VS_CODE, "Contents/Resources/app/bin/code"),
+        (
+            "Visual Studio Code.app",
+            VS_CODE,
+            "Contents/Resources/app/bin/code",
+        ),
         ("Rider.app", RIDER, "Contents/MacOS/rider"),
         ("IntelliJ IDEA.app", INTELLIJ_IDEA, "Contents/MacOS/idea"),
         ("WebStorm.app", WEBSTORM, "Contents/MacOS/webstorm"),
         ("PyCharm.app", PYCHARM, "Contents/MacOS/pycharm"),
-        ("PyCharm CE.app", PYCHARM_COMMUNITY, "Contents/MacOS/pycharm"),
+        (
+            "PyCharm CE.app",
+            PYCHARM_COMMUNITY,
+            "Contents/MacOS/pycharm",
+        ),
         ("CLion.app", CLION, "Contents/MacOS/clion"),
         ("GoLand.app", GOLAND, "Contents/MacOS/goland"),
         ("RustRover.app", RUSTROVER, "Contents/MacOS/rustrover"),
-        ("Sublime Text.app", SUBLIME_TEXT, "Contents/SharedSupport/bin/subl"),
+        (
+            "Sublime Text.app",
+            SUBLIME_TEXT,
+            "Contents/SharedSupport/bin/subl",
+        ),
     ];
 
     #[allow(dead_code)]
