@@ -1,7 +1,7 @@
 <h1 align="center">DevHub</h1>
 
 <p align="center">
-  <strong>Developer productivity hub — organize projects, capture links, launch IDEs from one place.</strong>
+  <strong>Developer productivity hub — organize projects, track tasks, capture links and launch IDEs from one place.</strong>
 </p>
 
 <p align="center">
@@ -19,6 +19,11 @@ DevHub is a desktop app for developers who juggle multiple projects and links. I
 **Core features:**
 
 - **Project catalog** — add your projects, mark favorites, filter by status, search instantly
+- **Project detail dashboard** — per-project TODO list, attached links, git activity and stats in one view
+- **TODO lists** — priorities (Low/Normal/High), inline editing, filters, progress bar, quick add via `+`
+- **Project links** — attach URLs to a project, open/copy/delete in one click; all links also visible on the Links page with project badges
+- **Git activity** — current branch, total commit count and latest commits with relative timestamps (shown only for git repositories)
+- **Project stats** — file/dir counts, source size vs full disk size, last change time
 - **Link capture** — press **Ctrl+Shift+Y** anywhere to save a URL from clipboard with auto-detected type (YouTube, GitHub, docs, article)
 - **IDE launcher** — auto-detects installed IDEs (VS Code, Rider, IntelliJ, and more) and opens projects directly
 - **Project scanner** — finds codebases on your disk by detecting project files (package.json, Cargo.toml, go.mod, etc.)
@@ -73,7 +78,8 @@ All data is stored locally:
 | File | Contents |
 |------|----------|
 | `projects.json` | Your project catalog |
-| `links.json` | Captured links |
+| `links.json` | Captured links (with optional project attachments) |
+| `todos.json` | TODO tasks per project |
 | `settings.json` | IDE config, close behavior, autostart, theme |
 
 Location: `%LOCALAPPDATA%/DevHub/` (Windows), `~/.local/share/DevHub/` (Linux), `~/Library/Application Support/DevHub/` (macOS).
