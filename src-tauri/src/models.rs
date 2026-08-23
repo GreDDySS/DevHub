@@ -133,6 +133,83 @@ impl Link {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum TodoPriority {
+    Low,
+    Normal,
+    High,
+}
+
+impl Default for TodoPriority {
+    fn default() -> Self {
+        Self::Normal
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Todo {
+    pub id: String,
+    pub project_id: Option<String>,
+    pub title: String,
+    pub priority: TodoPriority,
+    pub is_completed: bool,
+    pub created_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl Todo {
+    pub fn new(title: String, project_id: Option<String>) -> Result<Self, String> {
+        let title = title.trim().to_string();
+        if title.is_empty() {
+            return Err("Todo title cannot be empty".to_string());
+        }
+        if title.len() > 500 {
+            return Err("Todo title cannot exceed 500 characters".to_string());
+        }
+
+        let now = Utc::now();
+        Ok(Self {
+            id: Uuid::new_v4().to_string(),
+            project_id,
+            title,
+            priority: TodoPriority::default(),
+            is_completed: false,
+            created_at: now,
+            completed_at: None,
+            updated_at: now,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitCommit {
+    pub hash: String,
+    pub short_hash: String,
+    pub author: String,
+    pub message: String,
+    pub timestamp: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitActivity {
+    pub branch: String,
+    pub total_commits: u64,
+    pub commits: Vec<GitCommit>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ProjectStats {
+    /// Files outside build-artifact/VCS dirs
+    pub file_count: u64,
+    pub dir_count: u64,
+    /// Full size on disk, including artifacts (.git, node_modules, ...)
+    pub total_size: u64,
+    /// Size excluding artifacts
+    pub source_size: u64,
+    pub last_modified: i64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdeEntry {
     pub name: String,
@@ -215,6 +292,13 @@ pub struct UpdateProjectRequest {
     pub preferred_ide: Option<Option<String>>,
     pub is_favorite: Option<bool>,
     pub is_hidden: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UpdateTodoRequest {
+    pub title: Option<String>,
+    pub priority: Option<TodoPriority>,
+    pub is_completed: Option<bool>,
 }
 
 #[cfg(test)]
@@ -340,6 +424,42 @@ mod tests {
         assert!(req.description.is_none());
         assert!(req.is_favorite.is_none());
         assert!(req.is_hidden.is_none());
+    }
+
+    #[test]
+    fn test_todo_new() {
+        let todo = Todo::new("Write tests".to_string(), Some("p1".to_string()));
+        assert!(todo.is_ok());
+
+        let t = todo.unwrap();
+        assert_eq!(t.title, "Write tests");
+        assert_eq!(t.project_id, Some("p1".to_string()));
+        assert!(!t.is_completed);
+        assert_eq!(t.priority, TodoPriority::Normal);
+        assert!(t.completed_at.is_none());
+    }
+
+    #[test]
+    fn test_todo_new_empty_title() {
+        let todo = Todo::new("   ".to_string(), None);
+        assert!(todo.is_err());
+        assert!(todo.unwrap_err().contains("empty"));
+    }
+
+    #[test]
+    fn test_todo_new_trims_title() {
+        let todo = Todo::new("  Task  ".to_string(), None).unwrap();
+        assert_eq!(todo.title, "Task");
+    }
+
+    #[test]
+    fn test_todo_roundtrip_serialization() {
+        let todo = Todo::new("Serialize me".to_string(), None).unwrap();
+        let json = serde_json::to_string(&todo).unwrap();
+        let deserialized: Todo = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.title, todo.title);
+        assert_eq!(deserialized.id, todo.id);
+        assert_eq!(deserialized.priority, todo.priority);
     }
 
     #[test]

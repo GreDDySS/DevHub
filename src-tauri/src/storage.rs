@@ -4,10 +4,11 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use chrono::Utc;
 
-use crate::models::{Project, Link, AppSettings, CURRENT_SETTINGS_VERSION};
+use crate::models::{Project, Link, Todo, AppSettings, CURRENT_SETTINGS_VERSION};
 
 static PROJECTS: Lazy<Mutex<Vec<Project>>> = Lazy::new(|| Mutex::new(Vec::new()));
 static LINKS: Lazy<Mutex<Vec<Link>>> = Lazy::new(|| Mutex::new(Vec::new()));
+static TODOS: Lazy<Mutex<Vec<Todo>>> = Lazy::new(|| Mutex::new(Vec::new()));
 static SETTINGS: Lazy<Mutex<AppSettings>> = Lazy::new(|| Mutex::new(AppSettings::default()));
 
 pub fn get_data_dir() -> PathBuf {
@@ -47,6 +48,13 @@ pub fn init_storage() -> Result<(), Box<dyn std::error::Error>> {
         let data = fs::read_to_string(&links_file)?;
         let links: Vec<Link> = serde_json::from_str(&data)?;
         *LINKS.lock().unwrap() = links;
+    }
+    
+    // Load todos
+    let todos_file = data_dir.join("todos.json");    if todos_file.exists() {
+        let data = fs::read_to_string(&todos_file)?;
+        let todos: Vec<Todo> = serde_json::from_str(&data)?;
+        *TODOS.lock().unwrap() = todos;
     }
     
     // Load settings
@@ -152,6 +160,23 @@ pub fn update_project(id: &str, update: crate::models::UpdateProjectRequest) -> 
 pub fn delete_project(id: &str) -> Result<(), String> {
     let data_dir = get_data_dir();
     let projects_file = data_dir.join("projects.json");
+    let links_file = data_dir.join("links.json");
+    let links_data = {
+        let mut links = LINKS.lock().unwrap();
+        let mut changed = false;
+        for link in links.iter_mut() {
+            if link.project_id.as_deref() == Some(id) {
+                link.project_id = None;
+                changed = true;
+            }
+        }
+        if changed {
+            serde_json::to_string_pretty(&*links)
+                .map_err(|e| format!("Failed to serialize links: {}", e))?
+        } else {
+            String::new()
+        }
+    };
     let data = {
         let mut projects = PROJECTS.lock().unwrap();
         let initial_len = projects.len();
@@ -166,6 +191,10 @@ pub fn delete_project(id: &str) -> Result<(), String> {
     };
     fs::write(&projects_file, data)
         .map_err(|e| format!("Failed to write projects file: {}", e))?;
+    if !links_data.is_empty() {
+        fs::write(&links_file, links_data)
+            .map_err(|e| format!("Failed to write links file: {}", e))?;
+    }
     Ok(())
 }
 
@@ -226,6 +255,115 @@ pub fn delete_link(id: &str) -> Result<(), String> {
     Ok(())
 }
 
+pub fn get_todos() -> Vec<Todo> {
+    let mut todos = TODOS.lock().unwrap().clone();
+    todos.sort_by(|a, b| {
+        a.is_completed
+            .cmp(&b.is_completed)
+            .then_with(|| priority_rank(&b.priority).cmp(&priority_rank(&a.priority)))
+            .then_with(|| b.created_at.cmp(&a.created_at))
+    });
+    todos
+}
+
+fn priority_rank(priority: &crate::models::TodoPriority) -> u8 {
+    match priority {
+        crate::models::TodoPriority::High => 2,
+        crate::models::TodoPriority::Normal => 1,
+        crate::models::TodoPriority::Low => 0,
+    }
+}
+
+pub fn add_todo(todo: Todo) -> Result<(), String> {
+    let data_dir = get_data_dir();
+    let todos_file = data_dir.join("todos.json");
+    let data = {
+        let mut todos = TODOS.lock().unwrap();
+        todos.push(todo);
+        serde_json::to_string_pretty(&*todos)
+            .map_err(|e| format!("Failed to serialize todos: {}", e))?
+    };
+    fs::write(&todos_file, data)
+        .map_err(|e| format!("Failed to write todos file: {}", e))?;
+    Ok(())
+}
+
+pub fn update_todo(id: &str, update: crate::models::UpdateTodoRequest) -> Result<Todo, String> {
+    let data_dir = get_data_dir();
+    let todos_file = data_dir.join("todos.json");
+    let (result, data) = {
+        let mut todos = TODOS.lock().unwrap();
+        let todo = todos.iter_mut().find(|t| t.id == id)
+            .ok_or_else(|| format!("Todo not found: {}", id))?;
+
+        if let Some(title) = update.title {
+            let title = title.trim().to_string();
+            if title.is_empty() {
+                return Err("Todo title cannot be empty".to_string());
+            }
+            todo.title = title;
+        }
+        if let Some(priority) = update.priority {
+            todo.priority = priority;
+        }
+        if let Some(is_completed) = update.is_completed {
+            if is_completed != todo.is_completed {
+                todo.is_completed = is_completed;
+                todo.completed_at = if is_completed { Some(chrono::Utc::now()) } else { None };
+            }
+        }
+
+        todo.updated_at = chrono::Utc::now();
+
+        let result = todo.clone();
+        let data = serde_json::to_string_pretty(&*todos)
+            .map_err(|e| format!("Failed to serialize todos: {}", e))?;
+        (result, data)
+    };
+    fs::write(&todos_file, data)
+        .map_err(|e| format!("Failed to write todos file: {}", e))?;
+    Ok(result)
+}
+
+pub fn delete_todo(id: &str) -> Result<(), String> {
+    let data_dir = get_data_dir();
+    let todos_file = data_dir.join("todos.json");
+    let data = {
+        let mut todos = TODOS.lock().unwrap();
+        let initial_len = todos.len();
+        todos.retain(|t| t.id != id);
+
+        if todos.len() == initial_len {
+            return Err(format!("Todo not found: {}", id));
+        }
+
+        serde_json::to_string_pretty(&*todos)
+            .map_err(|e| format!("Failed to serialize todos: {}", e))?
+    };
+    fs::write(&todos_file, data)
+        .map_err(|e| format!("Failed to write todos file: {}", e))?;
+    Ok(())
+}
+
+pub fn clear_completed_todos() -> Result<usize, String> {
+    let data_dir = get_data_dir();
+    let todos_file = data_dir.join("todos.json");
+    let (data, removed) = {
+        let mut todos = TODOS.lock().unwrap();
+        let initial_len = todos.len();
+        todos.retain(|t| !t.is_completed);
+        let removed = initial_len - todos.len();
+        let data = serde_json::to_string_pretty(&*todos)
+            .map_err(|e| format!("Failed to serialize todos: {}", e))?;
+        (data, removed)
+    };
+    if removed > 0 {
+        fs::write(&todos_file, data)
+            .map_err(|e| format!("Failed to write todos file: {}", e))?;
+    }
+    Ok(removed)
+}
+
 pub fn get_settings() -> AppSettings {
     SETTINGS.lock().unwrap().clone()
 }
@@ -258,7 +396,7 @@ fn migrate_settings(mut settings: AppSettings) -> AppSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Project, Link, UpdateProjectRequest};
+    use crate::models::{Project, Link, Todo, UpdateProjectRequest};
 
     fn setup_test_dir() -> PathBuf {
         let dir = std::env::temp_dir().join(format!("devhub_test_{}", uuid::Uuid::new_v4()));
@@ -275,6 +413,7 @@ mod tests {
     fn reset_storage() {
         *PROJECTS.lock().unwrap() = Vec::new();
         *LINKS.lock().unwrap() = Vec::new();
+        *TODOS.lock().unwrap() = Vec::new();
         *SETTINGS.lock().unwrap() = AppSettings::default();
     }
 
@@ -480,6 +619,208 @@ mod tests {
         reset_storage();
         let result = delete_link("nonexistent-id");
         assert!(result.is_err());
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_delete_project_detaches_links() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let project = Project::new("WithLinks".to_string(), "/path/withlinks".to_string()).unwrap();
+        let pid = project.id.clone();
+        add_project(project).unwrap();
+
+        let mut attached = Link::new("https://example.com/a".to_string()).unwrap();
+        attached.project_id = Some(pid.clone());
+        add_link(attached).unwrap();
+
+        delete_project(&pid).unwrap();
+
+        let links = get_links();
+        assert_eq!(links.len(), 1);
+        assert_eq!(links[0].project_id, None);
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_add_and_get_todo() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Task A".to_string(), None).unwrap();
+        add_todo(todo).unwrap();
+        let todos = get_todos();
+        assert_eq!(todos.len(), 1);
+        assert_eq!(todos[0].title, "Task A");
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_get_todos_sorts_incomplete_first_by_priority() {
+        let dir = setup_test_dir();
+        reset_storage();
+
+        let mut low = Todo::new("Low task".to_string(), None).unwrap();
+        low.priority = crate::models::TodoPriority::Low;
+        let mut high = Todo::new("High task".to_string(), None).unwrap();
+        high.priority = crate::models::TodoPriority::High;
+        let normal = Todo::new("Normal task".to_string(), None).unwrap();
+
+        add_todo(low.clone()).unwrap();
+        add_todo(high.clone()).unwrap();
+        add_todo(normal.clone()).unwrap();
+
+        update_todo(
+            &high.id,
+            crate::models::UpdateTodoRequest {
+                is_completed: Some(true),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        let todos = get_todos();
+        assert_eq!(todos[0].title, "Normal task");
+        assert_eq!(todos[1].title, "Low task");
+        assert_eq!(todos[2].title, "High task");
+        assert!(todos[2].is_completed);
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_update_todo_title_and_priority() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Before".to_string(), None).unwrap();
+        let id = todo.id.clone();
+        add_todo(todo).unwrap();
+
+        let updated = update_todo(
+            &id,
+            crate::models::UpdateTodoRequest {
+                title: Some("After".to_string()),
+                priority: Some(crate::models::TodoPriority::High),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(updated.title, "After");
+        assert_eq!(updated.priority, crate::models::TodoPriority::High);
+        assert!(!updated.is_completed);
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_toggle_todo_sets_completed_at() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Toggle me".to_string(), None).unwrap();
+        let id = todo.id.clone();
+        add_todo(todo).unwrap();
+
+        let completed = update_todo(
+            &id,
+            crate::models::UpdateTodoRequest {
+                is_completed: Some(true),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(completed.is_completed);
+        assert!(completed.completed_at.is_some());
+
+        let uncompleted = update_todo(
+            &id,
+            crate::models::UpdateTodoRequest {
+                is_completed: Some(false),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(!uncompleted.is_completed);
+        assert!(uncompleted.completed_at.is_none());
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_update_todo_empty_title_rejected() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Keep me".to_string(), None).unwrap();
+        let id = todo.id.clone();
+        add_todo(todo).unwrap();
+
+        let result = update_todo(
+            &id,
+            crate::models::UpdateTodoRequest {
+                title: Some("   ".to_string()),
+                ..Default::default()
+            },
+        );
+        assert!(result.is_err());
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_delete_todo() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Delete me".to_string(), None).unwrap();
+        let id = todo.id.clone();
+        add_todo(todo).unwrap();
+        delete_todo(&id).unwrap();
+        assert_eq!(get_todos().len(), 0);
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_delete_todo_not_found() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let result = delete_todo("nonexistent-id");
+        assert!(result.is_err());
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_clear_completed_todos() {
+        let dir = setup_test_dir();
+        reset_storage();
+        for i in 0..3 {
+            let t = Todo::new(format!("Task {}", i), None).unwrap();
+            add_todo(t).unwrap();
+        }
+        let todos = get_todos();
+        for t in todos.iter().take(2) {
+            update_todo(
+                &t.id,
+                crate::models::UpdateTodoRequest {
+                    is_completed: Some(true),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        }
+
+        let removed = clear_completed_todos().unwrap();
+        assert_eq!(removed, 2);
+        assert_eq!(get_todos().len(), 1);
+
+        let removed_again = clear_completed_todos().unwrap();
+        assert_eq!(removed_again, 0);
+        cleanup_test_dir(&dir);
+    }
+
+    #[test]
+    fn test_todos_persist_to_disk() {
+        let dir = setup_test_dir();
+        reset_storage();
+        let todo = Todo::new("Persisted".to_string(), Some("proj-1".to_string())).unwrap();
+        add_todo(todo).unwrap();
+
+        let data_dir = get_data_dir();
+        let content = fs::read_to_string(data_dir.join("todos.json")).unwrap();
+        assert!(content.contains("Persisted"));
+        assert!(content.contains("proj-1"));
         cleanup_test_dir(&dir);
     }
 
