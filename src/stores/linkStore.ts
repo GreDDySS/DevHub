@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import type { Link } from "@/lib/types";
+import { toast } from "@/stores/toastStore";
 
 interface LinkState {
   links: Link[];
@@ -100,6 +101,7 @@ export const useLinkStore = create<LinkState>((set, get) => ({
     try {
       const { writeText } = await import("@tauri-apps/plugin-clipboard-manager");
       await writeText(url);
+      toast.success("URL copied to clipboard");
     } catch (error) {
       set({ error: String(error) });
     }

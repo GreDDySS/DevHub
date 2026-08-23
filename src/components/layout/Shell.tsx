@@ -6,6 +6,7 @@ import { ProjectList } from "@/components/projects/ProjectList";
 import { LinkList } from "@/components/links/LinkList";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { CommandPalette } from "@/components/palette/CommandPalette";
+import { Toaster } from "@/components/ui/toaster";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -60,6 +61,7 @@ export function Shell() {
       </div>
       <CloseDialog />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <Toaster />
     </div>
   );
 }

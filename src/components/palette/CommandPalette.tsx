@@ -17,6 +17,7 @@ import { useUiStore } from "@/stores/uiStore";
 import type { Project, Link } from "@/lib/types";
 import { LANGUAGE_ICONS } from "@/lib/types";
 import { cn, getPaletteHotkeyLabel } from "@/lib/utils";
+import { toast } from "@/stores/toastStore";
 import { fuzzyMatch, type FuzzyResult } from "@/lib/fuzzy";
 
 interface PaletteAction {
@@ -46,7 +47,10 @@ async function copyText(text: string) {
   try {
     const { writeText } = await import("@tauri-apps/plugin-clipboard-manager");
     await writeText(text);
-  } catch {}
+    toast.success("Copied to clipboard");
+  } catch (e) {
+    toast.error(String(e));
+  }
 }
 
 function HighlightedText({ text, indices }: { text: string; indices: number[] }) {
@@ -254,7 +258,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   const closeAfter = (action: PaletteAction) => {
     onClose();
-    void action.run();
+    Promise.resolve(action.run()).catch((e) => toast.error(String(e)));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
