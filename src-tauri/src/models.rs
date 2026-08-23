@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub const CURRENT_SETTINGS_VERSION: u32 = 1;
@@ -75,7 +75,7 @@ impl Project {
         if path.trim().is_empty() {
             return Err("Project path cannot be empty".to_string());
         }
-        
+
         let now = Utc::now();
         Ok(Self {
             id: Uuid::new_v4().to_string(),
@@ -116,9 +116,9 @@ impl Link {
         if !url.starts_with("http://") && !url.starts_with("https://") {
             return Err("URL must start with http:// or https://".to_string());
         }
-        
+
         let now = Utc::now();
-        
+
         Ok(Self {
             id: Uuid::new_v4().to_string(),
             title: String::new(),
@@ -302,181 +302,5 @@ pub struct UpdateTodoRequest {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_project_new() {
-        let project = Project::new("Test Project".to_string(), "/path/to/project".to_string());
-        assert!(project.is_ok());
-        
-        let p = project.unwrap();
-        assert_eq!(p.name, "Test Project");
-        assert_eq!(p.path, "/path/to/project");
-        assert_eq!(p.status, ProjectStatus::Active);
-        assert_eq!(p.language, ProgrammingLanguage::Other);
-        assert!(!p.is_favorite);
-        assert!(!p.is_hidden);
-    }
-
-    #[test]
-    fn test_project_new_empty_name() {
-        let project = Project::new("".to_string(), "/path/to/project".to_string());
-        assert!(project.is_err());
-        assert!(project.unwrap_err().contains("empty"));
-    }
-
-    #[test]
-    fn test_project_new_empty_path() {
-        let project = Project::new("Test".to_string(), "".to_string());
-        assert!(project.is_err());
-        assert!(project.unwrap_err().contains("empty"));
-    }
-
-    #[test]
-    fn test_project_new_long_name() {
-        let long_name = "a".repeat(201);
-        let project = Project::new(long_name, "/path".to_string());
-        assert!(project.is_err());
-        assert!(project.unwrap_err().contains("200 characters"));
-    }
-
-    #[test]
-    fn test_project_new_trims_whitespace() {
-        let project = Project::new("  Test  ".to_string(), "  /path  ".to_string()).unwrap();
-        assert_eq!(project.name, "Test");
-        assert_eq!(project.path, "/path");
-    }
-
-    #[test]
-    fn test_link_new() {
-        let link = Link::new("https://github.com/test/repo".to_string());
-        assert!(link.is_ok());
-        
-        let l = link.unwrap();
-        assert_eq!(l.url, "https://github.com/test/repo");
-    }
-
-    #[test]
-    fn test_link_new_empty() {
-        let link = Link::new("".to_string());
-        assert!(link.is_err());
-    }
-
-    #[test]
-    fn test_link_new_no_protocol() {
-        let link = Link::new("github.com/test".to_string());
-        assert!(link.is_err());
-        assert!(link.unwrap_err().contains("http"));
-    }
-
-    #[test]
-    fn test_close_action_serialization() {
-        let exit = CloseAction::Exit;
-        let json = serde_json::to_string(&exit).unwrap();
-        assert_eq!(json, "\"Exit\"");
-        
-        let minimize = CloseAction::MinimizeToTray;
-        let json = serde_json::to_string(&minimize).unwrap();
-        assert_eq!(json, "\"MinimizeToTray\"");
-        
-        let ask = CloseAction::Ask;
-        let json = serde_json::to_string(&ask).unwrap();
-        assert_eq!(json, "\"Ask\"");
-    }
-
-    #[test]
-    fn test_close_action_deserialization() {
-        let exit: CloseAction = serde_json::from_str("\"Exit\"").unwrap();
-        assert_eq!(exit, CloseAction::Exit);
-        
-        let minimize: CloseAction = serde_json::from_str("\"MinimizeToTray\"").unwrap();
-        assert_eq!(minimize, CloseAction::MinimizeToTray);
-        
-        let ask: CloseAction = serde_json::from_str("\"Ask\"").unwrap();
-        assert_eq!(ask, CloseAction::Ask);
-    }
-
-    #[test]
-    fn test_settings_default() {
-        let settings = AppSettings::default();
-        assert!(settings.ides.is_empty());
-        assert_eq!(settings.default_ide_index, 0);
-        assert!(!settings.autostart_enabled);
-        assert_eq!(settings.close_action, CloseAction::MinimizeToTray);
-        assert!(!settings.is_dark_theme);
-    }
-
-    #[test]
-    fn test_settings_serialization_roundtrip() {
-        let settings = AppSettings::default();
-        let json = serde_json::to_string(&settings).unwrap();
-        let deserialized: AppSettings = serde_json::from_str(&json).unwrap();
-        assert_eq!(deserialized.close_action, CloseAction::MinimizeToTray);
-        assert_eq!(deserialized.autostart_enabled, false);
-    }
-
-    #[test]
-    fn test_update_project_request_default() {
-        let req = UpdateProjectRequest::default();
-        assert!(req.name.is_none());
-        assert!(req.path.is_none());
-        assert!(req.description.is_none());
-        assert!(req.is_favorite.is_none());
-        assert!(req.is_hidden.is_none());
-    }
-
-    #[test]
-    fn test_todo_new() {
-        let todo = Todo::new("Write tests".to_string(), Some("p1".to_string()));
-        assert!(todo.is_ok());
-
-        let t = todo.unwrap();
-        assert_eq!(t.title, "Write tests");
-        assert_eq!(t.project_id, Some("p1".to_string()));
-        assert!(!t.is_completed);
-        assert_eq!(t.priority, TodoPriority::Normal);
-        assert!(t.completed_at.is_none());
-    }
-
-    #[test]
-    fn test_todo_new_empty_title() {
-        let todo = Todo::new("   ".to_string(), None);
-        assert!(todo.is_err());
-        assert!(todo.unwrap_err().contains("empty"));
-    }
-
-    #[test]
-    fn test_todo_new_trims_title() {
-        let todo = Todo::new("  Task  ".to_string(), None).unwrap();
-        assert_eq!(todo.title, "Task");
-    }
-
-    #[test]
-    fn test_todo_roundtrip_serialization() {
-        let todo = Todo::new("Serialize me".to_string(), None).unwrap();
-        let json = serde_json::to_string(&todo).unwrap();
-        let deserialized: Todo = serde_json::from_str(&json).unwrap();
-        assert_eq!(deserialized.title, todo.title);
-        assert_eq!(deserialized.id, todo.id);
-        assert_eq!(deserialized.priority, todo.priority);
-    }
-
-    #[test]
-    fn test_calculate_status_active() {
-        let recent = Utc::now() - chrono::Duration::days(10);
-        assert_eq!(calculate_status(recent, 30), ProjectStatus::Active);
-    }
-
-    #[test]
-    fn test_calculate_status_inactive() {
-        let old = Utc::now() - chrono::Duration::days(60);
-        assert_eq!(calculate_status(old, 30), ProjectStatus::Inactive);
-    }
-
-    #[test]
-    fn test_calculate_status_boundary() {
-        let exactly = Utc::now() - chrono::Duration::days(30);
-        assert_eq!(calculate_status(exactly, 30), ProjectStatus::Inactive);
-    }
-}
+#[path = "tests/models_tests.rs"]
+mod tests;
