@@ -11,6 +11,10 @@ interface LinkState {
   setSearchQuery: (query: string) => void;
   fetchLinks: () => Promise<void>;
   captureLink: (url: string) => Promise<Link | null>;
+  addLink: (
+    url: string,
+    options?: { title?: string; projectId?: string }
+  ) => Promise<Link | null>;
   addLinkFromClipboard: () => Promise<Link | null>;
   deleteLink: (id: string) => Promise<boolean>;
   copyUrl: (url: string) => Promise<void>;
@@ -38,6 +42,24 @@ export const useLinkStore = create<LinkState>((set, get) => ({
   captureLink: async (url: string) => {
     try {
       const link = await invoke<Link>("capture_link", { url });
+      await get().fetchLinks();
+      return link;
+    } catch (error) {
+      set({ error: String(error) });
+      return null;
+    }
+  },
+
+  addLink: async (
+    url: string,
+    options?: { title?: string; projectId?: string }
+  ) => {
+    try {
+      const link = await invoke<Link>("add_link", {
+        url,
+        title: options?.title ?? null,
+        projectId: options?.projectId ?? null,
+      });
       await get().fetchLinks();
       return link;
     } catch (error) {

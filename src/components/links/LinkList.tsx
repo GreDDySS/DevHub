@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { CaptureLinkDialog } from "./CaptureLinkDialog";
 import { useLinkStore } from "@/stores/linkStore";
+import { useProjectStore } from "@/stores/projectStore";
 import type { Link } from "@/lib/types";
 
 export function LinkList() {
@@ -25,12 +27,18 @@ export function LinkList() {
     copyUrl,
     openInBrowser,
   } = useLinkStore();
+  const { projects, fetchProjects } = useProjectStore();
 
   const [showCaptureDialog, setShowCaptureDialog] = useState(false);
 
   useEffect(() => {
     fetchLinks();
+    fetchProjects();
   }, []);
+
+  const projectNameById = new Map(
+    projects.map((p) => [p.id, p.name])
+  );
 
   const filteredLinks = links.filter((link) => {
     const matchesSearch =
@@ -107,6 +115,11 @@ export function LinkList() {
             <LinkItem
               key={link.id}
               link={link}
+              projectName={
+                link.project_id
+                  ? projectNameById.get(link.project_id)
+                  : undefined
+              }
               onCopyUrl={handleCopyUrl}
               onOpenInBrowser={handleOpenInBrowser}
               onDelete={handleDelete}
@@ -124,6 +137,7 @@ export function LinkList() {
 
 interface LinkItemProps {
   link: Link;
+  projectName?: string;
   onCopyUrl: (e: React.MouseEvent, url: string) => void;
   onOpenInBrowser: (e: React.MouseEvent, url: string) => void;
   onDelete: (e: React.MouseEvent, id: string) => void;
@@ -131,6 +145,7 @@ interface LinkItemProps {
 
 function LinkItem({
   link,
+  projectName,
   onCopyUrl,
   onOpenInBrowser,
   onDelete,
@@ -138,7 +153,17 @@ function LinkItem({
   return (
     <div className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium truncate">{link.title || link.url}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium truncate">{link.title || link.url}</h3>
+          {projectName && (
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-1.5 h-4.5 shrink-0"
+            >
+              {projectName}
+            </Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground truncate">{link.url}</p>
       </div>
       <div className="flex items-center gap-1">
