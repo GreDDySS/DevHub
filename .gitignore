@@ -21,6 +21,9 @@ dist/
 *.swo
 *~
 
+# Agent instructions (local only)
+AGENTS.md
+
 # OS
 .DS_Store
 Thumbs.db
